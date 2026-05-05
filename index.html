@@ -28,12 +28,13 @@
         const { useState, useEffect } = React;
 
         // ==========================================
-        // SUPABASE ТОХИРГОО (ХОЛБОЛТ АМЖИЛТТАЙ)
+        // SUPABASE ТОХИРГОО (URL зассан)
         // ==========================================
-        const supabaseUrl = 'https://yyprkhrmvlpiknq qbpww.supabase.co'; // Таны URL-ийн зайг арилгаж оруулна уу
+        const supabaseUrl = 'https://yyprkhrmvlpiknqqbpww.supabase.co'; 
         const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inl5cHJraHJtdmxwaWtucXFicHd3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc5MDE3NTEsImV4cCI6MjA5MzQ3Nzc1MX0.qRuIVqaqBdv3n95fAezZAEFAP7FNCqZ-RsEPJoYmE0U';
         
-        const db = window.supabase.createClient(supabaseUrl, supabaseKey);
+        // Supabase клиент үүсгэх
+        const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
 
         const CAT_MANAGEMENT = 'Төслийн удирдлага ба Төлөвлөлт';
         const CAT_OPERATIONS = 'Ашиглалт, Засвар үйлчилгээ, түгээх (O&M) бизнес';
@@ -46,7 +47,7 @@
             { id: 'p10', category: CAT_OPERATIONS, teamInfo: 'Team Khurtsdulguun', projectName: 'DCD (Тархмал сүлжээг хянах систем)', description: 'Тархмал сүлжээний бүрэлдэхүүн хэсгүүдийн өгөгдлийн сан (Data storage) үүсгэж, уг мэдээлэл дээр үндэслэн:\n\nТогтмол мэдэгдэл (Alert): Сүлжээнд доголдол үүсэх, хүчин чадал хэтрэх эсвэл эвдрэл гарах эрсдэлтэй үед холбогдох инженерүүдэд яаралтай мэдэгдэл илгээх.\nУхаалаг Анализ: Сүлжээний ачаалал болон өгөгдөлд хиймэл оюун ухаанаар тооцоолол хийж, эвдрэл гэмтлийг урьдчилан таамаглах, сүлжээний найдвартай байдлыг хянах.\nТуршлагад суурилсан зөвлөмж: Өмнөх эвдрэл гэмтлийн түүх болон засварын мэдээлэлд үндэслэн төсөв хэрхэн оновчтой төлөвлөх, засварын зардлыг бууруулах талаар санал гаргах.\nБичиг баримтын автоматжуулалт: Сүлжээний ажиллагааны нэгдсэн тайлан, гэмтлийн акт, ээлжит төсвийн төлөвлөгөөний нооргийг (draft) автоматаар боловсруулах.', votes: 5, voters: [] }
         ];
 
-        const PitchApp = () => {
+        const App = () => {
             const [view, setView] = useState('form'); 
             const [currentSlide, setCurrentSlide] = useState(0);
             const [user, setUser] = useState(null);
@@ -66,7 +67,7 @@
             const [currentIndex, setCurrentIndex] = useState(0);
             const activeIdea = ideas[currentIndex];
 
-            // 1. Unique User ID үүсгэх (Local)
+            // 1. Unique User ID үүсгэх
             useEffect(() => {
                 let localUserId = localStorage.getItem('pitch_voter_id');
                 if (!localUserId) {
@@ -76,9 +77,9 @@
                 setUser({ uid: localUserId });
             }, []);
 
-            // 2. Supabase-ээс Realtime дата татах
+            // 2. Supabase-ээс дата татах
             const fetchVotingData = async () => {
-                const { data: dbIdeas, error } = await db.from('pitch_voting').select('*');
+                const { data: dbIdeas, error } = await supabase.from('pitch_voting').select('*');
                 if (error) {
                     console.error("Fetch error:", error);
                     return;
@@ -103,10 +104,10 @@
 
             useEffect(() => {
                 fetchVotingData();
-                const subscription = db.channel('pitch_changes')
+                const subscription = supabase.channel('pitch_changes')
                     .on('postgres_changes', { event: '*', schema: 'public', table: 'pitch_voting' }, () => fetchVotingData())
                     .subscribe();
-                return () => db.removeChannel(subscription);
+                return () => supabase.removeChannel(subscription);
             }, []);
 
             const showToast = (msg) => {
@@ -114,11 +115,11 @@
                 setTimeout(() => setToastMsg(''), 3000);
             };
 
-            // 3. Санал өгөх (Supabase Update)
+            // 3. Санал өгөх
             const toggleVote = async (idea) => {
-                if (!user) return;
-                const hasVoted = idea.voters && idea.voters.includes(user.uid);
+                if (!user || !supabase) return showToast("Холболт амжилтгүй");
                 
+                const hasVoted = idea.voters && idea.voters.includes(user.uid);
                 let newVoters = idea.voters || [];
                 let newVotes = idea.votes || 0;
 
@@ -130,7 +131,7 @@
                     newVotes = newVotes + 1;
                 }
 
-                const { error } = await db.from('pitch_voting').upsert({
+                const { error } = await supabase.from('pitch_voting').upsert({
                     id: idea.id,
                     votes: newVotes,
                     voters: newVoters,
@@ -145,15 +146,17 @@
 
             // 4. Төслийг DB рүү илгээх
             const publishToVoting = async () => {
+                if (!supabase || !user) return showToast("Өгөгдлийн сан холбогдоогүй байна");
+                
                 if (!activeIdea.projectName || !activeIdea.members) {
-                    return showToast("Төслийн нэр болон гишүүдийг оруулна уу");
+                    return showToast("Мэдээллийг бүрэн оруулна уу");
                 }
 
                 setIsSaving(true);
                 const uniqueId = `workshop_${user.uid}_${currentIndex}`;
-                const desc = `Асуудал: ${activeIdea.problem}\n\nШийдэл:\n1. ${activeIdea.solutionStep1}\n2. ${activeIdea.solutionStep2}\n\nҮнэ цэн: ${activeIdea.businessValueDesc}`;
+                const desc = `Асуудал: ${activeIdea.problem}\n\nШийдэл: ${activeIdea.solutionStep1}, ${activeIdea.solutionStep2}\n\nҮнэ цэн: ${activeIdea.businessValueDesc}`;
 
-                const { error } = await db.from('pitch_voting').upsert({
+                const { error } = await supabase.from('pitch_voting').upsert({
                     id: uniqueId,
                     teamInfo: activeIdea.members,
                     projectName: activeIdea.projectName,
@@ -165,15 +168,17 @@
 
                 setIsSaving(false);
                 if (!error) {
-                    showToast("Санал хураалтад илгээгдлээ");
+                    showToast("Санал хураалтад амжилттай илгээгдлээ");
                     setView('voting');
+                } else {
+                    showToast("Илгээхэд алдаа гарлаа");
                 }
             };
 
             const handleChange = (e) => {
                 const { name, value } = e.target;
                 const updatedIdeas = [...ideas];
-                updatedIdeas[currentIndex] = { ...updatedIdeas[currentIndex], [name]: value };
+                updatedIdeas[currentIndex] = { ...activeIdea, [name]: value };
                 setIdeas(updatedIdeas);
             };
 
@@ -255,36 +260,45 @@
                         </button>
                     </div>
 
+                    <div className="flex overflow-x-auto space-x-2 mb-6 pb-2 custom-scrollbar">
+                        {ideas.map((idea, idx) => (
+                            <button key={idx} onClick={() => setCurrentIndex(idx)} className={`px-4 py-2 rounded-xl text-sm font-medium transition-all ${currentIndex === idx ? 'bg-cyan-500/10 text-cyan-400 border border-cyan-500/30' : 'bg-slate-800/60 text-slate-400 border border-slate-700'}`}>
+                                {idea.projectName || `Санаа ${idx + 1}`}
+                                {ideas.length > 1 && <span onClick={(e) => removeIdea(idx, e)} className="ml-2 text-rose-400">✕</span>}
+                            </button>
+                        ))}
+                        <button onClick={addNewIdea} className="px-4 py-2 rounded-xl text-sm font-medium text-slate-400 border border-slate-600 border-dashed hover:text-cyan-400">Шинэ санаа</button>
+                    </div>
+
                     <div className="space-y-4">
                         <div className="bg-slate-800/50 p-6 rounded-xl border border-slate-700">
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <input type="text" name="members" value={activeIdea.members} onChange={handleChange} className="p-3 bg-slate-900/50 border border-slate-700 rounded-lg outline-none focus:border-cyan-500 text-sm" placeholder="Багийн илтгэгч / Гишүүд" />
-                                <input type="text" name="projectName" value={activeIdea.projectName} onChange={handleChange} className="p-3 bg-slate-900/50 border border-slate-700 rounded-lg outline-none focus:border-cyan-500 text-sm" placeholder="Төслийн нэр" />
-                                <select name="category" value={activeIdea.category} onChange={handleChange} className="p-3 bg-slate-900/50 border border-slate-700 rounded-lg outline-none focus:border-cyan-500 text-sm">
+                                <input type="text" name="members" value={activeIdea.members} onChange={handleChange} className="p-3 bg-slate-900/50 border border-slate-700 rounded-lg outline-none focus:border-cyan-500 text-sm text-white" placeholder="Багийн илтгэгч / Гишүүд" />
+                                <input type="text" name="projectName" value={activeIdea.projectName} onChange={handleChange} className="p-3 bg-slate-900/50 border border-slate-700 rounded-lg outline-none focus:border-cyan-500 text-sm text-white" placeholder="Төслийн нэр" />
+                                <select name="category" value={activeIdea.category} onChange={handleChange} className="p-3 bg-slate-900/50 border border-slate-700 rounded-lg outline-none focus:border-cyan-500 text-sm text-white">
                                     <option value={CAT_MANAGEMENT}>{CAT_MANAGEMENT}</option>
                                     <option value={CAT_OPERATIONS}>{CAT_OPERATIONS}</option>
                                 </select>
-                                <input type="text" name="targetUser" value={activeIdea.targetUser} onChange={handleChange} className="p-3 bg-slate-900/50 border border-slate-700 rounded-lg outline-none focus:border-cyan-500 text-sm" placeholder="Хэрэглэгч" />
+                                <input type="text" name="targetUser" value={activeIdea.targetUser} onChange={handleChange} className="p-3 bg-slate-900/50 border border-slate-700 rounded-lg outline-none focus:border-cyan-500 text-sm text-white" placeholder="Хэрэглэгч" />
                             </div>
                         </div>
-                        <textarea name="problem" value={activeIdea.problem} onChange={handleChange} rows="3" className="w-full p-4 bg-slate-800/50 border border-slate-700 rounded-xl outline-none focus:border-rose-500 text-sm resize-none" placeholder="1. Асуудал"></textarea>
+                        <textarea name="problem" value={activeIdea.problem} onChange={handleChange} rows="3" className="w-full p-4 bg-slate-800/50 border border-slate-700 rounded-xl outline-none focus:border-rose-500 text-sm text-white resize-none" placeholder="1. Асуудал"></textarea>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <input type="text" name="solutionStep1" value={activeIdea.solutionStep1} onChange={handleChange} className="p-3 bg-slate-800/50 border border-slate-700 rounded-xl outline-none focus:border-cyan-500 text-sm" placeholder="Шийдлийн алхам 1" />
-                            <input type="text" name="solutionStep2" value={activeIdea.solutionStep2} onChange={handleChange} className="p-3 bg-slate-800/50 border border-slate-700 rounded-xl outline-none focus:border-cyan-500 text-sm" placeholder="Шийдлийн алхам 2" />
+                            <input type="text" name="solutionStep1" value={activeIdea.solutionStep1} onChange={handleChange} className="p-3 bg-slate-900/50 border border-slate-700 rounded-xl outline-none focus:border-cyan-500 text-sm text-white" placeholder="Шийдлийн алхам 1" />
+                            <input type="text" name="solutionStep2" value={activeIdea.solutionStep2} onChange={handleChange} className="p-3 bg-slate-900/50 border border-slate-700 rounded-xl outline-none focus:border-cyan-500 text-sm text-white" placeholder="Шийдлийн алхам 2" />
                         </div>
-                        <textarea name="businessValueDesc" value={activeIdea.businessValueDesc} onChange={handleChange} rows="2" className="w-full p-4 bg-slate-800/50 border border-slate-700 rounded-xl outline-none focus:border-emerald-500 text-sm resize-none" placeholder="3. Бизнесийн үнэ цэн"></textarea>
+                        <textarea name="businessValueDesc" value={activeIdea.businessValueDesc} onChange={handleChange} rows="2" className="w-full p-4 bg-slate-800/50 border border-slate-700 rounded-xl outline-none focus:border-emerald-500 text-sm text-white resize-none" placeholder="3. Бизнесийн үнэ цэн"></textarea>
                     </div>
                 </div>
             );
 
-            // Презентаци харагдацыг хэвээр үлдээв
             const PresentationView = () => (
                 <div className="fixed inset-0 bg-[#0a0f1c] z-50 flex items-center justify-center p-20 text-center" onClick={() => setView('form')}>
                     <div className="max-w-4xl">
                         <h1 className="text-7xl font-black text-white mb-8">{activeIdea.projectName || 'AI in Enterprise'}</h1>
                         <p className="text-2xl text-cyan-400 mb-12">Хэрэглэгч: {activeIdea.targetUser}</p>
                         <div className="text-3xl text-slate-300 font-light leading-relaxed">{activeIdea.problem}</div>
-                        <div className="mt-20 text-slate-500 text-sm uppercase tracking-widest font-bold">Гарахын тулд хаа нэгтээ дарна уу</div>
+                        <div className="mt-20 text-slate-500 text-sm uppercase tracking-widest font-bold">Буцахын тулд хаана нэгтээ дарна уу</div>
                     </div>
                 </div>
             );
@@ -294,7 +308,7 @@
         };
 
         const root = ReactDOM.createRoot(document.getElementById('root'));
-        root.render(<PitchApp />);
+        root.render(<App />);
     </script>
 </body>
 </html>
