@@ -296,7 +296,7 @@
                             <span className="text-slate-500 text-[10px] font-black uppercase tracking-widest">Urgent</span>
                         </div>
                     </div>
-                    <div className="text-center text-[10px] text-slate-500 mt-12 font-medium tracking-wide uppercase">Created for internal prioritization use</div>
+                    <div className="text-center text-[10px] text-slate-500 mt-12 font-medium tracking-wide uppercase"></div>
                 </div>
             );
         };
@@ -477,7 +477,7 @@
 
                         <div className="flex flex-col mb-8 bg-slate-800/40 p-6 rounded-2xl border border-fuchsia-500/30 text-center shadow-lg">
                             <h1 className="text-3xl font-bold text-white mb-2 tracking-tight uppercase">CWM</h1>
-                            <p className="text-slate-400 text-sm mb-6">Багаараа асуудал бүрийг ангилах, үнэлэх, хэлэлцэх хэсэг</p>
+                            <p className="text-slate-400 text-sm mb-6">Багаараа асуудал бүрийг ангилах, үнэлэх, хэлэлцэх хэсэг.</p>
                             <div className="flex justify-center flex-wrap gap-2">
                                 {['Нийт', ...DEPARTMENTS].map(d => (
                                     <button key={d} onClick={() => {setCDept(d); setEPPId(null);}} className={`px-6 py-2.5 rounded-xl text-sm font-bold border transition-colors ${cDept === d ? 'bg-fuchsia-500 text-white border-fuchsia-500 shadow-[0_0_15px_rgba(217,70,239,0.4)]' : 'bg-slate-800 text-slate-400 border-slate-700 hover:bg-slate-700'}`}>{d}</button>
@@ -489,7 +489,7 @@
                             <div className="lg:col-span-1 bg-slate-800/50 p-6 rounded-2xl border border-slate-700 h-fit sticky top-6 shadow-inner">
                                 <h3 className="text-lg font-bold text-fuchsia-400 mb-4 border-b border-slate-700 pb-2">Шинэ асуудал бүртгэх</h3>
                                 {cDept === 'Нийт' ? (
-                                    <div className="text-sm text-slate-400 text-center py-6">Шинэ асуудал бүртгэхийн тулд өөрийн хэлтсийг сонгоно уу.</div>
+                                    <div className="text-sm text-slate-400 text-center py-6">Шинэ асуудал бүртгэхийн тулд өөрийн нэгжийн чиглэлийг сонгоно уу.</div>
                                 ) : (
                                     <>
                                         <input value={cAuth} onChange={e => setCAuth(e.target.value)} className="w-full p-3.5 bg-slate-900/50 border border-slate-600 rounded-xl text-sm text-slate-200 mb-3 outline-none focus:border-fuchsia-500" placeholder="Таны нэр..." />
@@ -515,7 +515,7 @@
                                         {isEd ? (
                                             <div className="bg-slate-900/60 p-5 rounded-xl border border-slate-600 space-y-4">
                                                 <div className="bg-blue-900/20 border border-blue-500/30 p-4 rounded-xl text-xs text-blue-300 mb-2 leading-relaxed">
-                                                    <strong className="text-blue-400 block mb-1"> Үнэлгээний заавар:</strong>
+                                                    <strong className="text-blue-400 block mb-1">Үнэлгээний заавар:</strong>
                                                     <span className="block"><b>Нөлөөлөл (Impact):</b> Уг асуудал нь байгууллагын үйл ажиллагаа, зардал, эсвэл цаг хугацаанд хэр их хохирол учруулж байгааг үнэлнэ.</span>
                                                     <span className="block mt-1"><b>Яаралтай (Urgency):</b> Энэ асуудлыг хэр хурдан шийдвэрлэх шаардлагатай вэ гэдгийг үнэлнэ.</span>
                                                 </div>
@@ -578,7 +578,6 @@
                                     <div key={idea.id} onClick={() => { setMFeas(m.feasLevel); setMFeasDesc(m.feasDesc); setSelectedId(idea.id); }} className={`bg-slate-800/50 p-6 rounded-2xl border transition-all cursor-pointer relative flex flex-col group shadow-lg ${m.isShortlisted ? 'border-amber-500/40 hover:border-amber-400' : 'border-slate-700 hover:border-cyan-500/50'}`}>
                                         {m.isShortlisted && <div className="absolute -top-3 -right-2 bg-amber-500 text-slate-900 text-[10px] font-black px-3 py-1 rounded-full z-10 shadow-md uppercase">⭐ Shortlisted</div>}
                                         
-                                        {/* Багийн нэрийг ил тод харуулах */}
                                         <div className="inline-block self-start px-3 py-1 bg-slate-900/80 rounded-lg border border-slate-700 mb-4 text-[10px] font-black text-indigo-400 tracking-widest uppercase shadow-sm">
                                             {idea.teamInfo || idea.teaminfo}
                                         </div>
@@ -603,23 +602,86 @@
                     <div className="flex flex-col mb-8 bg-slate-800/40 p-6 rounded-2xl border border-cyan-500/30 text-center shadow-lg">
                         <h1 className="text-3xl font-bold text-white mb-2 tracking-tight uppercase">Санал боловсруулах</h1>
                         <p className="text-slate-400 text-sm mb-6">Шинэ санаа боловсруулж санал хураалтад илгээх талбар.</p>
-                        <div className="flex justify-center flex-wrap gap-3 mb-6">{ideas.map((idea, idx) => (<button key={idx} onClick={() => setCurrentIndex(idx)} className={`px-5 py-2.5 rounded-xl text-sm font-bold transition-all flex items-center ${idx === currentIndex ? 'bg-cyan-500 text-slate-900 shadow-md' : 'bg-slate-800 text-slate-400 border border-slate-700 hover:bg-slate-700'}`}>{idea.projectName || `Санаа ${idx + 1}`}{ideas.length > 1 && <span onClick={(e) => { e.stopPropagation(); const next = ideas.filter((_, i) => i !== idx); setIdeas(next); setCurrentIndex(Math.max(0, currentIndex - 1)); }} className="ml-3 hover:text-rose-400">✕</span>}</button>))}<button onClick={() => { setIdeas([...ideas, { members: '', projectName: '', targetUser: '', category: CAT_MANAGEMENT, problem: '', solutionGeneral: '', solutionStep1: '', solutionStep2: '', solutionStep3: '', businessValueLevel: 'High', businessValueDesc: '', feasibilityLevel: 'Medium', feasibilityDesc: '' }]); setCurrentIndex(ideas.length); }} className="px-5 py-2.5 rounded-xl text-sm font-bold text-slate-400 border border-slate-600 border-dashed hover:text-cyan-400 transition-all">＋ Шинэ санаа</button></div>
+                        <div className="flex justify-center flex-wrap gap-3 mb-6">
+                            {ideas.map((idea, idx) => (
+                                <button key={idx} onClick={() => setCurrentIndex(idx)} className={`px-5 py-2.5 rounded-xl text-sm font-bold transition-all flex items-center ${idx === currentIndex ? 'bg-cyan-500 text-slate-900 shadow-md' : 'bg-slate-800 text-slate-400 border border-slate-700 hover:bg-slate-700'}`}>
+                                    {idea.projectName || `Санаа ${idx + 1}`}
+                                    {ideas.length > 1 && <span onClick={(e) => { e.stopPropagation(); const next = ideas.filter((_, i) => i !== idx); setIdeas(next); setCurrentIndex(Math.max(0, currentIndex - 1)); }} className="ml-3 hover:text-rose-400">✕</span>}
+                                </button>
+                            ))}
+                            <button onClick={() => { setIdeas([...ideas, { members: '', projectName: '', targetUser: '', category: CAT_MANAGEMENT, problem: '', solutionGeneral: '', solutionStep1: '', solutionStep2: '', solutionStep3: '', businessValueLevel: 'High', businessValueDesc: '', feasibilityLevel: 'Medium', feasibilityDesc: '' }]); setCurrentIndex(ideas.length); }} className="px-5 py-2.5 rounded-xl text-sm font-bold text-slate-400 border border-slate-600 border-dashed hover:text-cyan-400 transition-all">＋ Шинэ санаа</button>
+                        </div>
                         <div className="flex justify-center"><button onClick={publishToVoting} disabled={isSaving} className="bg-cyan-600 hover:bg-cyan-500 text-white font-bold py-3 px-10 rounded-xl transition-all shadow-lg text-sm tracking-wider">{isSaving ? 'Илгээж байна...' : 'САНАЛ ХУРААЛТАД ИЛГЭЭХ'}</button></div>
                     </div>
-                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6" style={{animation: 'fadeIn 0.3s ease-out'}}>
-                        <div className="space-y-6 flex flex-col">
-                            <div className="bg-slate-800/50 p-6 md:p-8 rounded-2xl border border-slate-700 shadow-inner">
-                                <h3 className="text-lg font-bold text-white mb-6 border-b border-slate-700 pb-3">Ерөнхий мэдээлэл</h3>
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-5"><div className="space-y-1.5"><label className="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Баг / Илтгэгч</label><input type="text" value={activeIdea.members} onChange={e => { const v = e.target.value; setIdeas(p => p.map((i, id) => id === currentIndex ? {...i, members: v} : i)); }} className="w-full p-3.5 bg-slate-900/50 border border-slate-700 rounded-xl outline-none text-sm text-white focus:border-cyan-500" placeholder="Багийн нэр" /></div><div className="space-y-1.5"><label className="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Төслийн нэр</label><input type="text" value={activeIdea.projectName} onChange={e => { const v = e.target.value; setIdeas(p => p.map((i, id) => id === currentIndex ? {...i, projectName: v} : i)); }} className="w-full p-3.5 bg-slate-900/50 border border-slate-700 rounded-xl outline-none text-sm text-white focus:border-cyan-500" placeholder="Төслийн нэр" /></div><div className="space-y-1.5"><label className="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Ангилал</label><select value={activeIdea.category} onChange={e => { const v = e.target.value; setIdeas(p => p.map((i, id) => id === currentIndex ? {...i, category: v} : i)); }} className="w-full p-3.5 bg-slate-900/50 border border-slate-700 rounded-xl text-sm text-white focus:border-cyan-500"><option value={CAT_MANAGEMENT}>{CAT_MANAGEMENT}</option><option value={CAT_OPERATIONS}>{CAT_OPERATIONS}</option><option value={CAT_SUPPORT}>{CAT_SUPPORT}</option></select></div><div className="space-y-1.5"><label className="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Хэрэглэгч</label><input type="text" value={activeIdea.targetUser} onChange={e => { const v = e.target.value; setIdeas(p => p.map((i, id) => id === currentIndex ? {...i, targetUser: v} : i)); }} className="w-full p-3.5 bg-slate-900/50 border border-slate-700 rounded-xl outline-none text-sm text-white focus:border-cyan-500" placeholder="Хэрэглэгч" /></div></div>
+                    
+                    <div className="space-y-8" style={{animation: 'fadeIn 0.3s ease-out'}}>
+                        {/* Ерөнхий мэдээлэл */}
+                        <div className="bg-slate-800/50 p-6 md:p-8 rounded-3xl border border-slate-700 shadow-inner">
+                            <h3 className="text-lg font-bold text-white mb-6 border-b border-slate-700 pb-3">Ерөнхий мэдээлэл</h3>
+                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+                                <div className="space-y-1.5"><label className="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Баг / Илтгэгч</label><input type="text" value={activeIdea.members} onChange={e => { const v = e.target.value; setIdeas(p => p.map((i, id) => id === currentIndex ? {...i, members: v} : i)); }} className="w-full p-4 bg-slate-900/50 border border-slate-700 rounded-xl outline-none text-sm text-white focus:border-cyan-500 transition-colors" placeholder="Багийн нэр" /></div>
+                                <div className="space-y-1.5"><label className="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Төслийн нэр</label><input type="text" value={activeIdea.projectName} onChange={e => { const v = e.target.value; setIdeas(p => p.map((i, id) => id === currentIndex ? {...i, projectName: v} : i)); }} className="w-full p-4 bg-slate-900/50 border border-slate-700 rounded-xl outline-none text-sm text-white focus:border-cyan-500 transition-colors" placeholder="Төслийн нэр" /></div>
+                                <div className="space-y-1.5"><label className="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Ангилал</label><select value={activeIdea.category} onChange={e => { const v = e.target.value; setIdeas(p => p.map((i, id) => id === currentIndex ? {...i, category: v} : i)); }} className="w-full p-4 bg-slate-900/50 border border-slate-700 rounded-xl text-sm text-white focus:border-cyan-500 transition-colors"><option value={CAT_MANAGEMENT}>{CAT_MANAGEMENT}</option><option value={CAT_OPERATIONS}>{CAT_OPERATIONS}</option><option value={CAT_SUPPORT}>{CAT_SUPPORT}</option></select></div>
+                                <div className="space-y-1.5"><label className="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Хэрэглэгч</label><input type="text" value={activeIdea.targetUser} onChange={e => { const v = e.target.value; setIdeas(p => p.map((i, id) => id === currentIndex ? {...i, targetUser: v} : i)); }} className="w-full p-4 bg-slate-900/50 border border-slate-700 rounded-xl outline-none text-sm text-white focus:border-cyan-500 transition-colors" placeholder="Хэрэглэгч" /></div>
                             </div>
-                            <div className="bg-slate-800/50 p-6 md:p-8 rounded-2xl border border-slate-700 shadow-inner flex flex-col flex-grow"><h3 className="text-lg font-bold text-rose-400 mb-6 border-b border-slate-700 pb-3">1. Асуудал</h3><textarea value={activeIdea.problem} onChange={e => { const v = e.target.value; setIdeas(p => p.map((i, id) => id === currentIndex ? {...i, problem: v} : i)); }} className="w-full p-5 bg-slate-900/50 border border-slate-700 rounded-xl text-sm text-white flex-grow resize-none focus:border-rose-500 outline-none transition-all" placeholder="Асуудлын тайлбар..." /></div>
                         </div>
-                        <div className="space-y-6 flex flex-col">
-                            <div className="bg-slate-800/50 p-6 md:p-8 rounded-2xl border border-slate-700 shadow-inner"><h3 className="text-lg font-bold text-cyan-400 mb-6 border-b border-slate-700 pb-3">2. Шийдэл</h3><div className="space-y-5"><textarea value={activeIdea.solutionGeneral} onChange={e => { const v = e.target.value; setIdeas(p => p.map((i, id) => id === currentIndex ? {...i, solutionGeneral: v} : i)); }} rows="2" className="w-full p-4 bg-slate-900/50 border border-slate-700 rounded-xl text-sm text-white resize-none focus:border-cyan-500 outline-none transition-all" placeholder="Ерөнхий шийдлийн тайлбар..." /><div className="grid grid-cols-1 md:grid-cols-3 gap-4"><input type="text" value={activeIdea.solutionStep1} onChange={e => { const v = e.target.value; setIdeas(p => p.map((i, id) => id === currentIndex ? {...i, solutionStep1: v} : i)); }} className="w-full p-3.5 bg-slate-900/50 border border-slate-700 rounded-xl outline-none text-sm text-white focus:border-cyan-500" placeholder="Алхам 1..." /><input type="text" value={activeIdea.solutionStep2} onChange={e => { const v = e.target.value; setIdeas(p => p.map((i, id) => id === currentIndex ? {...i, solutionStep2: v} : i)); }} className="w-full p-3.5 bg-slate-900/50 border border-slate-700 rounded-xl outline-none text-sm text-white focus:border-cyan-500" placeholder="Алхам 2..." /><input type="text" value={activeIdea.solutionStep3} onChange={e => { const v = e.target.value; setIdeas(p => p.map((i, id) => id === currentIndex ? {...i, solutionStep3: v} : i)); }} className="w-full p-3.5 bg-slate-900/50 border border-slate-700 rounded-xl outline-none text-sm text-white focus:border-cyan-500" placeholder="Алхам 3..." /></div></div></div>
-                            <div className="bg-slate-800/50 p-6 md:p-8 rounded-2xl border border-slate-700 shadow-inner flex flex-col flex-grow"><h3 className="text-lg font-bold text-emerald-400 mb-6 border-b border-slate-700 pb-3">3. Бизнесийн үнэ цэн</h3><div className="space-y-4 flex flex-col flex-grow"><select value={activeIdea.businessValueLevel} onChange={e => { const v = e.target.value; setIdeas(p => p.map((i, id) => id === currentIndex ? {...i, businessValueLevel: v} : i)); }} className="w-full p-3.5 bg-slate-900/50 border border-slate-700 rounded-xl text-sm text-white focus:border-emerald-500"><option value="High">Өндөр (Стратегийн/санхүүгийн том нөлөө)</option><option value="Medium">Дунд (Үйл ажиллагааг хөнгөвчлөх, цаг хэмнэх)</option><option value="Low">Бага (Тодорхой нэг жижиг хэсгийг сайжруулах)</option></select><textarea value={activeIdea.businessValueDesc} onChange={e => { const v = e.target.value; setIdeas(p => p.map((i, id) => id === currentIndex ? {...i, businessValueDesc: v} : i)); }} className="w-full p-4 bg-slate-900/50 border border-slate-700 rounded-xl text-sm text-white flex-grow resize-none focus:border-emerald-500 outline-none transition-all" placeholder="Үр өгөөжийн тайлбар..." /></div></div>
+                        
+                        {/* 1. Асуудал */}
+                        <div className="bg-slate-800/50 p-6 md:p-8 rounded-3xl border border-slate-700 shadow-inner">
+                            <h3 className="text-lg font-bold text-rose-400 mb-6 border-b border-slate-700 pb-3">1. Асуудал</h3>
+                            <textarea value={activeIdea.problem} onChange={e => { const v = e.target.value; setIdeas(p => p.map((i, id) => id === currentIndex ? {...i, problem: v} : i)); }} rows="4" className="w-full p-5 bg-slate-900/50 border border-slate-700 rounded-xl text-sm text-white resize-y focus:border-rose-500 outline-none transition-colors" placeholder="Одоогийн нөхцөл байдалд ямар асуудал тулгарч байна вэ?..." />
+                        </div>
+                        
+                        {/* 2. Шийдэл */}
+                        <div className="bg-slate-800/50 p-6 md:p-8 rounded-3xl border border-slate-700 shadow-inner">
+                            <h3 className="text-lg font-bold text-cyan-400 mb-6 border-b border-slate-700 pb-3">2. Шийдэл</h3>
+                            <div className="space-y-6">
+                                <div className="space-y-1.5">
+                                    <label className="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Ерөнхий шийдэл</label>
+                                    <textarea value={activeIdea.solutionGeneral} onChange={e => { const v = e.target.value; setIdeas(p => p.map((i, id) => id === currentIndex ? {...i, solutionGeneral: v} : i)); }} rows="3" className="w-full p-5 bg-slate-900/50 border border-slate-700 rounded-xl text-sm text-white resize-y focus:border-cyan-500 outline-none transition-colors" placeholder="Ерөнхий шийдлийн тайлбар..." />
+                                </div>
+                                <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+                                    <div className="space-y-1.5">
+                                        <label className="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Алхам 1</label>
+                                        <textarea value={activeIdea.solutionStep1} onChange={e => { const v = e.target.value; setIdeas(p => p.map((i, id) => id === currentIndex ? {...i, solutionStep1: v} : i)); }} rows="4" className="w-full p-5 bg-slate-900/50 border border-slate-700 rounded-xl outline-none text-sm text-white focus:border-cyan-500 transition-colors resize-y" placeholder="Эхний алхам..." />
+                                    </div>
+                                    <div className="space-y-1.5">
+                                        <label className="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Алхам 2</label>
+                                        <textarea value={activeIdea.solutionStep2} onChange={e => { const v = e.target.value; setIdeas(p => p.map((i, id) => id === currentIndex ? {...i, solutionStep2: v} : i)); }} rows="4" className="w-full p-5 bg-slate-900/50 border border-slate-700 rounded-xl outline-none text-sm text-white focus:border-cyan-500 transition-colors resize-y" placeholder="Дараагийн алхам..." />
+                                    </div>
+                                    <div className="space-y-1.5">
+                                        <label className="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Алхам 3</label>
+                                        <textarea value={activeIdea.solutionStep3} onChange={e => { const v = e.target.value; setIdeas(p => p.map((i, id) => id === currentIndex ? {...i, solutionStep3: v} : i)); }} rows="4" className="w-full p-5 bg-slate-900/50 border border-slate-700 rounded-xl outline-none text-sm text-white focus:border-cyan-500 transition-colors resize-y" placeholder="Эцсийн алхам..." />
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* 3. Бизнесийн үнэ цэн */}
+                        <div className="bg-slate-800/50 p-6 md:p-8 rounded-3xl border border-slate-700 shadow-inner">
+                            <h3 className="text-lg font-bold text-emerald-400 mb-6 border-b border-slate-700 pb-3">3. Бизнесийн үнэ цэн</h3>
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                                <div className="md:col-span-1 space-y-1.5">
+                                    <label className="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Үнэлгээ (Value)</label>
+                                    <select value={activeIdea.businessValueLevel} onChange={e => { const v = e.target.value; setIdeas(p => p.map((i, id) => id === currentIndex ? {...i, businessValueLevel: v} : i)); }} className="w-full p-4 bg-slate-900/50 border border-slate-700 rounded-xl text-sm text-white focus:border-emerald-500 outline-none transition-colors h-full max-h-[58px]">
+                                        <option value="High">Өндөр (Стратегийн/санхүүгийн том нөлөө)</option>
+                                        <option value="Medium">Дунд (Үйл ажиллагааг хөнгөвчлөх, цаг хэмнэх)</option>
+                                        <option value="Low">Бага (Жижиг хэсгийг сайжруулах)</option>
+                                    </select>
+                                </div>
+                                <div className="md:col-span-2 space-y-1.5">
+                                    <label className="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Үр өгөөжийн тайлбар</label>
+                                    <textarea value={activeIdea.businessValueDesc} onChange={e => { const v = e.target.value; setIdeas(p => p.map((i, id) => id === currentIndex ? {...i, businessValueDesc: v} : i)); }} rows="3" className="w-full p-5 bg-slate-900/50 border border-slate-700 rounded-xl text-sm text-white resize-y focus:border-emerald-500 outline-none transition-colors" placeholder="Байгууллагад ямар үнэ цэн (цаг, зардал) авчрах вэ?..." />
+                                </div>
+                            </div>
                         </div>
                     </div>
-                    <div className="flex justify-center mt-10 pb-12"><button onClick={() => {setCurrentSlide(0); setView('presentation');}} className="px-12 py-5 bg-slate-800 hover:bg-slate-700 rounded-2xl font-black text-sm transition-all border border-slate-600 shadow-2xl text-cyan-400 uppercase tracking-widest hover:-translate-y-1">Start Presentation</button></div>
+
+                    <div className="flex justify-center mt-10 pb-12">
+                        <button onClick={() => {setCurrentSlide(0); setView('presentation');}} className="px-12 py-5 bg-slate-800 hover:bg-slate-700 rounded-2xl font-black text-sm transition-all border border-slate-600 shadow-2xl text-cyan-400 uppercase tracking-widest hover:-translate-y-1">
+                            Start Presentation
+                        </button>
+                    </div>
                 </div>
             );
 
