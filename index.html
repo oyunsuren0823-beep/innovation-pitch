@@ -67,10 +67,17 @@
             'Хууль нийцэл, гэрээ'
         ];
 
+        // Тогтмол ашиглагдах шинэ санааны анхны бүтэц (ReferenceError гарахаас сэргийлж глобал зарлав)
+        const initialIdea = { 
+            members: '', projectName: '', targetUser: '', category: CAT_MANAGEMENT, 
+            problem: '', solutionGeneral: '', solutionStep1: '', solutionStep2: '', solutionStep3: '', 
+            businessValueLevel: 'High', businessValueDesc: '', feasibilityLevel: 'Medium', feasibilityDesc: '' 
+        };
+
         // Хураангуйлсан санааны жагсаалт
         const PREDEFINED_IDEAS = [
             { 
-                id: 'p1', category: CAT_MANAGEMENT, teamInfo: 'Team Munkhchuluun', projectName: 'Permit Compliance Regulation  (PCR) agent', 
+                id: 'p1', category: CAT_MANAGEMENT, teamInfo: 'Team Munkhchuluun', projectName: 'Legal Chat Agent (PCR)', 
                 description: '[Meta-V:High|F:Medium|S:false]\nУлсын болон орон нутгийн Хууль, журам зэрэг зохицуулалттай холбоотой нэгдсэн мэдлэгийн санг үүсгэж, ухаалаг чатбот, автомат бичиг баримт боловсруулалт хийх систем.\n- Хууль журмын шинэчлэлтийг автоматаар илгээх\n- Бүрдүүлэх баримт бичгийн зөвлөгөө өгөх\n- Албан бичгийн ноорог боловсруулах', 
                 votes: 15, voters: [] 
             },
@@ -208,10 +215,10 @@
 
         // Helper to get Matrix Quadrant info
         const getMatrixQuadrant = (impact, urgency) => {
-            if (impact === 'High' && urgency === 'Urgent') return { label: 'Critical', bg: 'bg-rose-500/20 text-rose-400 border-rose-500/30' };
-            if (impact === 'High' && urgency === 'Not Urgent') return { label: 'Strategic', bg: 'bg-orange-500/20 text-orange-400 border-orange-500/30' };
-            if (impact === 'Low' && urgency === 'Urgent') return { label: 'Quick Win', bg: 'bg-yellow-500/20 text-yellow-400 border-yellow-500/30' };
-            return { label: 'Low Priority', bg: 'bg-slate-500/20 text-slate-400 border-slate-500/30' };
+            if (impact === 'High' && urgency === 'Urgent') return { label: 'CRITICAL', bg: 'bg-rose-500/20 text-rose-400 border-rose-500/30' };
+            if (impact === 'High' && urgency === 'Not Urgent') return { label: 'STRATEGIC', bg: 'bg-orange-500/20 text-orange-400 border-orange-500/30' };
+            if (impact === 'Low' && urgency === 'Urgent') return { label: 'QUICK WIN', bg: 'bg-yellow-500/20 text-yellow-400 border-yellow-500/30' };
+            return { label: 'LOW PRIORITY', bg: 'bg-slate-500/20 text-slate-400 border-slate-500/30' };
         };
 
         // --- Prioritization Matrix Component ---
@@ -306,18 +313,17 @@
             const [mFeas, setMFeas] = useState('Medium');
             const [mFeasDesc, setMFeasDesc] = useState('');
             
-            // Default to 'Нийт'
             const [cDept, setCDept] = useState('Нийт');
             const [cPain, setCPain] = useState('');
             const [cAuth, setCAuth] = useState('');
             const [ePPId, setEPPId] = useState(null);
             const [ePPData, setEPPData] = useState({ impact: 'Low', urgency: 'Not Urgent', discussion: '' });
 
-            const [ideas, setIdeas] = useState([{ members: '', projectName: '', targetUser: '', category: CAT_MANAGEMENT, problem: '', solutionGeneral: '', solutionStep1: '', solutionStep2: '', solutionStep3: '', businessValueLevel: 'High', businessValueDesc: '', feasibilityLevel: 'Medium', feasibilityDesc: '' }]);
+            const [ideas, setIdeas] = useState([{ ...initialIdea }]);
             const [currentIndex, setCurrentIndex] = useState(0);
 
             const client = useMemo(() => typeof window.supabase !== 'undefined' ? window.supabase.createClient(supabaseUrl, supabaseKey) : null, []);
-            const activeIdea = useMemo(() => ideas[currentIndex], [ideas, currentIndex]);
+            const activeIdea = useMemo(() => ideas[currentIndex] || initialIdea, [ideas, currentIndex]);
             const selIdea = useMemo(() => votingIdeas.find(i => i.id === selectedId) || null, [votingIdeas, selectedId]);
 
             useEffect(() => {
@@ -425,7 +431,6 @@
                 if(cDept === 'Нийт') return showToast("Шинэ асуудал бүртгэхийн тулд өөрийн хэлтсийг сонгоно уу!");
                 
                 const id = `pp_${Date.now()}`;
-                // Default: Low Impact, Not Urgent 
                 const d = buildPPDesc(cPain, 'Low', 'Not Urgent', '');
                 const obj = { id, teaminfo: cDept, projectname: cAuth, description: d, category: CAT_PAINPOINT, votes: 1, voters: [user?.uid] };
                 setVotingIdeas(p => sortArr([...p, obj]));
@@ -444,6 +449,7 @@
             const solvePP = (pp) => {
                 const m = extractPPMeta(pp.description);
                 setIdeas([{ ...initialIdea, problem: m.cleanText, targetUser: pp.teamInfo || pp.teaminfo }]);
+                setCurrentIndex(0);
                 setView('form');
             };
 
@@ -471,7 +477,7 @@
 
                         <div className="flex flex-col mb-8 bg-slate-800/40 p-6 rounded-2xl border border-fuchsia-500/30 text-center shadow-lg">
                             <h1 className="text-3xl font-bold text-white mb-2 tracking-tight uppercase">CWM</h1>
-                            <p className="text-slate-400 text-sm mb-6">Багаараа асуудал бүрийг ангилах, үнэлэх, хэлэлцэх талбар.</p>
+                            <p className="text-slate-400 text-sm mb-6">Багаараа асуудал бүрийг ангилах, үнэлэх, хэлэлцэх хэсэг</p>
                             <div className="flex justify-center flex-wrap gap-2">
                                 {['Нийт', ...DEPARTMENTS].map(d => (
                                     <button key={d} onClick={() => {setCDept(d); setEPPId(null);}} className={`px-6 py-2.5 rounded-xl text-sm font-bold border transition-colors ${cDept === d ? 'bg-fuchsia-500 text-white border-fuchsia-500 shadow-[0_0_15px_rgba(217,70,239,0.4)]' : 'bg-slate-800 text-slate-400 border-slate-700 hover:bg-slate-700'}`}>{d}</button>
@@ -509,7 +515,7 @@
                                         {isEd ? (
                                             <div className="bg-slate-900/60 p-5 rounded-xl border border-slate-600 space-y-4">
                                                 <div className="bg-blue-900/20 border border-blue-500/30 p-4 rounded-xl text-xs text-blue-300 mb-2 leading-relaxed">
-                                                    <strong className="text-blue-400 block mb-1">Үнэлгээний заавар:</strong>
+                                                    <strong className="text-blue-400 block mb-1"> Үнэлгээний заавар:</strong>
                                                     <span className="block"><b>Нөлөөлөл (Impact):</b> Уг асуудал нь байгууллагын үйл ажиллагаа, зардал, эсвэл цаг хугацаанд хэр их хохирол учруулж байгааг үнэлнэ.</span>
                                                     <span className="block mt-1"><b>Яаралтай (Urgency):</b> Энэ асуудлыг хэр хурдан шийдвэрлэх шаардлагатай вэ гэдгийг үнэлнэ.</span>
                                                 </div>
@@ -572,6 +578,7 @@
                                     <div key={idea.id} onClick={() => { setMFeas(m.feasLevel); setMFeasDesc(m.feasDesc); setSelectedId(idea.id); }} className={`bg-slate-800/50 p-6 rounded-2xl border transition-all cursor-pointer relative flex flex-col group shadow-lg ${m.isShortlisted ? 'border-amber-500/40 hover:border-amber-400' : 'border-slate-700 hover:border-cyan-500/50'}`}>
                                         {m.isShortlisted && <div className="absolute -top-3 -right-2 bg-amber-500 text-slate-900 text-[10px] font-black px-3 py-1 rounded-full z-10 shadow-md uppercase">⭐ Shortlisted</div>}
                                         
+                                        {/* Багийн нэрийг ил тод харуулах */}
                                         <div className="inline-block self-start px-3 py-1 bg-slate-900/80 rounded-lg border border-slate-700 mb-4 text-[10px] font-black text-indigo-400 tracking-widest uppercase shadow-sm">
                                             {idea.teamInfo || idea.teaminfo}
                                         </div>
@@ -660,7 +667,7 @@
                                     {extractMeta(selIdea.description).cleanDesc}
                                 </div>
                                 
-                                <div className="bg-slate-800/60 p-6 rounded-3xl border border-slate-700 flex flex-col mx-auto w-full md:w-2/3">
+                                <div className="bg-slate-800/60 p-6 rounded-3xl border border-slate-700 flex flex-col w-full">
                                     <h3 className="text-lg font-bold text-blue-400 mb-4 border-b border-slate-700 pb-2 flex items-center gap-2"><span>⚙️</span> Технологийн хэрэгжих боломж</h3>
                                     <div className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Боломж (Feasibility)</div>
                                     <div className="flex gap-2 mb-4">{['High', 'Medium', 'Low'].map(lvl => (<button key={lvl} onClick={() => setMFeas(lvl)} className={`px-4 py-2 rounded-xl text-xs font-bold border transition-all ${mFeas === lvl ? levelClass(lvl) : 'bg-slate-900/80 text-slate-500 border-slate-700 hover:bg-slate-700'}`}>{lvl}</button>))}</div>
