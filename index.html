@@ -38,6 +38,12 @@
             -webkit-box-orient: vertical;  
             overflow: hidden;
         }
+        .line-clamp-2 {
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;  
+            overflow: hidden;
+        }
     </style>
 </head>
 <body>
@@ -46,9 +52,6 @@
     <script type="text/babel">
         const { useState, useEffect, useMemo } = React;
 
-        // ==========================================
-        // SUPABASE ТОХИРГОО
-        // ==========================================
         const supabaseUrl = 'https://yyprkhrmvlpiknqqbpww.supabase.co'; 
         const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inl5cHJraHJtdmxwaWtucXFicHd3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc5MDE3NTEsImV4cCI6MjA5MzQ3Nzc1MX0.qRuIVqaqBdv3n95fAezZAEFAP7FNCqZ-RsEPJoYmE0U';
         
@@ -64,93 +67,224 @@
             'Хууль нийцэл, гэрээ'
         ];
 
-        // Бүх 18 санааны дэлгэрэнгүй дата
+        // Хураангуйлсан санааны жагсаалт
         const PREDEFINED_IDEAS = [
-            { id: 'p1', category: CAT_MANAGEMENT, teamInfo: 'Team Munkhchuluun', projectName: 'Legal Chat Agent (PCR)', description: '[Meta-V:High|F:Medium|S:false]\nУлсын болон орон нутгийн Хууль, журам, зөвшөөрөл, нийцэл, захирамж зэрэг зохицуулалттай холбоотой нэгдсэн мэдлэгийн санг үүсгэж, ухаалаг чатбот, автомат бичиг баримт боловсруулалт хийх систем.\n\n- Тогтмол мэдэгдэл: Хууль журмын шинэчлэлтийг илгээх\n- Ухаалаг чатбот: Бүрдүүлэх баримт бичиг, үе шат, хугацааны зөвлөгөө өгөх\n- Автоматжуулалт: Албан бичгийн ноорог боловсруулах', votes: 15, voters: [] },
-            { id: 'p2', category: CAT_MANAGEMENT, teamInfo: 'Team Tsogtbayar', projectName: 'Tender Research Agent', description: '[Meta-V:High|F:High|S:false]\nГадаад болон дотоодын тендерийн нээлттэй мэдээллийн санг байгууллагын профайлтай уялдуулан нэгтгэж, оролцох боломжийг үнэлэх систем.\n\n- Шинэ тендерийн мэдэгдэл\n- Тендерийн шаардлагад дүн шинжилгээ хийх\n- Тендерийн саналын эхний нооргийг боловсруулах', votes: 12, voters: [] },
-            { id: 'p3', category: CAT_MANAGEMENT, teamInfo: 'Team Lkhagvaragchaa', projectName: 'Lesson Learned Bot', description: '[Meta-V:Medium|F:High|S:false]\nӨмнөх төслүүдийн туршлага, алдаа оноог цуглуулан ангилж, шинэ төсөл эхлүүлэх үед зөвлөмж өгөх туслах.\n\n- Chimege Voice-to-text ашиглан аудиог текст болгох\n- Эрсдэлийн сануулга илгээх\n- Өмнөх өгөгдөл дээр үндэслэн төлөвлөгөө сайжруулах', votes: 11, voters: [] },
-            { id: 'p4', category: CAT_MANAGEMENT, teamInfo: 'Team Lkhagvaragchaa', projectName: 'PMBOK Multi agents', description: '[Meta-V:High|F:Low|S:false]\nPMBOK аргачлалд суурилсан төлөвлөлт, гүйцэтгэл, эрсдэлийн хяналтыг нэгтгэсэн олон агент бүхий систем.\n\n- Нөөц, хугацааны оновчтой хуваарилалт\n- Гүйцэтгэлийн аудит хийх\n- Хазайлтыг илрүүлж сайжруулах санал гаргах', votes: 10, voters: [] },
-            { id: 'p5', category: CAT_MANAGEMENT, teamInfo: 'Team Tsogtbayar', projectName: 'Мэдлэг, туршлагын сан', description: '[Meta-V:High|F:High|S:false]\nЭкспертүүдийн мэдлэг, туршлагыг дижитал хөрвүүлж, ажилтнуудын асуултад хариулах дотоод ухаалаг чатбот.\n\n- Know-how мэдээллийг ангилах\n- Сургалт хөгжлийн зөвлөмж өгөх\n- Чиглүүлэх (onboarding) материалыг санал болгох', votes: 9, voters: [] },
-            { id: 'p6', category: CAT_MANAGEMENT, teamInfo: 'Team Tsogtbayar', projectName: 'Гэрээний Agent', description: '[Meta-V:High|F:Medium|S:false]\nГэрээний төсөлд автоматаар дүн шинжилгээ хийж, хууль болон стандартад нийцэж буй эсэхийг хянаж эрсдэлийг анхааруулах систем.\n\n- Гэрээний автомат хяналт\n- Эрсдэлтэй заалтыг илрүүлэх\n- Засаж сайжруулсан хувилбарыг санал болгох', votes: 8, voters: [] },
-            { id: 'p7', category: CAT_MANAGEMENT, teamInfo: 'Team Tsogtbayar', projectName: 'IMS Agent', description: '[Meta-V:Medium|F:High|S:false]\nБайгууллагын нэгдсэн удирдлагын систем (ISO)-ийн хүрээнд аудит хийх, үл тохирлыг илрүүлж зөвлөмж өгөх систем.\n\n- Аудитын хуваарийн мэдэгдэл\n- Стандартын шаардлагаар чиглүүлэх\n- Залруулах арга хэмжээний төлөвлөгөө боловсруулах', votes: 8, voters: [] },
-            { id: 'p8', category: CAT_MANAGEMENT, teamInfo: 'Team Tsogtbayar', projectName: 'MoM agent', description: '[Meta-V:Medium|F:High|S:false]\nХурлын яриаг бодит цагт сонсож тэмдэглэл хөтлөн, гарсан шийдвэрүүдээс Action plan автоматаар үүсгэх систем.\n\n- Яриаг хураангуйлан тэмдэглэх\n- Ажлын биелэлтийн хугацааг сануулах\n- Төслийн системд ажлуудыг бүртгэх', votes: 7, voters: [] },
-            { id: 'p9', category: CAT_MANAGEMENT, teamInfo: 'Team Tsogtbayar', projectName: 'Зураг төслийн Agent', description: '[Meta-V:High|F:Low|S:false]\nИнженерийн зураг төслийн норм дүрэм, стандартын дагуу хиймэл оюунд суурилсан дизайны хувилбаруудыг санал болгох систем.\n\n- Норм дүрмийн зөрчлийн мэдэгдэл\n- Generative design хувилбарууд гаргах\n- Материалын орцын жагсаалт (BoQ) боловсруулах', votes: 6, voters: [] },
-            { id: 'p10', category: CAT_OPERATIONS, teamInfo: 'Team Khurtsdulguun', projectName: 'DCD (Тархмал сүлжээг хянах)', description: '[Meta-V:High|F:Medium|S:false]\nТархмал сүлжээний бүрэлдэхүүн хэсгүүдийн өгөгдөлд анализ хийж, эвдрэл гэмтлийг урьдчилан таамаглах систем.\n\n- Хүчин чадал хэтрэх эрсдэлийн мэдэгдэл\n- Сүлжээний найдвартай байдлыг хянах\n- Засварын зардлыг бууруулах санал гаргах', votes: 5, voters: [] },
-            { id: 'p11', category: CAT_OPERATIONS, teamInfo: 'Team Ganbat', projectName: 'Ухаалаг тоолуур + AI', description: '[Meta-V:High|F:High|S:false]\nУхаалаг тоолууруудаас ирж буй өгөгдөлд анализ хийж, техникийн болон арилжааны алдагдлыг илрүүлэх систем.\n\n- Хөндлөнгийн оролцооны анхааруулга\n- Алдагдлын голомтыг үнэн зөв илрүүлэх\n- Хяналт шалгалтыг оновчлох зөвлөм гаргах', votes: 5, voters: [] },
-            { id: 'p12', category: CAT_OPERATIONS, teamInfo: 'Team Ganbat', projectName: 'Хэрэглэгчийн зан төлөвийн AI', description: '[Meta-V:High|F:Medium|S:false]\nХэрэглэгчдийн хэрэглээний зан төлөвт урьдчилан таамаглах анализ хийж, оновчтой тарифын багцыг санал болгох систем.\n\n- Хэрэглээний хэв маягийн өөрчлөлтийн мэдэгдэл\n- Ирээдүйн ачааллын муруй гаргах\n- Хэрэглээг оновчлох зөвлөмж өгөх', votes: 4, voters: [] },
-            { id: 'p13', category: CAT_OPERATIONS, teamInfo: 'Team Ganbat', projectName: 'Цаг агаарын Forecast Agent', description: '[Meta-V:Medium|F:High|S:false]\nЦаг агаарын урьдчилсан мэдээнд үндэслэн үүсэж болзошгүй гэмтэл, саатлын байршлыг таамаглах систем.\n\n- Байгалийн гамшгийн үеийн сануулга\n- Хүний нөөц, техникийг оновчтой хуваарилах\n- Гэмтлийн байршлыг урьдчилан таамаглах', votes: 4, voters: [] },
-            { id: 'p14', category: CAT_OPERATIONS, teamInfo: 'Team Gantulga', projectName: 'Work Order Үүсгэдэг Agent', description: '[Meta-V:High|F:High|S:false]\nМэдрэгчүүдийн датанд анализ хийж болзошгүй эвдрэлийг илрүүлэн, автоматаар засварын Work Request үүсгэх систем.\n\n- Эвдрэлийн таамаглал, зардлын тооцоо\n- Сэлбэг хэрэгслийн зөвлөм гаргах\n- Худалдан авалтын хүсэлт (PR) автоматаар үүсгэх', votes: 3, voters: [] },
-            { id: 'p15', category: CAT_OPERATIONS, teamInfo: 'Team Gantulga', projectName: 'Тайлан хийдэг Agent', description: '[Meta-V:Medium|F:High|S:false]\nЗасвар үйлчилгээний болон зардлын чиг хандлагад анализ хийж, өдөр тутмын тайлангуудыг автоматаар бэлтгэх систем.\n\n- Зардал хэтрэлтийн анхааруулга\n- Тоноглолыг шинэчлэх эдийн засгийн үнэлгээ\n- Тайлангуудыг хүний оролцоогүй үүсгэх', votes: 3, voters: [] },
-            { id: 'p16', category: CAT_OPERATIONS, teamInfo: 'Team Gantulga', projectName: 'Засварын зөвлөмж Bot', description: '[Meta-V:High|F:Medium|S:false]\nИнженерүүдэд газар дээр нь засварын зааварчилгаа, аюулгүй ажиллагааны зөвлөмжийг чат хэлбэрээр өгөх туслах.\n\n- Аюулгүй ажиллагааны эрсдэлийн сануулга\n- Засварын зааварчилгааг шуурхай хариулах\n- Гүйцэтгэлийн тайланг автоматаар үүсгэх', votes: 2, voters: [] },
-            { id: 'p17', category: CAT_OPERATIONS, teamInfo: 'Team Munkhsaikhan', projectName: 'SCADA - Хяналтын Agents', description: '[Meta-V:High|F:Medium|S:false]\nSCADA системээс ирж бодит хугацааны өгөгдөлд дүн шинжилгээ хийж, тоноглолын элэгдэл, насжилтыг тооцоолох систем.\n\n- Онцгой SCADA event мэдэгдэл\n- Кабелийн гэмтлийг эрт илрүүлэх\n- Тоноглолыг солих хугацааг тооцоолох', votes: 2, voters: [] },
-            { id: 'p18', category: CAT_OPERATIONS, teamInfo: 'Team Munkhsaikhan', projectName: 'Data Quality Manager', description: '[Meta-V:High|F:High|S:false]\nСистемүүдээс орж ирж буй өгөгдлийн чанарыг тогтмол шалгаж, дутуу болон стандартын бус датаг цэвэрлэх систем.\n\n- Өгөгдлийн урсгал тасалдлын мэдэгдэл\n- Алдаатай датаг автоматаар цэвэрлэх\n- Мэдээллийн чанарын хяналтын тайлан үүсгэх', votes: 1, voters: [] }
+            { 
+                id: 'p1', category: CAT_MANAGEMENT, teamInfo: 'Team Munkhchuluun', projectName: 'Legal Chat Agent (PCR)', 
+                description: '[Meta-V:High|F:Medium|S:false]\nУлсын болон орон нутгийн Хууль, журам зэрэг зохицуулалттай холбоотой нэгдсэн мэдлэгийн санг үүсгэж, ухаалаг чатбот, автомат бичиг баримт боловсруулалт хийх систем.\n- Хууль журмын шинэчлэлтийг автоматаар илгээх\n- Бүрдүүлэх баримт бичгийн зөвлөгөө өгөх\n- Албан бичгийн ноорог боловсруулах', 
+                votes: 15, voters: [] 
+            },
+            { 
+                id: 'p2', category: CAT_MANAGEMENT, teamInfo: 'Team Tsogtbayar', projectName: 'Tender Research Agent', 
+                description: '[Meta-V:High|F:High|S:false]\nГадаад болон дотоодын тендерийн нээлттэй мэдээллийн санг байгууллагын профайлтай уялдуулан нэгтгэж, оролцох боломжийг үнэлэх систем.\n- Шинэ тендерийн мэдэгдэл илгээх\n- Тендерийн шаардлагад дүн шинжилгээ хийх\n- Тендерийн саналын эхний нооргийг боловсруулах', 
+                votes: 12, voters: [] 
+            },
+            { 
+                id: 'p3', category: CAT_MANAGEMENT, teamInfo: 'Team Lkhagvaragchaa', projectName: 'Lesson Learned Bot', 
+                description: '[Meta-V:Medium|F:High|S:false]\nӨмнөх төслүүдийн туршлага, алдаа оноог цуглуулан ангилж, шинэ төсөл эхлүүлэх үед зөвлөмж өгөх туслах.\n- Voice-to-text ашиглан аудиог текст болгох\n- Эрсдэлийн сануулга илгээх\n- Төлөвлөгөөг автоматаар сайжруулах', 
+                votes: 11, voters: [] 
+            },
+            { 
+                id: 'p4', category: CAT_MANAGEMENT, teamInfo: 'Team Lkhagvaragchaa', projectName: 'PMBOK Multi agents', 
+                description: '[Meta-V:High|F:Low|S:false]\nPMBOK аргачлалд суурилсан төлөвлөлт, гүйцэтгэл, эрсдэлийн хяналтыг нэгтгэсэн олон агент бүхий систем.\n- Нөөц, хугацааны оновчтой хуваарилалт\n- Гүйцэтгэлийн аудит хийх\n- Хазайлтыг илрүүлж сайжруулах санал гаргах', 
+                votes: 10, voters: [] 
+            },
+            { 
+                id: 'p5', category: CAT_MANAGEMENT, teamInfo: 'Team Tsogtbayar', projectName: 'Мэдлэг, туршлагын сан', 
+                description: '[Meta-V:High|F:High|S:false]\nЭкспертүүдийн мэдлэг, туршлагыг дижитал хөрвүүлж, ажилтнуудын асуултад хариулах дотоод ухаалаг чатбот.\n- Know-how мэдээллийг ангилах\n- Сургалт хөгжлийн зөвлөмж өгөх\n- Чиглүүлэх (onboarding) материалыг санал болгох', 
+                votes: 9, voters: [] 
+            },
+            { 
+                id: 'p6', category: CAT_MANAGEMENT, teamInfo: 'Team Tsogtbayar', projectName: 'Гэрээний Agent', 
+                description: '[Meta-V:High|F:Medium|S:false]\nГэрээний төсөлд автоматаар дүн шинжилгээ хийж, хууль болон стандартад нийцэж буй эсэхийг хянаж эрсдэлийг анхааруулах систем.\n- Гэрээний автомат хяналт\n- Эрсдэлтэй заалтыг илрүүлэх\n- Засаж сайжруулсан хувилбарыг санал болгох', 
+                votes: 8, voters: [] 
+            },
+            { 
+                id: 'p7', category: CAT_MANAGEMENT, teamInfo: 'Team Tsogtbayar', projectName: 'IMS Agent', 
+                description: '[Meta-V:Medium|F:High|S:false]\nБайгууллагын нэгдсэн удирдлагын систем (ISO)-ийн хүрээнд аудит хийх, үл тохирлыг илрүүлж зөвлөмж өгөх систем.\n- Аудитын хуваарийн мэдэгдэл\n- Стандартын шаардлагаар чиглүүлэх\n- Залруулах арга хэмжээний төлөвлөгөө боловсруулах', 
+                votes: 8, voters: [] 
+            },
+            { 
+                id: 'p8', category: CAT_MANAGEMENT, teamInfo: 'Team Tsogtbayar', projectName: 'MoM agent', 
+                description: '[Meta-V:Medium|F:High|S:false]\nХурлын яриаг бодит цагт сонсож тэмдэглэл хөтлөн, гарсан шийдвэрүүдээс Action plan автоматаар үүсгэх систем.\n- Яриаг хураангуйлан тэмдэглэх\n- Ажлын биелэлтийн хугацааг сануулах\n- Төслийн системд ажлуудыг бүртгэх', 
+                votes: 7, voters: [] 
+            },
+            { 
+                id: 'p9', category: CAT_MANAGEMENT, teamInfo: 'Team Tsogtbayar', projectName: 'Зураг төслийн Agent', 
+                description: '[Meta-V:High|F:Low|S:false]\nИнженерийн зураг төслийн норм дүрэм, стандартын дагуу хиймэл оюунд суурилсан дизайны хувилбаруудыг санал болгох систем.\n- Норм дүрмийн зөрчлийн мэдэгдэл\n- Generative design хувилбарууд гаргах\n- Материалын орцын жагсаалт (BoQ) боловсруулах', 
+                votes: 6, voters: [] 
+            },
+            { 
+                id: 'p10', category: CAT_OPERATIONS, teamInfo: 'Team Khurtsdulguun', projectName: 'DCD (Тархмал сүлжээг хянах)', 
+                description: '[Meta-V:High|F:Medium|S:false]\nТархмал сүлжээний бүрэлдэхүүн хэсгүүдийн өгөгдөлд анализ хийж, эвдрэл гэмтлийг урьдчилан таамаглах систем.\n- Хүчин чадал хэтрэх эрсдэлийн мэдэгдэл\n- Сүлжээний найдвартай байдлыг хянах\n- Засварын зардлыг бууруулах санал гаргах', 
+                votes: 5, voters: [] 
+            },
+            { 
+                id: 'p11', category: CAT_OPERATIONS, teamInfo: 'Team Ganbat', projectName: 'Ухаалаг тоолуур + AI', 
+                description: '[Meta-V:High|F:High|S:false]\nУхаалаг тоолууруудаас ирж буй өгөгдөлд анализ хийж, техникийн болон арилжааны алдагдлыг илрүүлэх систем.\n- Хөндлөнгийн оролцооны анхааруулга\n- Алдагдлын голомтыг үнэн зөв илрүүлэх\n- Хяналт шалгалтыг оновчлох зөвлөмж гаргах', 
+                votes: 5, voters: [] 
+            },
+            { 
+                id: 'p12', category: CAT_OPERATIONS, teamInfo: 'Team Ganbat', projectName: 'Хэрэглэгчийн зан төлөвийн AI', 
+                description: '[Meta-V:High|F:Medium|S:false]\nХэрэглэгчдийн хэрэглээний зан төлөвт урьдчилан таамаглах анализ хийж, оновчтой тарифын багцыг санал болгох систем.\n- Хэрэглээний хэв маягийн өөрчлөлтийн мэдэгдэл\n- Ирээдүйн ачааллын муруй гаргах\n- Хэрэглээг оновчлох зөвлөмж өгөх', 
+                votes: 4, voters: [] 
+            },
+            { 
+                id: 'p13', category: CAT_OPERATIONS, teamInfo: 'Team Ganbat', projectName: 'Цаг агаарын Forecast Agent', 
+                description: '[Meta-V:Medium|F:High|S:false]\nЦаг агаарын урьдчилсан мэдээнд үндэслэн үүсэж болзошгүй гэмтэл, саатлын байршлыг таамаглах систем.\n- Байгалийн гамшгийн үеийн сануулга\n- Хүний нөөц, техникийг оновчтой хуваарилах\n- Гэмтлийн байршлыг урьдчилан таамаглах', 
+                votes: 4, voters: [] 
+            },
+            { 
+                id: 'p14', category: CAT_OPERATIONS, teamInfo: 'Team Gantulga', projectName: 'Work Order Үүсгэдэг Agent', 
+                description: '[Meta-V:High|F:High|S:false]\nМэдрэгчүүдийн датанд анализ хийж болзошгүй эвдрэлийг илрүүлэн, автоматаар засварын Work Request үүсгэх систем.\n- Эвдрэлийн таамаглал, зардлын тооцоо\n- Сэлбэг хэрэгслийн зөвлөмж гаргах\n- Худалдан авалтын хүсэлт (PR) автоматаар үүсгэх', 
+                votes: 3, voters: [] 
+            },
+            { 
+                id: 'p15', category: CAT_OPERATIONS, teamInfo: 'Team Gantulga', projectName: 'Тайлан хийдэг Agent', 
+                description: '[Meta-V:Medium|F:High|S:false]\nЗасвар үйлчилгээний болон зардлын чиг хандлагад анализ хийж, өдөр тутмын тайлангуудыг автоматаар бэлтгэх систем.\n- Зардал хэтрэлтийн анхааруулга\n- Тоноглолыг шинэчлэх эдийн засгийн үнэлгээ\n- Тайлангуудыг хүний оролцоогүй үүсгэх', 
+                votes: 3, voters: [] 
+            },
+            { 
+                id: 'p16', category: CAT_OPERATIONS, teamInfo: 'Team Gantulga', projectName: 'Засварын зөвлөмж Bot', 
+                description: '[Meta-V:High|F:Medium|S:false]\nИнженерүүдэд газар дээр нь засварын зааварчилгаа, аюулгүй ажиллагааны зөвлөмжийг чат хэлбэрээр өгөх туслах.\n- Аюулгүй ажиллагааны эрсдэлийн сануулга\n- Засварын зааварчилгааг шуурхай хариулах\n- Гүйцэтгэлийн тайланг автоматаар үүсгэх', 
+                votes: 2, voters: [] 
+            },
+            { 
+                id: 'p17', category: CAT_OPERATIONS, teamInfo: 'Team Munkhsaikhan', projectName: 'SCADA - Хяналтын Agents', 
+                description: '[Meta-V:High|F:Medium|S:false]\nSCADA системээс ирж буй бодит хугацааны өгөгдөлд дүн шинжилгээ хийж, тоноглолын элэгдэл, насжилтыг тооцоолох систем.\n- Онцгой SCADA event мэдэгдэл\n- Кабелийн гэмтлийг эрт илрүүлэх\n- Тоноглолыг солих хугацааг тооцоолох', 
+                votes: 2, voters: [] 
+            },
+            { 
+                id: 'p18', category: CAT_OPERATIONS, teamInfo: 'Team Munkhsaikhan', projectName: 'Data Quality Manager', 
+                description: '[Meta-V:High|F:High|S:false]\nСистемүүдээс орж ирж буй өгөгдлийн чанарыг тогтмол шалгаж, дутуу болон стандартын бус датаг цэвэрлэх систем.\n- Өгөгдлийн урсгал тасалдлын мэдэгдэл\n- Алдаатай датаг автоматаар цэвэрлэх\n- Мэдээллийн чанарын хяналтын тайлан үүсгэх', 
+                votes: 1, voters: [] 
+            }
         ];
 
-        // Илтгэлийн санааг задлах функц
-        const extractMeta = (descString) => {
-            let v = 'Medium';
-            let f = 'Medium';
-            let s = false; 
-            let text = descString || '';
-            let feasDesc = '';
-            
+        // Functions for parsing metadata and builds
+        const extractMeta = (desc) => {
+            let v = 'Medium', f = 'Medium', s = false, text = desc || '', fd = '';
             if (text.startsWith('[Meta-')) {
-                const endIdx = text.indexOf(']');
-                if (endIdx > -1) {
-                    const metaStr = text.substring(6, endIdx); 
-                    const parts = metaStr.split('|');
-                    parts.forEach(p => {
+                const end = text.indexOf(']');
+                if (end > -1) {
+                    text.substring(6, end).split('|').forEach(p => {
                         if(p.startsWith('V:')) v = p.replace('V:', '');
                         if(p.startsWith('F:')) f = p.replace('F:', '');
                         if(p.startsWith('S:')) s = p.replace('S:', '') === 'true';
                     });
-                    text = text.substring(endIdx + 1).trim();
+                    text = text.substring(end + 1).trim();
                 }
             }
-
-            const feasDivider = '---FEAS_DESC---';
-            const feasIdx = text.indexOf(feasDivider);
-            if (feasIdx > -1) {
-                feasDesc = text.substring(feasIdx + feasDivider.length).trim();
-                text = text.substring(0, feasIdx).trim();
+            const div = '---FEAS_DESC---';
+            const idx = text.indexOf(div);
+            if (idx > -1) { 
+                fd = text.substring(idx + div.length).trim(); 
+                text = text.substring(0, idx).trim(); 
             }
 
-            return { valueLevel: v, feasLevel: f, isShortlisted: s, cleanDesc: text, feasDesc: feasDesc };
+            return { valueLevel: v, feasLevel: f, isShortlisted: s, cleanDesc: text, feasDesc: fd };
         };
 
-        // Pain Point задлах болон угсрах туслах функцууд
-        const extractPPMeta = (descString) => {
-            let status = 'Шийдвэрлэх шаардлагатай';
-            let text = descString || '';
-            let discussion = '';
-            
-            if (text.startsWith('[PP-')) {
-                const endIdx = text.indexOf(']');
-                if (endIdx > -1) {
-                    const metaStr = text.substring(4, endIdx); 
-                    const parts = metaStr.split('|');
-                    parts.forEach(p => {
-                        if(p.startsWith('Status:')) status = p.replace('Status:', '');
+        const extractPPMeta = (desc) => {
+            let imp = 'Low', urg = 'Not Urgent', txt = desc || '', disc = '';
+            if (txt.startsWith('[PP-')) {
+                const end = txt.indexOf(']');
+                if (end > -1) {
+                    txt.substring(4, end).split('|').forEach(p => { 
+                        if(p.startsWith('Impact:')) imp = p.replace('Impact:', ''); 
+                        if(p.startsWith('Urgency:')) urg = p.replace('Urgency:', ''); 
                     });
-                    text = text.substring(endIdx + 1).trim();
+                    txt = txt.substring(end + 1).trim();
                 }
             }
-
-            const discDivider = '---DISCUSSION---';
-            const discIdx = text.indexOf(discDivider);
-            if (discIdx > -1) {
-                discussion = text.substring(discIdx + discDivider.length).trim();
-                text = text.substring(0, discIdx).trim();
-            }
-
-            return { status, cleanText: text, discussion };
+            const div = '---DISCUSSION---';
+            const idx = txt.indexOf(div);
+            if (idx > -1) { disc = txt.substring(idx + div.length).trim(); txt = txt.substring(0, idx).trim(); }
+            return { impact: imp, urgency: urg, cleanText: txt, discussion: disc };
         };
 
-        const buildPPDesc = (cleanText, status, discussion) => {
-            return `[PP-Status:${status}]\n${cleanText}${discussion ? '\n\n---DISCUSSION---\n' + discussion : ''}`;
-        };
+        const buildPPDesc = (txt, imp, urg, disc) => `[PP-Impact:${imp}|Urgency:${urg}]\n${txt}${disc ? '\n\n---DISCUSSION---\n' + disc : ''}`;
+        const getFeasScore = (lvl) => lvl === 'High' ? 3 : (lvl === 'Medium' ? 2 : 1);
 
-        const getFeasScore = (level) => level === 'High' ? 3 : (level === 'Medium' ? 2 : 1);
+        // --- Prioritization Matrix Component ---
+        const PrioritizationMatrix = ({ painPoints }) => {
+            const critical = painPoints.filter(p => { const m = extractPPMeta(p.description); return m.impact === 'High' && m.urgency === 'Urgent'; });
+            const strategic = painPoints.filter(p => { const m = extractPPMeta(p.description); return m.impact === 'High' && m.urgency === 'Not Urgent'; });
+            const quickWin = painPoints.filter(p => { const m = extractPPMeta(p.description); return m.impact === 'Low' && m.urgency === 'Urgent'; });
+            const lowPriority = painPoints.filter(p => { const m = extractPPMeta(p.description); return m.impact === 'Low' && m.urgency === 'Not Urgent'; });
+
+            const renderChip = (pp, color) => (
+                <div key={pp.id} className={`bg-slate-900/80 p-2.5 rounded-xl mb-2.5 border border-${color}-500/30 text-xs shadow-md transition-all hover:-translate-y-0.5`}>
+                    <div className="font-bold text-slate-200 truncate mb-1">{pp.projectName || pp.projectname}</div>
+                    <div className={`text-${color}-200/80 line-clamp-2`}>{extractPPMeta(pp.description).cleanText}</div>
+                </div>
+            );
+
+            return (
+                <div className="bg-slate-800/40 p-6 md:p-8 rounded-3xl border border-slate-700 shadow-xl mb-10 w-full animate-[fadeIn_0.5s_ease-out]">
+                    <h2 className="text-2xl font-bold text-white mb-2 uppercase tracking-wide">Pain Point Prioritization Matrix</h2>
+                    <p className="text-slate-400 text-sm mb-8">Багаараа асуудлуудын нөлөөлөл болон яаралтай байдлыг үнэлж, эрэмбэлэхэд зориулагдсан матриц.</p>
+                    
+                    <div className="relative max-w-4xl mx-auto pl-10 pr-6 py-6 mb-4">
+                        {/* Y-axis Label */}
+                        <div className="absolute left-0 top-0 bottom-0 w-10 flex flex-col justify-between items-center py-10">
+                            <span className="text-slate-500 text-[10px] font-black uppercase tracking-widest -rotate-90 whitespace-nowrap mb-8">High Impact</span>
+                            <div className="w-0.5 h-full bg-slate-600/50 relative">
+                                <div className="absolute -top-1 -left-1 w-2.5 h-2.5 bg-slate-500 rounded-full"></div>
+                                <div className="absolute -bottom-1 -left-1 w-2.5 h-2.5 bg-slate-500 rounded-full"></div>
+                            </div>
+                            <span className="text-slate-500 text-[10px] font-black uppercase tracking-widest -rotate-90 whitespace-nowrap mt-8">Low Impact</span>
+                        </div>
+
+                        {/* 2x2 Grid */}
+                        <div className="grid grid-cols-2 gap-4 h-[500px]">
+                            {/* Strategic (High Impact, Not Urgent) */}
+                            <div className="bg-orange-900/10 border border-orange-500/20 rounded-2xl p-4 flex flex-col hover:border-orange-500/40 transition-colors">
+                                <h3 className="text-orange-400 font-bold mb-3 uppercase tracking-wider text-xs border-b border-orange-500/20 pb-2">Strategic (Урт хугацаанд)</h3>
+                                <div className="flex-grow overflow-y-auto custom-scrollbar pr-2">
+                                    {strategic.length === 0 ? <p className="text-orange-500/30 text-xs italic">Асуудал алга</p> : strategic.map(p => renderChip(p, 'orange'))}
+                                </div>
+                            </div>
+                            
+                            {/* Critical (High Impact, Urgent) */}
+                            <div className="bg-rose-900/10 border border-rose-500/20 rounded-2xl p-4 flex flex-col hover:border-rose-500/40 transition-colors">
+                                <h3 className="text-rose-400 font-bold mb-3 uppercase tracking-wider text-xs border-b border-rose-500/20 pb-2">Critical (Яаралтай)</h3>
+                                <div className="flex-grow overflow-y-auto custom-scrollbar pr-2">
+                                    {critical.length === 0 ? <p className="text-rose-500/30 text-xs italic">Асуудал алга</p> : critical.map(p => renderChip(p, 'rose'))}
+                                </div>
+                            </div>
+
+                            {/* Low Priority (Low Impact, Not Urgent) */}
+                            <div className="bg-slate-800/30 border border-slate-600/30 rounded-2xl p-4 flex flex-col hover:border-slate-500/50 transition-colors">
+                                <h3 className="text-slate-400 font-bold mb-3 uppercase tracking-wider text-xs border-b border-slate-600/30 pb-2">Low Priority (Хойшлуулах)</h3>
+                                <div className="flex-grow overflow-y-auto custom-scrollbar pr-2">
+                                    {lowPriority.length === 0 ? <p className="text-slate-500/30 text-xs italic">Асуудал алга</p> : lowPriority.map(p => renderChip(p, 'slate'))}
+                                </div>
+                            </div>
+
+                            {/* Quick Win (Low Impact, Urgent) */}
+                            <div className="bg-yellow-900/10 border border-yellow-500/20 rounded-2xl p-4 flex flex-col hover:border-yellow-500/40 transition-colors">
+                                <h3 className="text-yellow-400 font-bold mb-3 uppercase tracking-wider text-xs border-b border-yellow-500/20 pb-2">Quick Win (Шуурхай шийдэл)</h3>
+                                <div className="flex-grow overflow-y-auto custom-scrollbar pr-2">
+                                    {quickWin.length === 0 ? <p className="text-yellow-500/30 text-xs italic">Асуудал алга</p> : quickWin.map(p => renderChip(p, 'yellow'))}
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* X-axis Label */}
+                        <div className="absolute bottom-0 left-10 right-0 h-10 flex justify-between items-center px-4 translate-y-12">
+                            <span className="text-slate-500 text-[10px] font-black uppercase tracking-widest">Not Urgent</span>
+                            <div className="flex-grow h-0.5 bg-slate-600/50 mx-4 relative">
+                                <div className="absolute -left-1 -top-1 w-2.5 h-2.5 bg-slate-500 rounded-full"></div>
+                                <div className="absolute -right-1 -top-1 w-2.5 h-2.5 bg-slate-500 rounded-full"></div>
+                            </div>
+                            <span className="text-slate-500 text-[10px] font-black uppercase tracking-widest">Urgent</span>
+                        </div>
+                    </div>
+                    <div className="text-center text-[10px] text-slate-500 mt-12 font-medium tracking-wide uppercase">Created for internal prioritization use</div>
+                </div>
+            );
+        };
 
         const App = () => {
             const [view, setView] = useState('collab'); 
@@ -160,992 +294,366 @@
             const [isSaving, setIsSaving] = useState(false);
             const [selectedTab, setSelectedTab] = useState('All'); 
             const [votingIdeas, setVotingIdeas] = useState(PREDEFINED_IDEAS);
+            const [selectedId, setSelectedId] = useState(null);
+            const [mFeas, setMFeas] = useState('Medium');
+            const [mFeasDesc, setMFeasDesc] = useState('');
             
-            // Modal-ийн state
-            const [selectedIdeaId, setSelectedIdeaId] = useState(null);
-            const [modalFeasLevel, setModalFeasLevel] = useState('Medium');
-            const [modalFeasDesc, setModalFeasDesc] = useState('');
+            const [cDept, setCDept] = useState(DEPARTMENTS[0]);
+            const [cPain, setCPain] = useState('');
+            const [cAuth, setCAuth] = useState('');
+            const [ePPId, setEPPId] = useState(null);
+            // Updated Edit Pain Point state
+            const [ePPData, setEPPData] = useState({ impact: 'Low', urgency: 'Not Urgent', discussion: '' });
 
-            // Collaboration (Pain Point) View State
-            const [collabDept, setCollabDept] = useState(DEPARTMENTS[0]);
-            const [collabPainText, setCollabPainText] = useState('');
-            const [collabAuthor, setCollabAuthor] = useState('');
-            const [editingPPId, setEditingPPId] = useState(null);
-            const [editPPData, setEditPPData] = useState({ status: 'Шийдвэрлэх шаардлагатай', discussion: '' });
-
-            const selectedIdeaDetail = useMemo(() => {
-                return votingIdeas.find(i => i.id === selectedIdeaId) || null;
-            }, [votingIdeas, selectedIdeaId]);
-
-            const initialIdea = {
-                members: '', projectName: '', targetUser: '', category: CAT_MANAGEMENT, problem: '',
-                solutionGeneral: '', solutionStep1: '', solutionStep2: '', solutionStep3: '', 
-                businessValueLevel: 'High', businessValueDesc: '', feasibilityLevel: 'Medium', feasibilityDesc: ''
-            };
-
-            const [ideas, setIdeas] = useState([{ ...initialIdea }]);
+            const [ideas, setIdeas] = useState([{ members: '', projectName: '', targetUser: '', category: CAT_MANAGEMENT, problem: '', solutionGeneral: '', solutionStep1: '', solutionStep2: '', solutionStep3: '', businessValueLevel: 'High', businessValueDesc: '', feasibilityLevel: 'Medium', feasibilityDesc: '' }]);
             const [currentIndex, setCurrentIndex] = useState(0);
-            
-            const client = useMemo(() => {
-                if (typeof window.supabase !== 'undefined') {
-                    return window.supabase.createClient(supabaseUrl, supabaseKey);
-                }
-                return null;
-            }, []);
 
-            const activeIdea = useMemo(() => ideas[currentIndex] || initialIdea, [ideas, currentIndex]);
+            const client = useMemo(() => typeof window.supabase !== 'undefined' ? window.supabase.createClient(supabaseUrl, supabaseKey) : null, []);
+            const activeIdea = useMemo(() => ideas[currentIndex], [ideas, currentIndex]);
+            const selIdea = useMemo(() => votingIdeas.find(i => i.id === selectedId) || null, [votingIdeas, selectedId]);
 
             useEffect(() => {
-                let localUserId = localStorage.getItem('pitch_voter_id');
-                if (!localUserId) {
-                    localUserId = 'user_' + Math.random().toString(36).substr(2, 9);
-                    localStorage.setItem('pitch_voter_id', localUserId);
-                }
-                setUser({ uid: localUserId });
+                const uid = localStorage.getItem('pitch_voter_id') || 'user_' + Math.random().toString(36).substr(2, 9);
+                localStorage.setItem('pitch_voter_id', uid);
+                setUser({ uid });
             }, []);
 
-            const sortIdeas = (ideasArray) => {
-                return [...ideasArray].sort((a, b) => {
-                    const votesA = a.votes || 0;
-                    const votesB = b.votes || 0;
-                    if (votesB !== votesA) return votesB - votesA;
-                    
-                    if(a.category === CAT_PAINPOINT && b.category === CAT_PAINPOINT) return 0;
+            const sortArr = (arr) => [...arr].sort((a, b) => {
+                const votesA = a.votes || 0, votesB = b.votes || 0;
+                if (votesB !== votesA) return votesB - votesA;
+                if(a.category === CAT_PAINPOINT && b.category === CAT_PAINPOINT) return 0;
+                if(a.category === CAT_PAINPOINT || b.category === CAT_PAINPOINT) return 0;
+                return getFeasScore(extractMeta(b.description).feasLevel) - getFeasScore(extractMeta(a.description).feasLevel);
+            });
 
-                    const feasA = getFeasScore(extractMeta(a.description).feasLevel);
-                    const feasB = getFeasScore(extractMeta(b.description).feasLevel);
-                    return feasB - feasA;
-                });
-            };
-
-            const fetchVotingData = async () => {
+            const refreshData = async () => {
                 if (!client) return;
-                try {
-                    const { data: dbIdeas, error } = await client.from('pitch_voting').select('*');
-                    if (error) throw error;
-
-                    const dbIdeaMap = {};
-                    if (dbIdeas) {
-                        dbIdeas.forEach(idea => {
-                            dbIdeaMap[idea.id] = {
-                                ...idea,
-                                projectName: idea.projectname || idea.project_name || idea.projectName,
-                                teamInfo: idea.teaminfo || idea.team_info || idea.teamInfo
-                            };
-                        });
-                    }
-
-                    let combined = PREDEFINED_IDEAS.map(pIdea => {
-                        return dbIdeaMap[pIdea.id] ? dbIdeaMap[pIdea.id] : pIdea;
-                    });
-
-                    if (dbIdeas) {
-                        dbIdeas.forEach(idea => {
-                            if (!PREDEFINED_IDEAS.find(p => p.id === idea.id)) {
-                                combined.push(dbIdeaMap[idea.id]);
-                            }
-                        });
-                    }
-
-                    setVotingIdeas(sortIdeas(combined));
-                } catch (e) {
-                    console.error("Fetch error:", e);
+                const { data } = await client.from('pitch_voting').select('*');
+                if (data) {
+                    const map = {};
+                    data.forEach(d => map[d.id] = { ...d, projectName: d.projectname || d.projectName, teamInfo: d.teaminfo || d.teamInfo });
+                    let res = PREDEFINED_IDEAS.map(p => map[p.id] || p);
+                    data.forEach(d => { if(!PREDEFINED_IDEAS.find(p => p.id === d.id)) res.push(map[d.id]); });
+                    setVotingIdeas(sortArr(res));
                 }
             };
 
             useEffect(() => {
-                if (!client) {
-                    setVotingIdeas(sortIdeas(PREDEFINED_IDEAS));
-                    return;
-                }
-                fetchVotingData();
-                const intervalId = setInterval(() => {
-                    fetchVotingData();
-                }, 5000);
-                return () => clearInterval(intervalId);
+                if (!client) { setVotingIdeas(sortArr(PREDEFINED_IDEAS)); return; }
+                refreshData();
+                const int = setInterval(refreshData, 5000);
+                return () => clearInterval(int);
             }, [client]);
 
-            const showToast = (msg) => {
-                setToastMsg(msg);
-                setTimeout(() => setToastMsg(''), 3000);
-            };
+            const showToast = (m) => { setToastMsg(m); setTimeout(() => setToastMsg(''), 3000); };
+            const renderToast = () => toastMsg ? <div className="fixed top-6 right-6 bg-slate-800 border border-slate-600 text-white px-5 py-3 rounded-lg shadow-xl z-[300]" style={{animation: 'slideUp 0.3s ease-out'}}><span className="font-medium">{toastMsg}</span></div> : null;
 
             const downloadExcel = () => {
                 const headers = ['Ангилал', 'Төслийн нэр', 'Баг', 'Нийт Санал', 'Бизнесийн үнэ цэн', 'Технологийн боломж (Feasibility)', 'Shortlisted', 'Асуудал & Шийдэл', 'Feasibility Тайлбар'];
-                
-                const escapeCSV = (str) => {
-                    if (str === null || str === undefined) return '""';
-                    return `"${str.toString().replace(/"/g, '""')}"`;
-                };
-
+                const escapeCSV = (str) => str ? `"${str.toString().replace(/"/g, '""')}"` : '""';
                 const csvRows = [headers.join(',')];
                 
                 votingIdeas.filter(i => i.category !== CAT_PAINPOINT).forEach(idea => {
                     const meta = extractMeta(idea.description);
-                    const row = [
-                        escapeCSV(idea.category),
-                        escapeCSV(idea.projectName),
-                        escapeCSV(idea.teamInfo),
-                        idea.votes || 0,
-                        escapeCSV(meta.valueLevel),
-                        escapeCSV(meta.feasLevel),
-                        escapeCSV(meta.isShortlisted ? 'Тийм' : 'Үгүй'),
-                        escapeCSV(meta.cleanDesc),
-                        escapeCSV(meta.feasDesc)
-                    ];
-                    csvRows.push(row.join(','));
+                    csvRows.push([
+                        escapeCSV(idea.category), escapeCSV(idea.projectName), escapeCSV(idea.teamInfo), idea.votes || 0,
+                        escapeCSV(meta.valueLevel), escapeCSV(meta.feasLevel), escapeCSV(meta.isShortlisted ? 'Тийм' : 'Үгүй'),
+                        escapeCSV(meta.cleanDesc), escapeCSV(meta.feasDesc)
+                    ].join(','));
                 });
-
-                const csvString = '\uFEFF' + csvRows.join('\n'); 
-                const blob = new Blob([csvString], { type: 'text/csv;charset=utf-8;' });
-                const url = URL.createObjectURL(blob);
+                const blob = new Blob(['\uFEFF' + csvRows.join('\n')], { type: 'text/csv;charset=utf-8;' });
                 const link = document.createElement('a');
-                link.setAttribute('href', url);
+                link.setAttribute('href', URL.createObjectURL(blob));
                 link.setAttribute('download', 'Idea_Workshop_Export.csv');
-                document.body.appendChild(link);
-                link.click();
-                document.body.removeChild(link);
+                document.body.appendChild(link); link.click(); document.body.removeChild(link);
             };
 
-            const toggleVote = async (idea) => {
-                const voterUid = user?.uid || 'local_user';
-                const hasVoted = idea.voters && idea.voters.includes(voterUid);
-                let newVoters = idea.voters || [];
-                let newVotes = idea.votes || 0;
+            const onVote = async (idea) => {
+                const uid = user?.uid || 'local';
+                const voted = idea.voters?.includes(uid);
+                let vts = idea.votes || 0, vtrs = idea.voters || [];
+                if(voted) { vtrs = vtrs.filter(i => i !== uid); vts = Math.max(0, vts - 1); }
+                else { vtrs = [...vtrs, uid]; vts++; }
+                setVotingIdeas(p => sortArr(p.map(i => i.id === idea.id ? { ...i, votes: vts, voters: vtrs } : i)));
+                if(client) await client.from('pitch_voting').upsert({ id: idea.id, votes: vts, voters: vtrs, projectname: idea.projectName || idea.projectname || 'Pain Point', teaminfo: idea.teamInfo || idea.teaminfo, description: idea.description, category: idea.category });
+            };
 
-                if (hasVoted) {
-                    newVoters = newVoters.filter(uid => uid !== voterUid);
-                    newVotes = Math.max(0, newVotes - 1);
-                } else {
-                    newVoters = [...newVoters, voterUid];
-                    newVotes = newVotes + 1;
-                }
-
-                setVotingIdeas(prev => sortIdeas(prev.map(i => i.id === idea.id ? { ...i, votes: newVotes, voters: newVoters } : i)));
-
-                if (client) {
-                    const { error } = await client.from('pitch_voting').upsert({
-                        id: idea.id,
-                        votes: newVotes,
-                        voters: newVoters,
-                        projectname: idea.projectName || idea.projectname || 'Pain Point', 
-                        teaminfo: idea.teamInfo || idea.teaminfo,       
-                        description: idea.description,
-                        category: idea.category
-                    });
-                    
-                    if (error) {
-                        showToast("Санал өгөхөд алдаа гарлаа (DB)");
-                        fetchVotingData(); 
-                    }
-                } else {
-                    showToast("Санал өгөгдлөө (Local горим)");
-                }
+            const onSaveFeas = async () => {
+                if(!selIdea) return;
+                const m = extractMeta(selIdea.description);
+                const d = `[Meta-V:${m.valueLevel}|F:${mFeas}|S:${m.isShortlisted}]\n${m.cleanDesc}\n\n---FEAS_DESC---\n${mFeasDesc}`;
+                setVotingIdeas(p => sortArr(p.map(i => i.id === selIdea.id ? { ...i, description: d } : i)));
+                if(client) await client.from('pitch_voting').upsert({ id: selIdea.id, votes: selIdea.votes, voters: selIdea.voters, projectname: selIdea.projectName, teaminfo: selIdea.teamInfo, category: selIdea.category, description: d });
+                showToast("Технологийн үнэлгээ шинэчлэгдлээ!");
+                setSelectedId(null); 
             };
 
             const toggleShortlist = async (idea) => {
-                const meta = extractMeta(idea.description);
-                const newIsShortlisted = !meta.isShortlisted;
-                
-                const newDesc = `[Meta-V:${meta.valueLevel}|F:${meta.feasLevel}|S:${newIsShortlisted}]\n${meta.cleanDesc}${meta.feasDesc ? '\n\n---FEAS_DESC---\n' + meta.feasDesc : ''}`;
-
-                setVotingIdeas(prev => sortIdeas(prev.map(i => i.id === idea.id ? { ...i, description: newDesc } : i)));
-
-                if (client) {
-                    const { error } = await client.from('pitch_voting').upsert({
-                        id: idea.id,
-                        votes: idea.votes || 0,
-                        voters: idea.voters || [],
-                        projectname: idea.projectName,
-                        teaminfo: idea.teamInfo,
-                        category: idea.category,
-                        description: newDesc
-                    });
-
-                    if (error) {
-                        showToast("Shortlist өөрчлөхөд алдаа гарлаа");
-                        fetchVotingData();
-                    } else {
-                        showToast(newIsShortlisted ? "⭐ Shortlist-д нэмэгдлээ!" : "Shortlist-ээс хасагдлаа");
-                    }
-                } else {
-                    showToast(newIsShortlisted ? "⭐ Shortlist-д нэмэгдлээ (Local)" : "Shortlist-ээс хасагдлаа (Local)");
-                }
-            };
-
-            const openIdeaDetail = (idea) => {
-                const meta = extractMeta(idea.description);
-                setModalFeasLevel(meta.feasLevel);
-                setModalFeasDesc(meta.feasDesc);
-                setSelectedIdeaId(idea.id);
-            };
-
-            const saveFeasibility = async () => {
-                if (!selectedIdeaDetail) return;
-                
-                const meta = extractMeta(selectedIdeaDetail.description);
-                const newDesc = `[Meta-V:${meta.valueLevel}|F:${modalFeasLevel}|S:${meta.isShortlisted}]\n${meta.cleanDesc}\n\n---FEAS_DESC---\n${modalFeasDesc}`;
-
-                setVotingIdeas(prev => sortIdeas(prev.map(i => i.id === selectedIdeaDetail.id ? { ...i, description: newDesc } : i)));
-
-                if (client) {
-                    const { error } = await client.from('pitch_voting').upsert({
-                        id: selectedIdeaDetail.id,
-                        votes: selectedIdeaDetail.votes || 0,
-                        voters: selectedIdeaDetail.voters || [],
-                        projectname: selectedIdeaDetail.projectName, 
-                        teaminfo: selectedIdeaDetail.teamInfo,       
-                        category: selectedIdeaDetail.category,
-                        description: newDesc
-                    });
-                    if (error) fetchVotingData();
-                    else showToast("Технологийн үнэлгээ шинэчлэгдлээ!");
-                } else {
-                    showToast("Технологийн үнэлгээ хадгалагдлаа (Local горим)");
-                }
+                const m = extractMeta(idea.description);
+                const isS = !m.isShortlisted;
+                const d = `[Meta-V:${m.valueLevel}|F:${m.feasLevel}|S:${isS}]\n${m.cleanDesc}${m.feasDesc ? '\n\n---FEAS_DESC---\n' + m.feasDesc : ''}`;
+                setVotingIdeas(p => sortArr(p.map(i => i.id === idea.id ? { ...i, description: d } : i)));
+                if(client) await client.from('pitch_voting').upsert({ id: idea.id, votes: idea.votes, voters: idea.voters, projectname: idea.projectName, teaminfo: idea.teamInfo, category: idea.category, description: d });
+                showToast(isS ? "⭐ Shortlist-д нэмэгдлээ!" : "Shortlist-ээс хасагдлаа");
             };
 
             const publishToVoting = async () => {
                 if (!activeIdea.projectName || !activeIdea.members) return showToast("Төслийн нэр болон гишүүдийг оруулна уу");
-
                 setIsSaving(true);
-                const uniqueId = `workshop_${user?.uid || 'local'}_${currentIndex}_${Date.now()}`;
-                
-                const metaString = `[Meta-V:${activeIdea.businessValueLevel}|F:${activeIdea.feasibilityLevel}|S:false]`;
-                const cleanDesc = `Асуудал:\n${activeIdea.problem}\n\nШийдэл:\n${activeIdea.solutionGeneral}\n- ${activeIdea.solutionStep1}\n- ${activeIdea.solutionStep2}\n- ${activeIdea.solutionStep3}\n\nБизнесийн үнэ цэн:\n${activeIdea.businessValueDesc}`;
-                const desc = `${metaString}\n${cleanDesc}\n\n---FEAS_DESC---\n${activeIdea.feasibilityDesc}`;
-
-                const newIdeaObj = {
-                    id: uniqueId,
-                    teaminfo: activeIdea.members,        
-                    projectname: activeIdea.projectName, 
-                    description: desc,
-                    category: activeIdea.category,
-                    votes: 0,
-                    voters: []
-                };
-
-                setVotingIdeas(prev => sortIdeas([...prev, newIdeaObj]));
-                
+                const id = `workshop_${user?.uid || 'local'}_${currentIndex}_${Date.now()}`;
+                const cl = `${activeIdea.problem}\n\n${activeIdea.solutionGeneral}\n- ${activeIdea.solutionStep1}\n- ${activeIdea.solutionStep2}\n- ${activeIdea.solutionStep3}`;
+                const d = `[Meta-V:${activeIdea.businessValueLevel}|F:${activeIdea.feasibilityLevel}|S:false]\n${cl}\n\n---FEAS_DESC---\n${activeIdea.feasibilityDesc}`;
+                const obj = { id, teaminfo: activeIdea.members, projectname: activeIdea.projectName, description: d, category: activeIdea.category, votes: 0, voters: [] };
+                setVotingIdeas(prev => sortArr([...prev, obj]));
                 if (client) {
-                    try {
-                        const { error } = await client.from('pitch_voting').upsert(newIdeaObj);
-                        if (error) throw error;
-                        await fetchVotingData(); 
-                        showToast("Санал хураалтад илгээгдлээ");
-                        setView('voting');
-                    } catch (error) {
-                        showToast("Алдаа гарлаа: " + error.message);
-                    }
-                } else {
-                    showToast("Санал хураалтад илгээгдлээ (Local горим)");
-                    setView('voting');
-                }
+                    try { await client.from('pitch_voting').upsert(obj); setView('voting'); showToast("Санал хураалтад илгээгдлээ"); } 
+                    catch (e) { showToast(e.message); }
+                } else { setView('voting'); showToast("Local горимд илгээгдлээ"); }
                 setIsSaving(false);
             };
 
-            const handleChange = (e) => {
-                const { name, value } = e.target;
-                setIdeas(prev => {
-                    const next = [...prev];
-                    next[currentIndex] = { ...next[currentIndex], [name]: value };
-                    return next;
-                });
+            const onAddPP = async () => {
+                if(!cAuth || !cPain) return showToast("Бүрэн бөглөнө үү");
+                const id = `pp_${Date.now()}`;
+                // Default: Low Impact, Not Urgent 
+                const d = buildPPDesc(cPain, 'Low', 'Not Urgent', '');
+                const obj = { id, teaminfo: cDept, projectname: cAuth, description: d, category: CAT_PAINPOINT, votes: 1, voters: [user?.uid] };
+                setVotingIdeas(p => sortArr([...p, obj]));
+                setCPain('');
+                if(client) await client.from('pitch_voting').upsert(obj);
             };
 
-            const addNewIdea = () => {
-                setIdeas([...ideas, { ...initialIdea }]);
-                setCurrentIndex(ideas.length);
+            const saveEditPP = async (pp) => {
+                const m = extractPPMeta(pp.description);
+                const d = buildPPDesc(m.cleanText, ePPData.impact, ePPData.urgency, ePPData.discussion);
+                setVotingIdeas(p => p.map(i => i.id === pp.id ? { ...i, description: d } : i));
+                setEPPId(null);
+                if(client) await client.from('pitch_voting').upsert({ id: pp.id, votes: pp.votes, voters: pp.voters, projectname: pp.projectName || pp.projectname, teaminfo: pp.teamInfo || pp.teaminfo, category: pp.category, description: d });
             };
 
-            const removeIdea = (index, e) => {
-                e.stopPropagation();
-                if (ideas.length === 1) return;
-                const newIdeas = ideas.filter((_, i) => i !== index);
-                setIdeas(newIdeas);
-                setCurrentIndex(Math.min(currentIndex, newIdeas.length - 1));
+            const solvePP = (pp) => {
+                const m = extractPPMeta(pp.description);
+                setIdeas([{ ...initialIdea, problem: m.cleanText, targetUser: pp.teamInfo || pp.teaminfo }]);
+                setView('form');
             };
 
-            const renderToast = () => {
-                if (!toastMsg) return null;
-                return (
-                    <div className="fixed top-6 right-6 bg-slate-800 border border-slate-600 text-white px-5 py-3 rounded-lg shadow-xl z-[100] flex items-center gap-3 text-sm" style={{animation: 'slideUp 0.3s ease-out'}}>
-                        <span className="font-medium">{toastMsg}</span>
-                    </div>
-                );
-            };
+            const levelClass = (lvl) => lvl === 'High' ? 'bg-blue-500/20 text-blue-400 border-blue-500/30' : lvl === 'Medium' ? 'bg-amber-500/20 text-amber-400 border-amber-500/30' : 'bg-rose-500/20 text-rose-400 border-rose-500/30';
 
-            const renderTopNav = () => (
-                <div className="flex justify-center mb-6 w-full max-w-6xl mx-auto">
-                    <div className="bg-slate-800/60 p-1.5 rounded-2xl border border-slate-700 flex flex-wrap justify-center gap-1 w-full sm:w-auto">
-                        <button onClick={() => setView('collab')} className={`px-4 py-2.5 rounded-xl text-sm font-medium transition-all flex-grow sm:flex-grow-0 ${view === 'collab' ? 'bg-fuchsia-500/20 text-fuchsia-400' : 'text-slate-400 hover:text-slate-200 hover:bg-slate-700/50'}`}>Collaborative Work Management</button>
-                        <button onClick={() => setView('form')} className={`px-4 py-2.5 rounded-xl text-sm font-medium transition-all flex-grow sm:flex-grow-0 ${view === 'form' ? 'bg-cyan-500/20 text-cyan-400' : 'text-slate-400 hover:text-slate-200 hover:bg-slate-700/50'}`}>Санал боловсруулах</button>
-                        <button onClick={() => setView('voting')} className={`px-4 py-2.5 rounded-xl text-sm font-medium transition-all flex-grow sm:flex-grow-0 ${view === 'voting' ? 'bg-emerald-500/20 text-emerald-400' : 'text-slate-400 hover:text-slate-200 hover:bg-slate-700/50'}`}>Бидний үнэ цэнтэй IDEAS</button>
+            const renderNav = () => (
+                <div className="flex justify-center mb-8">
+                    <div className="bg-slate-800/60 p-1.5 rounded-2xl border border-slate-700 flex flex-wrap justify-center gap-1 w-full sm:w-auto shadow-inner">
+                        <button onClick={() => setView('collab')} className={`px-5 py-2.5 rounded-xl text-sm font-medium transition-all ${view === 'collab' ? 'bg-fuchsia-500/20 text-fuchsia-400 shadow-md' : 'text-slate-400 hover:text-slate-200'}`}>Pain points</button>
+                        <button onClick={() => setView('form')} className={`px-5 py-2.5 rounded-xl text-sm font-medium transition-all ${view === 'form' ? 'bg-cyan-500/20 text-cyan-400 shadow-md' : 'text-slate-400 hover:text-slate-200'}`}>Санал боловсруулах</button>
+                        <button onClick={() => setView('voting')} className={`px-5 py-2.5 rounded-xl text-sm font-medium transition-all ${view === 'voting' ? 'bg-emerald-500/20 text-emerald-400 shadow-md' : 'text-slate-400 hover:text-slate-200'}`}>Бидний үнэ цэнтэй IDEAS</button>
                         <div className="hidden sm:block w-px h-8 bg-slate-600 self-center mx-2"></div>
-                        <button onClick={downloadExcel} className={`px-4 py-2.5 rounded-xl text-sm font-medium transition-all bg-green-500/10 text-green-400 border border-green-500/30 hover:bg-green-500/30 flex items-center justify-center gap-2 flex-grow sm:flex-grow-0 mt-2 sm:mt-0`} title="Бүх санааг Excel-ээр татах">
-                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
-                            Татах
+                        <button onClick={downloadExcel} className={`px-4 py-2.5 rounded-xl text-sm font-medium transition-all bg-green-500/10 text-green-400 border border-green-500/30 hover:bg-green-500/30 flex items-center justify-center gap-2`} title="Татах">
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg> Татах
                         </button>
                     </div>
                 </div>
             );
 
-            // ==========================================
-            // COLLABORATION (PAIN POINTS) VIEW
-            // ==========================================
-            const addPainPoint = async () => {
-                if (!collabAuthor.trim()) return showToast("Нэрээ бичнэ үү!");
-                if (!collabPainText.trim()) return showToast("Асуудлаа бичнэ үү!");
-                
-                const newId = `pp_${user?.uid || 'local'}_${Date.now()}`;
-                // Шинэ асуудал үүсгэхдээ default: Status: Шийдвэрлэх шаардлагатай
-                const desc = buildPPDesc(collabPainText, 'Шийдвэрлэх шаардлагатай', '');
-                const newPP = {
-                    id: newId,
-                    teaminfo: collabDept,
-                    projectname: collabAuthor.trim(), 
-                    description: desc,
-                    category: CAT_PAINPOINT,
-                    votes: 1,
-                    voters: [user?.uid || 'local_user']
-                };
-
-                setVotingIdeas(prev => sortIdeas([...prev, newPP]));
-                setCollabPainText('');
-
-                if (client) {
-                    try {
-                        const { error } = await client.from('pitch_voting').upsert(newPP);
-                        if (error) throw error;
-                        fetchVotingData();
-                    } catch (err) {
-                        showToast("Хадгалахад алдаа гарлаа: " + err.message);
-                    }
-                }
-            };
-
-            const startEditPP = (pp) => {
-                const meta = extractPPMeta(pp.description);
-                setEditingPPId(pp.id);
-                setEditPPData({ status: meta.status, discussion: meta.discussion });
-            };
-
-            const saveEditPP = async (pp) => {
-                const meta = extractPPMeta(pp.description);
-                const newDesc = buildPPDesc(meta.cleanText, editPPData.status, editPPData.discussion);
-                
-                setVotingIdeas(prev => prev.map(i => i.id === pp.id ? { ...i, description: newDesc } : i));
-                setEditingPPId(null);
-
-                if (client) {
-                    const { error } = await client.from('pitch_voting').upsert({
-                        id: pp.id,
-                        votes: pp.votes || 0,
-                        voters: pp.voters || [],
-                        projectname: pp.projectName || pp.projectname || 'Pain Point',
-                        teaminfo: pp.teamInfo || pp.teaminfo,
-                        category: pp.category,
-                        description: newDesc
-                    });
-                    if (error) {
-                        showToast("Хадгалахад алдаа гарлаа");
-                        fetchVotingData();
-                    } else {
-                        showToast("Асуудлын мэдээлэл шинэчлэгдлээ!");
-                    }
-                }
-            };
-
-            const solvePainPoint = (pp) => {
-                const meta = extractPPMeta(pp.description);
-                const updatedIdeas = [...ideas];
-                updatedIdeas[currentIndex] = { 
-                    ...updatedIdeas[currentIndex], 
-                    problem: meta.cleanText,
-                    targetUser: pp.teamInfo || pp.teaminfo 
-                };
-                setIdeas(updatedIdeas);
-                setView('form');
-                showToast("Асуудлыг шийдэх хэсэгт орууллаа!");
-            };
-
-            const getPBStatusClass = (status) => {
-                if (status.includes('Шийдвэрлэх')) return 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30';
-                if (status.includes('Давхардсан')) return 'bg-amber-500/20 text-amber-400 border-amber-500/30';
-                if (status.includes('Ач холбогдол бага')) return 'bg-slate-500/20 text-slate-400 border-slate-500/30';
-                return 'bg-slate-500/20 text-slate-400 border-slate-500/30';
-            };
-
             const renderCollaborationView = () => {
-                const painPoints = votingIdeas.filter(i => i.category === CAT_PAINPOINT && (i.teamInfo === collabDept || i.teaminfo === collabDept));
-
+                const list = votingIdeas.filter(i => i.category === CAT_PAINPOINT && (i.teamInfo === cDept || i.teaminfo === cDept));
                 return (
                     <div className="max-w-7xl mx-auto p-4 md:p-6 bg-slate-900 min-h-screen">
-                        {renderTopNav()}
-                        
+                        {renderNav()}
+
                         <div className="flex flex-col mb-8 bg-slate-800/40 p-6 rounded-2xl border border-fuchsia-500/30 text-center shadow-lg">
-                            <h1 className="text-3xl font-bold text-white mb-2 tracking-tight uppercase">Collaborative Work Management</h1>
-                            <p className="text-slate-400 text-sm">Багаараа асуудал бүрийг ангилах, үнэлэх, хэлэлцэх.</p>
-                            
-                            <div className="flex justify-center flex-wrap gap-2 mt-6">
-                                {DEPARTMENTS.map(dept => (
-                                    <button 
-                                        key={dept} 
-                                        onClick={() => {setCollabDept(dept); setEditingPPId(null);}} 
-                                        className={`px-6 py-2.5 rounded-xl text-sm font-bold border transition-colors ${collabDept === dept ? 'bg-fuchsia-500 text-white border-fuchsia-500 shadow-[0_0_15px_rgba(217,70,239,0.4)]' : 'bg-slate-800 text-slate-400 border-slate-700 hover:border-slate-500 hover:bg-slate-700'}`}
-                                    >
-                                        {dept}
-                                    </button>
-                                ))}
-                            </div>
+                            <h1 className="text-3xl font-bold text-white mb-2 tracking-tight uppercase">CWM Pain points</h1>
+                            <p className="text-slate-400 text-sm mb-6">Багаараа асуудал бүрийг ангилах, үнэлэх, хэлэлцэх.</p>
+                            <div className="flex justify-center flex-wrap gap-2">{DEPARTMENTS.map(d => (<button key={d} onClick={() => {setCDept(d); setEPPId(null);}} className={`px-6 py-2.5 rounded-xl text-sm font-bold border transition-colors ${cDept === d ? 'bg-fuchsia-500 text-white border-fuchsia-500 shadow-[0_0_15px_rgba(217,70,239,0.4)]' : 'bg-slate-800 text-slate-400 border-slate-700 hover:bg-slate-700'}`}>{d}</button>))}</div>
                         </div>
-
                         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                            {/* Зүүн тал - Шинэ Pain point оруулах */}
-                            <div className="lg:col-span-1 bg-slate-800/50 p-6 rounded-2xl border border-slate-700 shadow-inner h-fit sticky top-6">
-                                <h3 className="text-lg font-bold text-fuchsia-400 mb-4 border-b border-slate-700 pb-2">Шинэ асуудал бүртгэх (Pain point)</h3>
-                                <input
-                                    type="text"
-                                    value={collabAuthor}
-                                    onChange={(e) => setCollabAuthor(e.target.value)}
-                                    className="w-full p-3.5 bg-slate-900/50 border border-slate-600 rounded-xl outline-none focus:border-fuchsia-500 text-sm text-slate-200 transition-colors mb-3"
-                                    placeholder="Таны нэр..."
-                                />
-                                <textarea
-                                    value={collabPainText}
-                                    onChange={(e) => setCollabPainText(e.target.value)}
-                                    className="w-full p-4 bg-slate-900/50 border border-slate-600 rounded-xl outline-none focus:border-fuchsia-500 text-sm text-slate-200 resize-none transition-colors mb-4"
-                                    placeholder="Ямар ажил дээр их цаг алдаж байна вэ? Эсвэл юу хамгийн их хүндрэлтэй байна?..."
-                                    rows="5"
-                                />
-                                <button 
-                                    onClick={addPainPoint}
-                                    className="w-full px-6 py-3 bg-fuchsia-600 hover:bg-fuchsia-500 text-white rounded-xl text-sm font-bold transition-all shadow-lg shadow-fuchsia-500/20"
-                                >
-                                    Бүртгэх
-                                </button>
+                            <div className="lg:col-span-1 bg-slate-800/50 p-6 rounded-2xl border border-slate-700 h-fit sticky top-6 shadow-inner">
+                                <h3 className="text-lg font-bold text-fuchsia-400 mb-4 border-b border-slate-700 pb-2">Шинэ асуудал бүртгэх</h3>
+                                <input value={cAuth} onChange={e => setCAuth(e.target.value)} className="w-full p-3.5 bg-slate-900/50 border border-slate-600 rounded-xl text-sm text-slate-200 mb-3 outline-none focus:border-fuchsia-500" placeholder="Таны нэр..." />
+                                <textarea value={cPain} onChange={e => setCPain(e.target.value)} className="w-full p-4 bg-slate-900/50 border border-slate-600 rounded-xl text-sm text-slate-200 mb-4 outline-none resize-none focus:border-fuchsia-500" placeholder="Асуудлаа энд бичнэ үү..." rows="5" />
+                                <button onClick={onAddPP} className="w-full px-6 py-3 bg-fuchsia-600 hover:bg-fuchsia-500 text-white rounded-xl text-sm font-bold shadow-lg transition-all">Бүртгэх</button>
                             </div>
-
-                            {/* Баруун тал - Pain points жагсаалт */}
-                            <div className="lg:col-span-2 space-y-5">
-                                {painPoints.length === 0 ? (
-                                    <div className="text-center text-slate-500 py-16 bg-slate-800/30 rounded-2xl border border-slate-700/50">
-                                        <p className="text-lg">Одоогоор асуудал бүртгэгдээгүй байна.</p>
-                                    </div>
-                                ) : (
-                                    painPoints.map((pp, idx) => {
-                                        const meta = extractPPMeta(pp.description);
-                                        const hasVoted = pp.voters?.includes(user?.uid || 'local_user');
-                                        const isEditing = editingPPId === pp.id;
-
-                                        return (
-                                            <div key={pp.id} className="bg-slate-800/50 p-6 rounded-2xl border border-slate-700 hover:border-slate-500 transition-all shadow-lg flex flex-col gap-4" style={{animation: `fadeIn 0.3s ease-out ${idx * 0.1}s both`}}>
-                                                
-                                                {/* Header: Badges & Votes */}
-                                                <div className="flex justify-between items-center border-b border-slate-700/50 pb-3">
-                                                    <div className="flex gap-2 items-center flex-wrap">
-                                                        <span className="text-xs font-bold text-slate-300 mr-1">{pp.projectName || pp.projectname}</span>
-                                                        <span className={`text-[10px] px-2 py-1 rounded-md border font-bold uppercase tracking-wider ${getPBStatusClass(meta.status)}`}>{meta.status === 'Шийдвэрлэх шаардлагатай' ? 'Шийдвэрлэх шаардлагатай' : meta.status === 'Давхардсан' ? 'Давхардсан' : 'Ач холбогдол бага'}</span>
+                            <div className="lg:col-span-2 space-y-5">{list.length === 0 ? <div className="text-center text-slate-500 py-16 bg-slate-800/30 rounded-2xl border border-slate-700/50">Асуудал бүртгэгдээгүй байна.</div> : list.map((pp) => {
+                                const m = extractPPMeta(pp.description), isEd = ePPId === pp.id;
+                                return (
+                                    <div key={pp.id} className="bg-slate-800/50 p-6 rounded-2xl border border-slate-700 shadow-lg flex flex-col gap-4">
+                                        <div className="flex justify-between items-center border-b border-slate-700/50 pb-3"><div className="flex gap-2 items-center flex-wrap"><span className="text-xs font-bold text-slate-300 mr-1">{pp.projectName || pp.projectname}</span></div><div className="text-sm font-black text-emerald-400">{pp.votes || 0} Санал</div></div>
+                                        <div className="text-slate-200 whitespace-pre-wrap text-base font-medium">{m.cleanText}</div>
+                                        {isEd ? (
+                                            <div className="bg-slate-900/60 p-5 rounded-xl border border-slate-600 space-y-4">
+                                                <div className="bg-blue-900/20 border border-blue-500/30 p-4 rounded-xl text-xs text-blue-300 mb-2 leading-relaxed">
+                                                    <strong className="text-blue-400 block mb-1">Үнэлгээний заавар:</strong>
+                                                    <span className="block"><b>Нөлөөлөл (Impact):</b> Уг асуудал нь байгууллагын үйл ажиллагаа, зардал, эсвэл цаг хугацаанд хэр их хохирол учруулж байгааг үнэлнэ.</span>
+                                                    <span className="block mt-1"><b>Яаралтай (Urgency):</b> Энэ асуудлыг хэр хурдан шийдвэрлэх шаардлагатай вэ гэдгийг үнэлнэ.</span>
+                                                </div>
+                                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                                    <div className="space-y-1">
+                                                        <label className="text-[10px] text-slate-400 uppercase font-bold">Нөлөөлөл (Impact)</label>
+                                                        <select value={ePPData.impact} onChange={e => setEPPData({...ePPData, impact: e.target.value})} className="w-full p-2.5 bg-slate-800 border border-slate-600 rounded-lg text-xs text-white outline-none focus:border-fuchsia-500 transition-colors">
+                                                            <option value="High">Өндөр (High Impact)</option>
+                                                            <option value="Low">Бага (Low Impact)</option>
+                                                        </select>
                                                     </div>
-                                                    <div className="text-sm font-black text-emerald-400 whitespace-nowrap ml-2">
-                                                        {pp.votes || 0} Санал
+                                                    <div className="space-y-1">
+                                                        <label className="text-[10px] text-slate-400 uppercase font-bold">Яаралтай байдал (Urgency)</label>
+                                                        <select value={ePPData.urgency} onChange={e => setEPPData({...ePPData, urgency: e.target.value})} className="w-full p-2.5 bg-slate-800 border border-slate-600 rounded-lg text-xs text-white outline-none focus:border-fuchsia-500 transition-colors">
+                                                            <option value="Urgent">Яаралтай (Urgent)</option>
+                                                            <option value="Not Urgent">Яаралтай биш (Not Urgent)</option>
+                                                        </select>
                                                     </div>
                                                 </div>
-
-                                                {/* Body: Problem Text */}
-                                                <div className="text-slate-200 whitespace-pre-wrap text-base leading-relaxed font-medium">
-                                                    {meta.cleanText}
+                                                <div className="space-y-1">
+                                                    <label className="text-[10px] text-slate-400 uppercase font-bold">Тэмдэглэл / Ярилцсан зүйл</label>
+                                                    <textarea value={ePPData.discussion} onChange={e => setEPPData({...ePPData, discussion: e.target.value})} rows="3" className="w-full p-3 bg-slate-800 border border-slate-600 rounded-lg text-xs text-white outline-none focus:border-fuchsia-500 resize-none transition-colors" placeholder="Багаараа юу гэж хэлэлцсэн тухай..." />
                                                 </div>
-
-                                                {/* Edit Mode OR Display Mode for Discussion */}
-                                                {isEditing ? (
-                                                    <div className="bg-slate-900/60 p-4 rounded-xl border border-slate-600 mt-2 space-y-4">
-                                                        <div className="space-y-1">
-                                                            <label className="text-[10px] text-slate-400 uppercase font-bold">Төлөв</label>
-                                                            <select value={editPPData.status} onChange={e => setEditPPData({...editPPData, status: e.target.value})} className="w-full p-2.5 bg-slate-800 border border-slate-600 rounded-lg text-xs text-white outline-none focus:border-fuchsia-500">
-                                                                <option value="Шийдвэрлэх шаардлагатай">Шийдвэрлэх шаардлагатай (Чухал асуудал)</option>
-                                                                <option value="Давхардсан">Давхардсан (Ижил төстэй асуудал)</option>
-                                                                <option value="Ач холбогдол бага">Ач холбогдол бага (Одоогоор хойшлуулах)</option>
-                                                            </select>
-                                                        </div>
-                                                        <div className="space-y-1">
-                                                            <label className="text-[10px] text-slate-400 uppercase font-bold">Тэмдэглэл / Ярилцсан зүйл</label>
-                                                            <textarea value={editPPData.discussion} onChange={e => setEditPPData({...editPPData, discussion: e.target.value})} rows="3" className="w-full p-3 bg-slate-800 border border-slate-600 rounded-lg text-xs text-white outline-none focus:border-fuchsia-500 resize-none" placeholder="Багаараа хэлэлцсэн зүйлээ энд тэмдэглэнэ үү..."></textarea>
-                                                        </div>
-                                                        <div className="flex justify-end gap-2">
-                                                            <button onClick={() => setEditingPPId(null)} className="px-4 py-2 bg-slate-700 hover:bg-slate-600 text-white rounded-lg text-xs font-bold transition-colors">Цуцлах</button>
-                                                            <button onClick={() => saveEditPP(pp)} className="px-4 py-2 bg-fuchsia-600 hover:bg-fuchsia-500 text-white rounded-lg text-xs font-bold transition-colors">Хадгалах</button>
-                                                        </div>
-                                                    </div>
-                                                ) : (
-                                                    meta.discussion && (
-                                                        <div className="bg-slate-900/40 p-4 rounded-xl border border-slate-700/50 mt-2">
-                                                            <div className="text-[10px] uppercase font-bold text-slate-500 mb-1">Тэмдэглэл / Ярилцсан зүйл:</div>
-                                                            <div className="text-sm text-slate-300 whitespace-pre-wrap">{meta.discussion}</div>
-                                                        </div>
-                                                    )
-                                                )}
-
-                                                {/* Footer Actions */}
-                                                {!isEditing && (
-                                                    <div className="flex flex-wrap gap-3 mt-2 border-t border-slate-700/50 pt-4">
-                                                        <button 
-                                                            onClick={() => toggleVote(pp)} 
-                                                            className={`flex-grow md:flex-grow-0 px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 ${hasVoted ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/50' : 'bg-slate-700 text-slate-300 border border-slate-600 hover:bg-slate-600'}`}
-                                                        >
-                                                            <span>👍</span> Надад ч бас
-                                                        </button>
-                                                        <button 
-                                                            onClick={() => startEditPP(pp)}
-                                                            className="flex-grow md:flex-grow-0 px-4 py-2 rounded-xl text-xs font-bold bg-slate-700 text-slate-300 border border-slate-600 hover:bg-slate-600 transition-all flex items-center justify-center gap-1.5"
-                                                        >
-                                                            <span>💬</span> Үнэлэх / Ярилцах
-                                                        </button>
-                                                        <div className="w-full md:w-auto md:ml-auto">
-                                                            <button 
-                                                                onClick={() => solvePainPoint(pp)}
-                                                                className="w-full px-5 py-2 rounded-xl text-xs font-bold bg-cyan-600 hover:bg-cyan-500 text-white transition-all shadow-md flex items-center justify-center gap-1.5"
-                                                            >
-                                                                <span>💡</span> Шийдэл гаргах
-                                                            </button>
-                                                        </div>
-                                                    </div>
-                                                )}
+                                                <div className="flex justify-end gap-2"><button onClick={() => setEPPId(null)} className="px-4 py-2 bg-slate-700 hover:bg-slate-600 transition-colors text-white rounded-lg text-xs font-bold">Цуцлах</button><button onClick={() => saveEditPP(pp)} className="px-6 py-2 bg-fuchsia-600 hover:bg-fuchsia-500 transition-colors text-white rounded-lg text-xs font-bold shadow-md">Хадгалах</button></div>
                                             </div>
-                                        );
-                                    })
-                                )}
-                            </div>
+                                        ) : m.discussion && (
+                                            <div className="bg-slate-900/40 p-4 rounded-xl border border-slate-700/50 mt-2">
+                                                <div className="text-[10px] uppercase font-bold text-slate-500 mb-1">Ярилцсан зүйл:</div>
+                                                <div className="text-sm text-slate-300 whitespace-pre-wrap">{m.discussion}</div>
+                                            </div>
+                                        )}
+                                        {!isEd && <div className="flex flex-wrap gap-3 mt-2 border-t border-slate-700/50 pt-4"><button onClick={() => onVote(pp)} className={`px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 ${pp.voters?.includes(user?.uid) ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/50' : 'bg-slate-700 text-slate-300 border border-slate-600 hover:bg-slate-600'}`}>👍 Надад ч бас</button><button onClick={() => { setEPPId(pp.id); setEPPData({ impact: m.impact, urgency: m.urgency, discussion: m.discussion }); }} className="px-4 py-2 rounded-xl text-xs font-bold bg-slate-700 text-slate-300 border border-slate-600 hover:bg-slate-600 transition-colors">💬 Үнэлэх / Ярилцах</button><button onClick={() => solvePP(pp)} className="md:ml-auto px-5 py-2 rounded-xl text-xs font-bold bg-cyan-600 text-white transition-all shadow-md flex items-center gap-1.5 hover:bg-cyan-500">💡 Шийдэл гаргах</button></div>}
+                                    </div>
+                                );
+                            })}</div>
+                        </div>
+                        
+                        {/* Матрицыг бүртгэх хэсэг болон жагсаалтын доор байрлуулав */}
+                        <div className="mt-12">
+                            <PrioritizationMatrix painPoints={list} />
                         </div>
                     </div>
                 );
             };
 
-            const getBadgeClass = (type, level) => {
-                if(type === 'F') { 
-                    return level === 'High' ? 'bg-blue-500/20 text-blue-400 border-blue-500/30' : 
-                           level === 'Medium' ? 'bg-amber-500/20 text-amber-400 border-amber-500/30' : 
-                           'bg-rose-500/20 text-rose-400 border-rose-500/30';
-                }
-                return 'bg-slate-500/20 text-slate-400 border-slate-500/30';
-            };
-
             const renderVotingView = () => {
-                const actualIdeas = votingIdeas.filter(i => i.category !== CAT_PAINPOINT);
-                let filtered = [];
-                if (selectedTab === 'All') {
-                    filtered = actualIdeas;
-                } else if (selectedTab === 'Shortlisted') {
-                    filtered = actualIdeas.filter(i => extractMeta(i.description).isShortlisted);
-                } else {
-                    filtered = actualIdeas.filter(i => i.category === selectedTab);
-                }
-
+                const actual = votingIdeas.filter(i => i.category !== CAT_PAINPOINT);
+                const filtered = selectedTab === 'All' ? actual : (selectedTab === 'Shortlisted' ? actual.filter(i => extractMeta(i.description).isShortlisted) : actual.filter(i => i.category === selectedTab));
                 return (
                     <div className="max-w-7xl mx-auto p-4 md:p-6 bg-slate-900 min-h-screen">
-                        {renderTopNav()}
-                        <div className="flex flex-col mb-8 bg-slate-800/40 p-6 rounded-2xl border border-slate-700 text-center shadow-lg">
-                            <h1 className="text-3xl font-bold text-white mb-6 tracking-tight uppercase">Бидний үнэ цэнтэй IDEAS</h1>
-                            <div className="flex justify-center flex-wrap gap-2">
-                                {['All', CAT_MANAGEMENT, CAT_OPERATIONS, CAT_SUPPORT, 'Shortlisted'].map(tab => (
-                                    <button key={tab} onClick={() => setSelectedTab(tab)} className={`px-4 py-2.5 rounded-lg text-xs font-bold border transition-colors ${selectedTab === tab ? (tab === 'Shortlisted' ? 'bg-amber-500 text-slate-900 border-amber-500 shadow-[0_0_15px_rgba(245,158,11,0.4)]' : 'bg-white text-slate-900 border-white shadow-md') : 'bg-slate-800 text-slate-400 border-slate-700 hover:border-slate-500 hover:bg-slate-700'}`}>
-                                        {tab === 'All' ? 'Бүгд' : tab === 'Shortlisted' ? '⭐ Shortlisted' : tab}
-                                    </button>
-                                ))}
-                            </div>
+                        {renderNav()}
+                        <div className="flex flex-col mb-8 bg-slate-800/40 p-6 rounded-2xl border border-emerald-500/30 text-center shadow-lg">
+                            <h1 className="text-3xl font-bold text-white mb-2 tracking-tight uppercase">Бидний үнэ цэнтэй IDEAS</h1>
+                            <p className="text-slate-400 text-sm mb-6">Дэвшигдсэн бүх санаануудтай танилцаж, өөрийн үнэлгээ, саналыг өгөх хэсэг.</p>
+                            <div className="flex justify-center flex-wrap gap-2">{['All', CAT_MANAGEMENT, CAT_OPERATIONS, CAT_SUPPORT, 'Shortlisted'].map(t => (<button key={t} onClick={() => setSelectedTab(t)} className={`px-4 py-2.5 rounded-lg text-xs font-bold border transition-colors ${selectedTab === t ? (t === 'Shortlisted' ? 'bg-amber-500 text-slate-900 border-amber-500 shadow-md' : 'bg-white text-slate-900 border-white shadow-md') : 'bg-slate-800 text-slate-400 border-slate-700 hover:bg-slate-700'}`}>{t === 'All' ? 'Бүгд' : t === 'Shortlisted' ? '⭐ Shortlisted' : t}</button>))}</div>
                         </div>
-
-                        {filtered.length === 0 && selectedTab === 'Shortlisted' && (
-                            <div className="text-center text-slate-500 py-20 bg-slate-800/30 rounded-2xl border border-slate-700/50">
-                                <span className="text-4xl block mb-4">⭐</span>
-                                <p className="text-lg">Одоогоор Shortlist-д нэмэгдсэн санаа байхгүй байна.</p>
-                            </div>
-                        )}
-
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                            {filtered.map((idea) => {
-                                const meta = extractMeta(idea.description);
-                                const hasVoted = idea.voters?.includes(user?.uid || 'local_user');
-
+                            {filtered.map(idea => {
+                                const m = extractMeta(idea.description), vtd = idea.voters?.includes(user?.uid || 'local');
                                 return (
-                                    <div key={idea.id} onClick={() => openIdeaDetail(idea)} className={`bg-slate-800/50 p-6 rounded-2xl border transition-all cursor-pointer relative flex flex-col group shadow-lg ${meta.isShortlisted ? 'border-amber-500/40 hover:border-amber-400' : 'border-slate-700 hover:border-cyan-500/50'}`}>
+                                    <div key={idea.id} onClick={() => { setMFeas(m.feasLevel); setMFeasDesc(m.feasDesc); setSelectedId(idea.id); }} className={`bg-slate-800/50 p-6 rounded-2xl border transition-all cursor-pointer relative flex flex-col group shadow-lg ${m.isShortlisted ? 'border-amber-500/40 hover:border-amber-400' : 'border-slate-700 hover:border-cyan-500/50'}`}>
+                                        {m.isShortlisted && <div className="absolute -top-3 -right-2 bg-amber-500 text-slate-900 text-[10px] font-black px-3 py-1 rounded-full z-10 shadow-md uppercase">⭐ Shortlisted</div>}
                                         
-                                        {meta.isShortlisted && (
-                                            <div className="absolute -top-3 -right-2 bg-amber-500 text-slate-900 text-[10px] font-black px-3 py-1 rounded-full shadow-[0_0_15px_rgba(245,158,11,0.4)] tracking-widest uppercase z-10">
-                                                ⭐ Shortlisted
-                                            </div>
-                                        )}
-
-                                        <div className="text-[10px] uppercase font-bold text-slate-500 mb-3">{idea.category}</div>
-                                        <h3 className="text-lg font-bold text-white mb-3 group-hover:text-cyan-400">{idea.projectName || idea.projectname}</h3>
-                                        
-                                        <div className="flex gap-2 mb-4">
-                                            <span className={`text-[10px] px-2 py-1 rounded-md border font-semibold ${getBadgeClass('F', meta.feasLevel)}`}>Боломж (Feasibility): {meta.feasLevel}</span>
+                                        {/* Багийн нэрийг ил тод харуулах */}
+                                        <div className="inline-block self-start px-3 py-1 bg-slate-900/80 rounded-lg border border-slate-700 mb-4 text-[10px] font-black text-indigo-400 tracking-widest uppercase shadow-sm">
+                                            {idea.teamInfo || idea.teaminfo}
                                         </div>
 
-                                        <p className="text-sm text-slate-400 line-clamp-3 mb-4 leading-relaxed flex-grow">{meta.cleanDesc}</p>
+                                        <div className="text-[10px] uppercase font-bold text-slate-500 mb-2">{idea.category}</div>
+                                        <h3 className="text-xl font-bold text-white mb-3 group-hover:text-cyan-400 transition-colors">{idea.projectName || idea.projectname}</h3>
                                         
-                                        <div className="mt-auto pt-4 border-t border-slate-700/50 flex justify-between items-center" onClick={e => e.stopPropagation()}>
-                                            <div className="text-xl font-bold text-slate-200">
-                                                <span className="text-xs text-slate-500 block uppercase tracking-wider mb-1">Business Value</span>
-                                                {idea.votes || 0} санал
-                                            </div>
-                                            <button onClick={() => toggleVote(idea)} className={`px-4 py-2 rounded-xl text-xs font-bold transition-all ${hasVoted ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/50' : 'bg-slate-700 text-slate-300 border border-slate-600 hover:bg-slate-600'}`}>
-                                                {hasVoted ? 'Санал өгсөн' : 'Санал өгөх'}
-                                            </button>
-                                        </div>
+                                        <div className="flex gap-2 mb-4"><span className={`text-[10px] px-2 py-1 rounded-md border font-semibold ${levelClass(m.feasLevel)}`}>Боломж: {m.feasLevel}</span></div>
+                                        <p className="text-sm text-slate-400 line-clamp-3 mb-4 leading-relaxed flex-grow">{m.cleanDesc}</p>
+                                        <div className="mt-auto pt-4 border-t border-slate-700/50 flex justify-between items-center" onClick={e => e.stopPropagation()}><div className="text-xl font-bold text-slate-200"><span className="text-xs text-slate-500 block uppercase mb-1">Business Value</span>{idea.votes || 0} санал</div><button onClick={() => onVote(idea)} className={`px-4 py-2 rounded-xl text-xs font-bold transition-all ${vtd ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/50' : 'bg-slate-700 text-slate-300 border border-slate-600 hover:bg-slate-600'}`}>{vtd ? 'Санал өгсөн' : 'Санал өгөх'}</button></div>
                                     </div>
                                 );
                             })}
                         </div>
-
-                        {selectedIdeaDetail && (() => {
-                            const meta = extractMeta(selectedIdeaDetail.description);
-                            const hasVoted = selectedIdeaDetail.voters?.includes(user?.uid || 'local_user');
-                            return (
-                                <div className="fixed inset-0 bg-slate-950/90 backdrop-blur-sm z-[150] flex items-center justify-center p-4" onClick={() => setSelectedIdeaId(null)}>
-                                    <div className="bg-slate-800 border border-slate-600 p-6 md:p-8 rounded-3xl max-w-4xl w-full shadow-2xl relative flex flex-col h-[90vh] md:h-[85vh]" onClick={e => e.stopPropagation()}>
-                                        <button onClick={() => setSelectedIdeaId(null)} className="absolute top-6 right-6 text-slate-400 hover:text-white text-3xl leading-none transition-colors">&times;</button>
-                                        
-                                        <div className="mb-4 border-b border-slate-700 pb-4 pr-10 flex justify-between items-start flex-shrink-0">
-                                            <div>
-                                                <div className="text-xs font-bold text-cyan-400 uppercase tracking-widest mb-1">{selectedIdeaDetail.teamInfo || selectedIdeaDetail.teaminfo}</div>
-                                                <h2 className="text-2xl md:text-3xl font-bold text-white mb-3">{selectedIdeaDetail.projectName || selectedIdeaDetail.projectname}</h2>
-                                                
-                                                <div className="flex flex-wrap gap-3 mt-2">
-                                                    <span className={`text-[10px] md:text-xs px-3 py-1.5 rounded-lg border font-bold uppercase tracking-wider ${getBadgeClass('F', meta.feasLevel)}`}>Хэрэгжих боломж: {meta.feasLevel}</span>
-                                                    
-                                                    <button 
-                                                        onClick={() => toggleShortlist(selectedIdeaDetail)}
-                                                        className={`text-[10px] md:text-xs px-4 py-1.5 rounded-lg font-bold uppercase tracking-wider transition-all flex items-center gap-1.5 shadow-md ${meta.isShortlisted ? 'bg-amber-500 text-slate-900 hover:bg-amber-400' : 'bg-slate-700 text-slate-300 border border-slate-600 hover:bg-slate-600 hover:text-white'}`}
-                                                    >
-                                                        {meta.isShortlisted ? '⭐ Shortlisted (Хасах)' : '☆ Shortlist-д нэмэх'}
-                                                    </button>
-                                                </div>
-                                            </div>
-                                        </div>
-                                        
-                                        <div className="text-slate-300 whitespace-pre-wrap text-sm md:text-base leading-relaxed mb-4 overflow-y-auto custom-scrollbar pr-4 flex-grow bg-slate-900/40 p-5 md:p-6 rounded-2xl border border-slate-700/50">
-                                            {meta.cleanDesc}
-                                        </div>
-
-                                        <div className="mb-4 bg-slate-900/60 p-3 md:p-4 rounded-xl border border-blue-500/30 shadow-inner flex-shrink-0">
-                                            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-2">
-                                                <h4 className="text-xs font-bold text-blue-400 uppercase tracking-widest">Технологийн үнэлгээ:</h4>
-                                                <div className="flex gap-1.5">
-                                                    {['High', 'Medium', 'Low'].map(level => (
-                                                        <button
-                                                            key={level}
-                                                            onClick={() => setModalFeasLevel(level)}
-                                                            className={`px-3 py-1 rounded-md text-[10px] font-bold border transition-all ${
-                                                                modalFeasLevel === level 
-                                                                    ? getBadgeClass('F', level) + ' shadow-md'
-                                                                    : 'bg-slate-800 text-slate-500 border-slate-700 hover:bg-slate-700'
-                                                            }`}
-                                                        >
-                                                            {level}
-                                                        </button>
-                                                    ))}
-                                                </div>
-                                            </div>
-                                            <div className="flex gap-2 items-start">
-                                                <textarea
-                                                    value={modalFeasDesc}
-                                                    onChange={(e) => setModalFeasDesc(e.target.value)}
-                                                    className="w-full p-2.5 bg-slate-800/80 border border-slate-600 rounded-lg outline-none focus:border-blue-500 text-xs text-slate-200 resize-none transition-colors"
-                                                    placeholder="Дүгнэлтээ энд бичнэ үү..."
-                                                    rows="2"
-                                                />
-                                                <button 
-                                                    onClick={saveFeasibility}
-                                                    className="px-4 py-2 h-fit bg-blue-600 hover:bg-blue-500 text-white rounded-lg text-xs font-bold transition-all shadow-md whitespace-nowrap"
-                                                >
-                                                    Хадгалах
-                                                </button>
-                                            </div>
-                                        </div>
-                                        
-                                        <div className="pt-3 flex justify-between items-center flex-shrink-0 border-t border-slate-700/80">
-                                            <div className="text-2xl font-black text-white flex flex-col mt-2">
-                                                <span className="text-[10px] font-bold text-emerald-400 uppercase tracking-wide mb-1">Бизнесийн үнэ цэн (Санал)</span>
-                                                {selectedIdeaDetail.votes || 0} 
-                                            </div>
-                                            <button onClick={() => toggleVote(selectedIdeaDetail)} className={`px-6 py-2.5 mt-2 rounded-xl text-sm font-bold transition-all shadow-lg ${hasVoted ? 'bg-emerald-500 text-slate-900' : 'bg-cyan-600 hover:bg-cyan-500 text-white'}`}>
-                                                {hasVoted ? '✓ Санал өгсөн' : 'Санал өгөх'}
-                                            </button>
-                                        </div>
-                                    </div>
-                                </div>
-                            );
-                        })()}
                     </div>
                 );
             };
 
             const renderFormView = () => (
                 <div className="max-w-7xl mx-auto p-4 md:p-6 bg-slate-900 min-h-screen text-slate-200">
-                    {renderTopNav()}
-                    <div className="bg-slate-800/40 p-5 md:p-6 rounded-2xl border border-slate-700 mb-6 flex flex-col md:flex-row justify-between items-center shadow-md gap-4">
-                        <h1 className="text-2xl font-bold text-white tracking-tight uppercase">AI in Enterprise Workshop</h1>
-                        <button onClick={publishToVoting} disabled={isSaving} className="bg-cyan-600 hover:bg-cyan-500 text-white font-bold py-3 px-8 rounded-xl transition-all shadow-lg text-sm border border-cyan-500/50 w-full md:w-auto tracking-wider">
-                            {isSaving ? 'Илгээж байна...' : 'САНАЛ ХУРААЛТАД ИЛГЭЭХ'}
-                        </button>
+                    {renderNav()}
+                    <div className="flex flex-col mb-8 bg-slate-800/40 p-6 rounded-2xl border border-cyan-500/30 text-center shadow-lg">
+                        <h1 className="text-3xl font-bold text-white mb-2 tracking-tight uppercase">Санал боловсруулах</h1>
+                        <p className="text-slate-400 text-sm mb-6">Шинэ санаа боловсруулж санал хураалтад илгээх талбар.</p>
+                        <div className="flex justify-center flex-wrap gap-3 mb-6">{ideas.map((idea, idx) => (<button key={idx} onClick={() => setCurrentIndex(idx)} className={`px-5 py-2.5 rounded-xl text-sm font-bold transition-all flex items-center ${idx === currentIndex ? 'bg-cyan-500 text-slate-900 shadow-md' : 'bg-slate-800 text-slate-400 border border-slate-700 hover:bg-slate-700'}`}>{idea.projectName || `Санаа ${idx + 1}`}{ideas.length > 1 && <span onClick={(e) => { e.stopPropagation(); const next = ideas.filter((_, i) => i !== idx); setIdeas(next); setCurrentIndex(Math.max(0, currentIndex - 1)); }} className="ml-3 hover:text-rose-400">✕</span>}</button>))}<button onClick={() => { setIdeas([...ideas, { members: '', projectName: '', targetUser: '', category: CAT_MANAGEMENT, problem: '', solutionGeneral: '', solutionStep1: '', solutionStep2: '', solutionStep3: '', businessValueLevel: 'High', businessValueDesc: '', feasibilityLevel: 'Medium', feasibilityDesc: '' }]); setCurrentIndex(ideas.length); }} className="px-5 py-2.5 rounded-xl text-sm font-bold text-slate-400 border border-slate-600 border-dashed hover:text-cyan-400 transition-all">＋ Шинэ санаа</button></div>
+                        <div className="flex justify-center"><button onClick={publishToVoting} disabled={isSaving} className="bg-cyan-600 hover:bg-cyan-500 text-white font-bold py-3 px-10 rounded-xl transition-all shadow-lg text-sm tracking-wider">{isSaving ? 'Илгээж байна...' : 'САНАЛ ХУРААЛТАД ИЛГЭЭХ'}</button></div>
                     </div>
-
-                    <div className="flex overflow-x-auto space-x-2 mb-6 pb-2 custom-scrollbar">
-                        {ideas.map((idea, idx) => (
-                            <button key={idx} onClick={() => setCurrentIndex(idx)} className={`px-5 py-2.5 rounded-xl text-sm font-bold transition-all whitespace-nowrap ${currentIndex === idx ? 'bg-cyan-500/10 text-cyan-400 border border-cyan-500/30 shadow-inner' : 'bg-slate-800/60 text-slate-400 border border-slate-700 hover:bg-slate-700'}`}>
-                                {idea.projectName || `Санаа ${idx + 1}`}
-                                {ideas.length > 1 && <span onClick={(e) => removeIdea(idx, e)} className="ml-3 text-rose-500 hover:text-rose-400">✕</span>}
-                            </button>
-                        ))}
-                        <button onClick={addNewIdea} className="px-5 py-2.5 rounded-xl text-sm font-bold text-slate-400 border border-slate-600 border-dashed hover:text-cyan-400 hover:border-cyan-500 transition-all whitespace-nowrap">＋ Шинэ санаа</button>
-                    </div>
-
                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6" style={{animation: 'fadeIn 0.3s ease-out'}}>
-                        
-                        {/* Зүүн багана */}
                         <div className="space-y-6 flex flex-col">
                             <div className="bg-slate-800/50 p-6 md:p-8 rounded-2xl border border-slate-700 shadow-inner">
                                 <h3 className="text-lg font-bold text-white mb-6 border-b border-slate-700 pb-3">Ерөнхий мэдээлэл</h3>
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                                    <div className="space-y-1.5">
-                                        <label className="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Баг / Илтгэгч</label>
-                                        <input type="text" name="members" value={activeIdea.members} onChange={handleChange} className="w-full p-3.5 bg-slate-900/50 border border-slate-700 rounded-xl outline-none focus:border-cyan-500 text-sm text-white transition-colors" placeholder="Багийн нэр" />
-                                    </div>
-                                    <div className="space-y-1.5">
-                                        <label className="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Төслийн нэр</label>
-                                        <input type="text" name="projectName" value={activeIdea.projectName} onChange={handleChange} className="w-full p-3.5 bg-slate-900/50 border border-slate-700 rounded-xl outline-none focus:border-cyan-500 text-sm text-white transition-colors" placeholder="Төслийн нэр" />
-                                    </div>
-                                    <div className="space-y-1.5">
-                                        <label className="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Ангилал</label>
-                                        <select name="category" value={activeIdea.category} onChange={handleChange} className="w-full p-3.5 bg-slate-900/50 border border-slate-700 rounded-xl outline-none focus:border-cyan-500 text-sm text-white transition-colors">
-                                            <option value={CAT_MANAGEMENT}>{CAT_MANAGEMENT}</option>
-                                            <option value={CAT_OPERATIONS}>{CAT_OPERATIONS}</option>
-                                            <option value={CAT_SUPPORT}>{CAT_SUPPORT}</option>
-                                        </select>
-                                    </div>
-                                    <div className="space-y-1.5">
-                                        <label className="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Хэрэглэгч</label>
-                                        <input type="text" name="targetUser" value={activeIdea.targetUser} onChange={handleChange} className="w-full p-3.5 bg-slate-900/50 border border-slate-700 rounded-xl outline-none focus:border-cyan-500 text-sm text-white transition-colors" placeholder="Хэрэглэгч" />
-                                    </div>
-                                </div>
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-5"><div className="space-y-1.5"><label className="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Баг / Илтгэгч</label><input type="text" value={activeIdea.members} onChange={e => { const v = e.target.value; setIdeas(p => p.map((i, id) => id === currentIndex ? {...i, members: v} : i)); }} className="w-full p-3.5 bg-slate-900/50 border border-slate-700 rounded-xl outline-none text-sm text-white focus:border-cyan-500" placeholder="Багийн нэр" /></div><div className="space-y-1.5"><label className="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Төслийн нэр</label><input type="text" value={activeIdea.projectName} onChange={e => { const v = e.target.value; setIdeas(p => p.map((i, id) => id === currentIndex ? {...i, projectName: v} : i)); }} className="w-full p-3.5 bg-slate-900/50 border border-slate-700 rounded-xl outline-none text-sm text-white focus:border-cyan-500" placeholder="Төслийн нэр" /></div><div className="space-y-1.5"><label className="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Ангилал</label><select value={activeIdea.category} onChange={e => { const v = e.target.value; setIdeas(p => p.map((i, id) => id === currentIndex ? {...i, category: v} : i)); }} className="w-full p-3.5 bg-slate-900/50 border border-slate-700 rounded-xl text-sm text-white focus:border-cyan-500"><option value={CAT_MANAGEMENT}>{CAT_MANAGEMENT}</option><option value={CAT_OPERATIONS}>{CAT_OPERATIONS}</option><option value={CAT_SUPPORT}>{CAT_SUPPORT}</option></select></div><div className="space-y-1.5"><label className="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Хэрэглэгч</label><input type="text" value={activeIdea.targetUser} onChange={e => { const v = e.target.value; setIdeas(p => p.map((i, id) => id === currentIndex ? {...i, targetUser: v} : i)); }} className="w-full p-3.5 bg-slate-900/50 border border-slate-700 rounded-xl outline-none text-sm text-white focus:border-cyan-500" placeholder="Хэрэглэгч" /></div></div>
                             </div>
-
-                            <div className="bg-slate-800/50 p-6 md:p-8 rounded-2xl border border-slate-700 shadow-inner flex flex-col flex-grow">
-                                <h3 className="text-lg font-bold text-rose-400 mb-6 border-b border-slate-700 pb-3">1. Асуудал</h3>
-                                <textarea name="problem" value={activeIdea.problem} onChange={handleChange} className="w-full p-5 bg-slate-900/50 border border-slate-700 rounded-xl outline-none focus:border-rose-500 text-sm text-white resize-none flex-grow transition-colors" placeholder="Одоогийн нөхцөл байдалд ямар асуудал тулгарч байна вэ?..."></textarea>
-                            </div>
+                            <div className="bg-slate-800/50 p-6 md:p-8 rounded-2xl border border-slate-700 shadow-inner flex flex-col flex-grow"><h3 className="text-lg font-bold text-rose-400 mb-6 border-b border-slate-700 pb-3">1. Асуудал</h3><textarea value={activeIdea.problem} onChange={e => { const v = e.target.value; setIdeas(p => p.map((i, id) => id === currentIndex ? {...i, problem: v} : i)); }} className="w-full p-5 bg-slate-900/50 border border-slate-700 rounded-xl text-sm text-white flex-grow resize-none focus:border-rose-500 outline-none transition-all" placeholder="Асуудлын тайлбар..." /></div>
                         </div>
-
-                        {/* Баруун багана */}
                         <div className="space-y-6 flex flex-col">
-                            <div className="bg-slate-800/50 p-6 md:p-8 rounded-2xl border border-slate-700 shadow-inner">
-                                <h3 className="text-lg font-bold text-cyan-400 mb-6 border-b border-slate-700 pb-3">2. Шийдэл</h3>
-                                <div className="space-y-5">
-                                    <div className="space-y-1.5">
-                                        <label className="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Ерөнхий шийдэл</label>
-                                        <textarea name="solutionGeneral" value={activeIdea.solutionGeneral} onChange={handleChange} rows="2" className="w-full p-4 bg-slate-900/50 border border-slate-700 rounded-xl outline-none focus:border-cyan-500 text-sm text-white resize-none transition-colors" placeholder="Ерөнхий шийдлийн тайлбар..."></textarea>
-                                    </div>
-                                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                                        <div className="space-y-1.5">
-                                            <label className="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Алхам 1</label>
-                                            <input type="text" name="solutionStep1" value={activeIdea.solutionStep1} onChange={handleChange} className="w-full p-3.5 bg-slate-900/50 border border-slate-700 rounded-xl outline-none focus:border-cyan-500 text-sm text-white transition-colors" placeholder="..." />
-                                        </div>
-                                        <div className="space-y-1.5">
-                                            <label className="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Алхам 2</label>
-                                            <input type="text" name="solutionStep2" value={activeIdea.solutionStep2} onChange={handleChange} className="w-full p-3.5 bg-slate-900/50 border border-slate-700 rounded-xl outline-none focus:border-cyan-500 text-sm text-white transition-colors" placeholder="..." />
-                                        </div>
-                                        <div className="space-y-1.5">
-                                            <label className="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Алхам 3</label>
-                                            <input type="text" name="solutionStep3" value={activeIdea.solutionStep3} onChange={handleChange} className="w-full p-3.5 bg-slate-900/50 border border-slate-700 rounded-xl outline-none focus:border-cyan-500 text-sm text-white transition-colors" placeholder="..." />
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-
-                            {/* Үнэлгээний 2 хэсэг */}
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 flex-grow">
-                                <div className="bg-slate-800/50 p-6 md:p-8 rounded-2xl border border-slate-700 shadow-inner flex flex-col">
-                                    <h3 className="text-lg font-bold text-emerald-400 mb-6 border-b border-slate-700 pb-3">3. Бизнесийн үнэ цэн</h3>
-                                    <div className="space-y-4 flex flex-col flex-grow">
-                                        <div className="space-y-1.5">
-                                            <label className="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Үнэлгээ (Value)</label>
-                                            <select name="businessValueLevel" value={activeIdea.businessValueLevel} onChange={handleChange} className="w-full p-3.5 bg-slate-900/50 border border-slate-700 rounded-xl outline-none focus:border-emerald-500 text-sm text-white transition-colors">
-                                                <option value="High">Өндөр (Стратегийн/санхүүгийн том нөлөө)</option>
-                                                <option value="Medium">Дунд (Үйл ажиллагааг хөнгөвчлөх, цаг хэмнэх)</option>
-                                                <option value="Low">Бага (Тодорхой нэг жижиг хэсгийг сайжруулах)</option>
-                                            </select>
-                                        </div>
-                                        <div className="space-y-1.5 flex-grow flex flex-col">
-                                            <label className="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Тайлбар</label>
-                                            <textarea name="businessValueDesc" value={activeIdea.businessValueDesc} onChange={handleChange} className="w-full p-4 bg-slate-900/50 border border-slate-700 rounded-xl outline-none focus:border-emerald-500 text-sm text-white resize-none flex-grow transition-colors" placeholder="Үр өгөөжийн тайлбар..."></textarea>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <div className="bg-slate-800/50 p-6 md:p-8 rounded-2xl border border-slate-700 shadow-inner flex flex-col">
-                                    <h3 className="text-lg font-bold text-blue-400 mb-6 border-b border-slate-700 pb-3">4. Технологийн хэрэгжих боломж</h3>
-                                    <div className="space-y-4 flex flex-col flex-grow">
-                                        <div className="space-y-1.5">
-                                            <label className="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Боломж (Feasibility)</label>
-                                            <select name="feasibilityLevel" value={activeIdea.feasibilityLevel} onChange={handleChange} className="w-full p-3.5 bg-slate-900/50 border border-slate-700 rounded-xl outline-none focus:border-blue-500 text-sm text-white transition-colors">
-                                                <option value="High">Өндөр (Бэлэн технологи, хялбар нэвтрүүлэх)</option>
-                                                <option value="Medium">Дунд (Боломжтой ч нэмэлт хөгжүүлэлт шаардана)</option>
-                                                <option value="Low">Бага (Нарийн судалгаа, их цаг/зардал орно)</option>
-                                            </select>
-                                        </div>
-                                        <div className="space-y-1.5 flex-grow flex flex-col">
-                                            <label className="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Тайлбар (Tech Team)</label>
-                                            <textarea name="feasibilityDesc" value={activeIdea.feasibilityDesc} onChange={handleChange} className="w-full p-4 bg-slate-900/50 border border-slate-700 rounded-xl outline-none focus:border-blue-500 text-sm text-white resize-none flex-grow transition-colors" placeholder="Технологийн багийн дүгнэлт, саналууд..."></textarea>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
+                            <div className="bg-slate-800/50 p-6 md:p-8 rounded-2xl border border-slate-700 shadow-inner"><h3 className="text-lg font-bold text-cyan-400 mb-6 border-b border-slate-700 pb-3">2. Шийдэл</h3><div className="space-y-5"><textarea value={activeIdea.solutionGeneral} onChange={e => { const v = e.target.value; setIdeas(p => p.map((i, id) => id === currentIndex ? {...i, solutionGeneral: v} : i)); }} rows="2" className="w-full p-4 bg-slate-900/50 border border-slate-700 rounded-xl text-sm text-white resize-none focus:border-cyan-500 outline-none transition-all" placeholder="Ерөнхий шийдлийн тайлбар..." /><div className="grid grid-cols-1 md:grid-cols-3 gap-4"><input type="text" value={activeIdea.solutionStep1} onChange={e => { const v = e.target.value; setIdeas(p => p.map((i, id) => id === currentIndex ? {...i, solutionStep1: v} : i)); }} className="w-full p-3.5 bg-slate-900/50 border border-slate-700 rounded-xl outline-none text-sm text-white focus:border-cyan-500" placeholder="Алхам 1..." /><input type="text" value={activeIdea.solutionStep2} onChange={e => { const v = e.target.value; setIdeas(p => p.map((i, id) => id === currentIndex ? {...i, solutionStep2: v} : i)); }} className="w-full p-3.5 bg-slate-900/50 border border-slate-700 rounded-xl outline-none text-sm text-white focus:border-cyan-500" placeholder="Алхам 2..." /><input type="text" value={activeIdea.solutionStep3} onChange={e => { const v = e.target.value; setIdeas(p => p.map((i, id) => id === currentIndex ? {...i, solutionStep3: v} : i)); }} className="w-full p-3.5 bg-slate-900/50 border border-slate-700 rounded-xl outline-none text-sm text-white focus:border-cyan-500" placeholder="Алхам 3..." /></div></div></div>
+                            <div className="bg-slate-800/50 p-6 md:p-8 rounded-2xl border border-slate-700 shadow-inner flex flex-col flex-grow"><h3 className="text-lg font-bold text-emerald-400 mb-6 border-b border-slate-700 pb-3">3. Бизнесийн үнэ цэн</h3><div className="space-y-4 flex flex-col flex-grow"><select value={activeIdea.businessValueLevel} onChange={e => { const v = e.target.value; setIdeas(p => p.map((i, id) => id === currentIndex ? {...i, businessValueLevel: v} : i)); }} className="w-full p-3.5 bg-slate-900/50 border border-slate-700 rounded-xl text-sm text-white focus:border-emerald-500"><option value="High">Өндөр (Стратегийн/санхүүгийн том нөлөө)</option><option value="Medium">Дунд (Үйл ажиллагааг хөнгөвчлөх, цаг хэмнэх)</option><option value="Low">Бага (Тодорхой нэг жижиг хэсгийг сайжруулах)</option></select><textarea value={activeIdea.businessValueDesc} onChange={e => { const v = e.target.value; setIdeas(p => p.map((i, id) => id === currentIndex ? {...i, businessValueDesc: v} : i)); }} className="w-full p-4 bg-slate-900/50 border border-slate-700 rounded-xl text-sm text-white flex-grow resize-none focus:border-emerald-500 outline-none transition-all" placeholder="Үр өгөөжийн тайлбар..." /></div></div>
                         </div>
-
                     </div>
-                    
-                    <div className="flex justify-center mt-10 pb-12">
-                        <button onClick={() => {setCurrentSlide(0); setView('presentation');}} className="px-12 py-5 bg-slate-800 hover:bg-slate-700 rounded-2xl font-black text-sm transition-all border border-slate-600 shadow-2xl text-cyan-400 uppercase tracking-widest hover:-translate-y-1">
-                            Start presentation
-                        </button>
-                    </div>
+                    <div className="flex justify-center mt-10 pb-12"><button onClick={() => {setCurrentSlide(0); setView('presentation');}} className="px-12 py-5 bg-slate-800 hover:bg-slate-700 rounded-2xl font-black text-sm transition-all border border-slate-600 shadow-2xl text-cyan-400 uppercase tracking-widest hover:-translate-y-1">Start presentation</button></div>
                 </div>
             );
 
             const renderPresentationView = () => {
-                const Slide0 = () => (
-                    <div className="flex flex-col items-center justify-center h-full text-center px-10">
-                        <h1 className="text-6xl md:text-8xl font-black text-white mb-10 tracking-tighter uppercase leading-tight">{activeIdea.projectName || 'Төслийн нэр'}</h1>
-                        <p className="text-2xl text-cyan-400 mb-16 font-semibold tracking-[0.2em] uppercase">Хэрэглэгч: {activeIdea.targetUser}</p>
-                        <div className="bg-slate-800/80 px-10 py-5 rounded-full border border-slate-600 flex items-center gap-6 shadow-2xl backdrop-blur-md">
-                            <span className="text-sm text-slate-400 uppercase font-bold tracking-[0.3em]">Баг</span>
-                            <span className="text-3xl text-white font-black">{activeIdea.members || '...'}</span>
-                        </div>
-                    </div>
-                );
-
-                const Slide1 = () => (
-                    <div className="flex flex-col h-full px-12 py-10 md:px-20 md:py-16">
-                        <h2 className="text-4xl md:text-5xl font-black text-rose-400 mb-8 uppercase tracking-widest border-b-4 border-rose-500/30 pb-4 inline-block w-max">1. АСУУДАЛ</h2>
-                        <div className="text-2xl md:text-3xl text-slate-200 font-medium leading-normal bg-slate-800/40 p-8 md:p-12 rounded-[2.5rem] border border-slate-700 flex-grow whitespace-pre-wrap shadow-inner overflow-y-auto custom-scrollbar">
-                            {activeIdea.problem || '...'}
-                        </div>
-                    </div>
-                );
-
-                const Slide2 = () => (
-                    <div className="flex flex-col h-full px-12 py-10 md:px-20 md:py-16">
-                        <h2 className="text-4xl md:text-5xl font-black text-cyan-400 mb-8 uppercase tracking-widest border-b-4 border-cyan-500/30 pb-4 inline-block w-max">2. ШИЙДЭЛ</h2>
-                        <div className="text-xl md:text-2xl text-slate-200 font-medium leading-relaxed bg-slate-800/40 p-6 md:p-8 rounded-[2rem] border border-slate-700 mb-8 whitespace-pre-wrap shadow-inner overflow-y-auto custom-scrollbar">
-                            {activeIdea.solutionGeneral || 'Ерөнхий шийдэл...'}
-                        </div>
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 flex-grow min-h-[40%]">
-                            {[activeIdea.solutionStep1, activeIdea.solutionStep2, activeIdea.solutionStep3].map((step, idx) => (
-                                <div key={idx} className="bg-slate-800/60 p-6 md:p-8 rounded-[2.5rem] border border-slate-600 relative shadow-2xl flex flex-col justify-center overflow-y-auto custom-scrollbar">
-                                    <div className="text-5xl font-black text-slate-700/50 absolute top-4 right-6">0{idx+1}</div>
-                                    <p className="text-lg md:text-xl text-slate-200 mt-8 relative z-10 font-bold leading-snug">{step || '...'}</p>
-                                </div>
-                            ))}
-                        </div>
-                    </div>
-                );
-
-                const Slide3 = () => (
-                    <div className="flex flex-col h-full px-12 py-10 md:px-20 md:py-16 items-center justify-center">
-                        <h2 className="text-4xl md:text-5xl font-black text-white mb-10 uppercase tracking-widest text-center">3. Үнэлгээний матриц</h2>
-                        
-                        <div className="grid grid-cols-2 gap-8 md:gap-12 flex-grow w-full">
-                            {/* Business Value */}
-                            <div className="bg-slate-800/50 border border-slate-600 rounded-[3rem] p-8 md:p-12 flex flex-col items-center text-center shadow-2xl relative overflow-hidden">
-                                <div className="absolute top-0 w-full h-2 bg-emerald-500"></div>
-                                <h3 className="text-xl md:text-2xl font-bold text-slate-400 uppercase tracking-widest mb-6">Бизнесийн үнэ цэн</h3>
-                                <div className="text-4xl md:text-5xl font-black px-8 py-4 rounded-full border border-emerald-500 bg-emerald-900/30 text-emerald-400 shadow-[0_0_40px_rgba(16,185,129,0.3)] uppercase mb-8 tracking-wider">
-                                    {activeIdea.businessValueLevel}
-                                </div>
-                                <div className="text-xl md:text-2xl text-slate-300 font-medium leading-relaxed whitespace-pre-wrap overflow-y-auto custom-scrollbar h-full">
-                                    {activeIdea.businessValueDesc || '...'}
-                                </div>
-                            </div>
-
-                            {/* Feasibility */}
-                            <div className="bg-slate-800/50 border border-slate-600 rounded-[3rem] p-8 md:p-12 flex flex-col items-center text-center shadow-2xl relative overflow-hidden">
-                                <div className="absolute top-0 w-full h-2 bg-blue-500"></div>
-                                <h3 className="text-xl md:text-2xl font-bold text-slate-400 uppercase tracking-widest mb-6">Хэрэгжих боломж</h3>
-                                <div className="text-4xl md:text-5xl font-black px-8 py-4 rounded-full border border-blue-500 bg-blue-900/30 text-blue-400 shadow-[0_0_40px_rgba(59,130,246,0.3)] uppercase mb-8 tracking-wider">
-                                    {activeIdea.feasibilityLevel}
-                                </div>
-                                <div className="text-xl md:text-2xl text-slate-300 font-medium leading-relaxed whitespace-pre-wrap overflow-y-auto custom-scrollbar h-full">
-                                    {activeIdea.feasibilityDesc || '...'}
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                );
-
+                const Slide0 = () => (<div className="flex flex-col items-center justify-center h-full text-center px-10"><h1 className="text-5xl md:text-7xl font-black text-white mb-8 tracking-tighter uppercase leading-tight">{activeIdea.projectName || 'Төслийн нэр'}</h1><p className="text-2xl text-cyan-400 mb-16 font-semibold tracking-[0.2em] uppercase">Хэрэглэгч: {activeIdea.targetUser}</p><div className="bg-slate-800/80 px-10 py-5 rounded-full border border-slate-600 flex items-center gap-6 shadow-2xl backdrop-blur-md"><span className="text-sm text-slate-400 uppercase font-bold tracking-[0.3em]">Баг</span><span className="text-2xl md:text-3xl text-white font-black">{activeIdea.members || '...'}</span></div></div>);
+                const Slide1 = () => (<div className="flex flex-col h-full px-12 py-10 md:px-20 md:py-16"><h2 className="text-3xl md:text-4xl font-black text-rose-400 mb-8 uppercase tracking-widest border-b-4 border-rose-500/30 pb-4 inline-block w-max">1. АСУУДАЛ</h2><div className="text-xl md:text-2xl text-slate-200 font-medium leading-normal bg-slate-800/40 p-8 md:p-12 rounded-[2.5rem] border border-slate-700 flex-grow whitespace-pre-wrap shadow-inner overflow-y-auto custom-scrollbar">{activeIdea.problem || '...'}</div></div>);
+                const Slide2 = () => (<div className="flex flex-col h-full px-12 py-10 md:px-20 md:py-16"><h2 className="text-3xl md:text-4xl font-black text-cyan-400 mb-8 uppercase tracking-widest border-b-4 border-cyan-500/30 pb-4 inline-block w-max">2. ШИЙДЭЛ</h2><div className="text-lg md:text-xl text-slate-200 font-medium leading-relaxed bg-slate-800/40 p-6 md:p-8 rounded-[2rem] border border-slate-700 mb-8 whitespace-pre-wrap shadow-inner overflow-y-auto custom-scrollbar">{activeIdea.solutionGeneral || 'Ерөнхий шийдэл...'}</div><div className="grid grid-cols-1 md:grid-cols-3 gap-6 flex-grow min-h-[40%]">{[activeIdea.solutionStep1, activeIdea.solutionStep2, activeIdea.solutionStep3].map((step, idx) => (<div key={idx} className="bg-slate-800/60 p-6 md:p-8 rounded-[2.5rem] border border-slate-600 relative shadow-2xl flex flex-col justify-center overflow-y-auto custom-scrollbar"><div className="text-5xl font-black text-slate-700/50 absolute top-4 right-6">0{idx+1}</div><p className="text-base md:text-lg text-slate-200 mt-8 relative z-10 font-bold leading-snug">{step || '...'}</p></div>))}</div></div>);
+                const Slide3 = () => (<div className="flex flex-col h-full px-12 py-10 md:px-20 md:py-16 items-center justify-center"><h2 className="text-3xl md:text-4xl font-black text-white mb-10 uppercase tracking-widest text-center">3. Үнэлгээний матриц</h2><div className="grid grid-cols-2 gap-8 md:gap-12 flex-grow w-full"><div className="bg-slate-800/50 border border-slate-600 rounded-[3rem] p-8 md:p-12 flex flex-col items-center text-center shadow-2xl relative overflow-hidden"><div className="absolute top-0 w-full h-2 bg-emerald-500" /><h3 className="text-lg md:text-xl font-bold text-slate-400 uppercase tracking-widest mb-6">Бизнесийн үнэ цэн</h3><div className="text-3xl md:text-4xl font-black px-8 py-4 rounded-full border border-emerald-500 bg-emerald-900/30 text-emerald-400 shadow-md uppercase mb-8 tracking-wider">{activeIdea.businessValueLevel}</div><div className="text-base md:text-lg text-slate-300 font-medium leading-relaxed whitespace-pre-wrap overflow-y-auto custom-scrollbar h-full">{activeIdea.businessValueDesc || '...'}</div></div><div className="bg-slate-800/50 border border-slate-600 rounded-[3rem] p-8 md:p-12 flex flex-col items-center text-center shadow-2xl relative overflow-hidden"><div className="absolute top-0 w-full h-2 bg-blue-500" /><h3 className="text-lg md:text-xl font-bold text-slate-400 uppercase tracking-widest mb-6">Хэрэгжих боломж</h3><div className="text-3xl md:text-4xl font-black px-8 py-4 rounded-full border border-blue-500 bg-blue-900/30 text-blue-400 shadow-md uppercase mb-8 tracking-wider">{activeIdea.feasibilityLevel}</div><div className="text-base md:text-lg text-slate-300 font-medium leading-relaxed whitespace-pre-wrap overflow-y-auto custom-scrollbar h-full">{activeIdea.feasibilityDesc || '...'}</div></div></div></div>);
                 const presSlides = [<Slide0/>, <Slide1/>, <Slide2/>, <Slide3/>];
-
                 return (
                     <div className="fixed inset-0 bg-[#0a0f1c] z-50 flex flex-col" style={{animation: 'fadeIn 0.4s ease-out'}}>
-                        
-                        <div className="flex-grow flex items-center justify-center relative overflow-hidden">
-                            <div className="w-full h-full relative z-10 p-4 pb-24 md:p-8 md:pb-28">
-                                <div className="w-full h-full bg-[#0f172a] rounded-[3rem] shadow-[0_0_100px_rgba(0,0,0,0.8)] border border-slate-700/50 overflow-hidden relative">
-                                     {presSlides[currentSlide]}
-                                </div>
-                            </div>
-                            
-                            {/* Background Blur Elements */}
-                            <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-cyan-900/20 blur-[150px] rounded-full pointer-events-none"></div>
-                            <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-indigo-900/20 blur-[150px] rounded-full pointer-events-none"></div>
-                        </div>
-
-                        {/* Navigation Actions */}
-                        <div className="absolute bottom-6 left-0 right-0 flex justify-between items-center px-8 md:px-16 z-20">
-                            
-                            <button onClick={(e) => {e.stopPropagation(); setView('form');}} className="bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white px-6 py-3 md:px-8 md:py-4 rounded-2xl font-bold border border-slate-600 transition-colors text-xs md:text-sm uppercase tracking-widest flex items-center gap-2 md:gap-3 shadow-xl">
-                                <span className="text-lg md:text-xl">✕</span> Буцах
-                            </button>
-
-                            <div className="flex items-center gap-4 md:gap-8 bg-slate-900/80 p-2 md:p-3 rounded-full border border-slate-700 backdrop-blur-md shadow-2xl">
-                                <button 
-                                    onClick={(e) => { e.stopPropagation(); setCurrentSlide(p => Math.max(0, p - 1)); }}
-                                    className={`w-10 h-10 md:w-14 md:h-14 rounded-full flex items-center justify-center bg-slate-800 text-cyan-400 font-bold border border-slate-600 hover:bg-slate-700 transition-all ${currentSlide === 0 ? 'opacity-30 pointer-events-none' : ''}`}
-                                >
-                                    <svg className="w-5 h-5 md:w-6 md:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M15 19l-7-7 7-7"></path></svg>
-                                </button>
-                                
-                                <div className="flex space-x-2 md:space-x-4 px-2 md:px-4">
-                                    {presSlides.map((_, idx) => (
-                                        <div key={idx} className={`w-2 h-2 md:w-3 md:h-3 rounded-full transition-all duration-500 ${idx === currentSlide ? 'bg-cyan-400 w-8 md:w-12 shadow-[0_0_15px_rgba(34,211,238,0.6)]' : 'bg-slate-600'}`}></div>
-                                    ))}
-                                </div>
-
-                                <button 
-                                    onClick={(e) => { e.stopPropagation(); setCurrentSlide(p => Math.min(presSlides.length - 1, p + 1)); }}
-                                    className={`w-10 h-10 md:w-14 md:h-14 rounded-full flex items-center justify-center bg-slate-800 text-cyan-400 font-bold border border-slate-600 hover:bg-slate-700 transition-all ${currentSlide === presSlides.length - 1 ? 'opacity-30 pointer-events-none' : ''}`}
-                                >
-                                    <svg className="w-5 h-5 md:w-6 md:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M9 5l7 7-7 7"></path></svg>
-                                </button>
-                            </div>
-                            
-                            <div className="w-[100px] md:w-[150px]"></div> {/* Layout Balance spacer */}
+                        <div className="flex-grow flex items-center justify-center relative overflow-hidden"><div className="w-full h-full relative z-10 p-4 pb-24 md:p-8 md:pb-28"><div className="w-full h-full bg-[#0f172a] rounded-[3rem] shadow-[0_0_100px_rgba(0,0,0,0.8)] border border-slate-700/50 overflow-hidden relative">{presSlides[currentSlide]}</div></div><div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-cyan-900/20 blur-[150px] rounded-full pointer-events-none" /><div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-indigo-900/20 blur-[150px] rounded-full pointer-events-none" /></div>
+                        <div className="absolute bottom-6 left-0 right-0 flex justify-between items-center px-8 md:px-16 z-20"><button onClick={() => setView('form')} className="bg-slate-800 hover:bg-slate-700 text-slate-300 px-6 py-3 md:px-8 md:py-4 rounded-2xl font-bold border border-slate-600 transition-colors text-xs md:text-sm uppercase tracking-widest flex items-center gap-2 md:gap-3 shadow-xl"><span className="text-lg md:text-xl">✕</span> Буцах</button>
+                            <div className="flex items-center gap-4 md:gap-8 bg-slate-900/80 p-2 md:p-3 rounded-full border border-slate-700 backdrop-blur-md shadow-2xl"><button onClick={() => setCurrentSlide(p => Math.max(0, p - 1))} className={`w-10 h-10 md:w-14 md:h-14 rounded-full flex items-center justify-center bg-slate-800 text-cyan-400 font-bold border border-slate-600 hover:bg-slate-700 transition-all ${currentSlide === 0 ? 'opacity-30 pointer-events-none' : ''}`}><svg className="w-5 h-5 md:w-6 md:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M15 19l-7-7 7-7"></path></svg></button>
+                                <div className="flex space-x-2 md:space-x-4 px-2 md:px-4">{presSlides.map((_, i) => (<div key={i} className={`w-2 h-2 md:w-3 md:h-3 rounded-full transition-all duration-500 ${i === currentSlide ? 'bg-cyan-400 w-8 md:w-12 shadow-[0_0_15px_rgba(34,211,238,0.6)]' : 'bg-slate-600'}`} />))}</div>
+                                <button onClick={() => setCurrentSlide(p => Math.min(presSlides.length - 1, p + 1))} className={`w-10 h-10 md:w-14 md:h-14 rounded-full flex items-center justify-center bg-slate-800 text-cyan-400 font-bold border border-slate-600 hover:bg-slate-700 transition-all ${currentSlide === presSlides.length - 1 ? 'opacity-30 pointer-events-none' : ''}`}><svg className="w-5 h-5 md:w-6 md:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M9 5l7 7-7 7"></path></svg></button>
+                            </div><div className="w-[100px] md:w-[150px]" />
                         </div>
                     </div>
                 );
             };
 
             return (
-                <div className="min-h-screen bg-slate-900 relative">
+                <div className="min-h-screen bg-[#0f172a]">
                     {renderToast()}
-                    {view === 'collab' ? renderCollaborationView() : (view === 'voting' ? renderVotingView() : (view === 'form' ? renderFormView() : renderPresentationView()))}
+                    {view === 'collab' && renderCollaborationView()}
+                    {view === 'form' && renderFormView()}
+                    {view === 'voting' && renderVotingView()}
+                    {view === 'presentation' && renderPresentationView()}
+
+                    {selIdea && (
+                        <div className="fixed inset-0 bg-black/90 z-[300] flex items-center justify-center p-4 overflow-y-auto" onClick={() => setSelectedId(null)}>
+                            <div className="bg-slate-900 border border-slate-700 w-full max-w-4xl p-8 rounded-[2.5rem] shadow-2xl relative my-auto flex flex-col" onClick={e => e.stopPropagation()}>
+                                <button className="absolute top-6 right-8 text-3xl text-slate-500 hover:text-white transition-colors" onClick={() => setSelectedId(null)}>&times;</button>
+                                
+                                <div className="mb-4 border-b border-slate-800 pb-4 pr-12">
+                                    <div className="text-xs font-bold text-cyan-400 uppercase tracking-widest mb-2">{selIdea.teamInfo || selIdea.teaminfo}</div>
+                                    <h2 className="text-2xl md:text-3xl font-black text-white mb-4">{selIdea.projectName || selIdea.projectname}</h2>
+                                    <div className="flex flex-wrap gap-3">
+                                        <button onClick={() => toggleShortlist(selIdea)} className={`text-[10px] md:text-xs px-4 py-1.5 rounded-lg font-bold uppercase transition-all flex items-center gap-1.5 shadow-md ${extractMeta(selIdea.description).isShortlisted ? 'bg-amber-500 text-slate-900 hover:bg-amber-400' : 'bg-slate-800 text-slate-300 border border-slate-700 hover:bg-slate-700'}`}>{extractMeta(selIdea.description).isShortlisted ? '⭐ Shortlisted (Хасах)' : '☆ Shortlist-д нэмэх'}</button>
+                                    </div>
+                                </div>
+                                
+                                <div className="text-slate-300 whitespace-pre-wrap text-sm leading-relaxed mb-6 max-h-[40vh] overflow-y-auto custom-scrollbar pr-4 bg-slate-800/40 p-6 rounded-2xl border border-slate-700/50 shadow-inner">
+                                    {extractMeta(selIdea.description).cleanDesc}
+                                </div>
+                                
+                                <div className="bg-slate-800/60 p-6 rounded-3xl border border-slate-700 flex flex-col mx-auto w-full md:w-2/3">
+                                    <h3 className="text-lg font-bold text-blue-400 mb-4 border-b border-slate-700 pb-2 flex items-center gap-2"><span>⚙️</span> Технологийн хэрэгжих боломж</h3>
+                                    <div className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Боломж (Feasibility)</div>
+                                    <div className="flex gap-2 mb-4">{['High', 'Medium', 'Low'].map(lvl => (<button key={lvl} onClick={() => setMFeas(lvl)} className={`px-4 py-2 rounded-xl text-xs font-bold border transition-all ${mFeas === lvl ? levelClass(lvl) : 'bg-slate-900/80 text-slate-500 border-slate-700 hover:bg-slate-700'}`}>{lvl}</button>))}</div>
+                                    <div className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Тайлбар (Tech Team)</div>
+                                    <textarea value={mFeasDesc} onChange={e => setMFeasDesc(e.target.value)} className="w-full p-4 bg-slate-900/80 border border-slate-700 rounded-xl outline-none focus:border-blue-500 text-sm text-slate-200 resize-none mb-4 flex-grow shadow-inner" placeholder="Технологийн багийн дүгнэлт, саналууд энд бичигдэнэ..." rows="3" />
+                                    <button onClick={onSaveFeas} className="w-full py-3 bg-blue-600 text-white rounded-xl text-sm font-bold shadow-lg hover:bg-blue-500 transition-colors">Үнэлгээ хадгалах</button>
+                                </div>
+
+                                <div className="pt-6 flex justify-between items-center border-t border-slate-800 mt-4">
+                                    <div className="text-3xl font-black text-white flex flex-col"><span className="text-[10px] font-bold text-emerald-400 uppercase tracking-widest mb-1">Нийт санал</span>{selIdea.votes || 0}</div>
+                                    <button onClick={() => onVote(selIdea)} className={`px-10 py-4 rounded-xl text-sm font-bold shadow-lg transition-all ${selIdea.voters?.includes(user?.uid) ? 'bg-emerald-500 text-slate-900' : 'bg-cyan-600 text-white hover:bg-cyan-500'}`}>{selIdea.voters?.includes(user?.uid) ? '✓ Санал өгсөн' : 'Санал өгөх'}</button>
+                                </div>
+                            </div>
+                        </div>
+                    )}
                 </div>
             );
         };
 
-        const root = ReactDOM.createRoot(document.getElementById('root'));
-        root.render(<App />);
+        ReactDOM.createRoot(document.getElementById('root')).render(<App />);
     </script>
 </body>
 </html>
