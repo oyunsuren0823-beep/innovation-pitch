@@ -4,7 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>AI in Enterprise - Pitch App</title>
+    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
+    <!-- React & Babel -->
     <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
     <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
@@ -19,7 +21,7 @@
         .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
         .custom-scrollbar::-webkit-scrollbar-thumb { background: #334155; border-radius: 10px; }
         .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #475569; }
-        body { background-color: #0f172a; margin: 0; }
+        body { background-color: #0f172a; margin: 0; color: #e2e8f0; font-family: sans-serif; }
         .line-clamp-3 {
             display: -webkit-box;
             -webkit-line-clamp: 3;
@@ -35,21 +37,34 @@
         const { useState, useEffect, useMemo } = React;
 
         // ==========================================
-        // SUPABASE ТОХИРГОО (Зураг дээрх мэдээллээр шинэчлэв)
+        // SUPABASE ТОХИРГОО 
         // ==========================================
         const supabaseUrl = 'https://yyprkhrmvlpiknqqbpww.supabase.co'; 
         const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inl5cHJraHJtdmxwaWtucXFicHd3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc5MDE3NTEsImV4cCI6MjA5MzQ3Nzc1MX0.qRuIVqaqBdv3n95fAezZAEFAP7FNCqZ-RsEPJoYmE0U';
         
-        const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
-
         const CAT_MANAGEMENT = 'Төслийн удирдлага ба Төлөвлөлт';
         const CAT_OPERATIONS = 'Ашиглалт, Засвар үйлчилгээ, түгээх (O&M) бизнес';
 
+        // Бүх 18 санааны дэлгэрэнгүй дата
         const PREDEFINED_IDEAS = [
-            { id: 'p1', category: CAT_MANAGEMENT, teamInfo: 'Team Munkhchuluun', projectName: 'Legal Chat Agent (PCR)', description: 'Улсын болон орон нутгийн Хууль, журам, зөвшөөрөл, нийцэл, захирамж зэрэг зохицуулалттай холбоотой нэгдсэн мэдлэгийн санг үүсгэж, ухаалаг чатбот, автомат бичиг баримт боловсруулалт хийх систем.', votes: 15, voters: [] },
-            { id: 'p2', category: CAT_MANAGEMENT, teamInfo: 'Team Tsogtbayar', projectName: 'Tender Research Agent', description: 'Гадаад болон дотоодын тендерийн нээлттэй мэдээллийн санг байгууллагын профайлтай уялдуулан нэгтгэж, оролцох боломжийг үнэлэх систем.', votes: 12, voters: [] },
-            { id: 'p3', category: CAT_MANAGEMENT, teamInfo: 'Team Lkhagvaragchaa', projectName: 'Lesson Learned Bot', description: 'Өмнөх төслүүдийн туршлага, алдаа оноог цуглуулан ангилж, шинэ төсөл эхлүүлэх үед зөвлөмж өгөх туслах.', votes: 11, voters: [] },
-            { id: 'p10', category: CAT_OPERATIONS, teamInfo: 'Team Khurtsdulguun', projectName: 'DCD (Тархмал сүлжээг хянах систем)', description: 'Тархмал сүлжээний бүрэлдэхүүн хэсгүүдийн өгөгдөлд анализ хийж, эвдрэл гэмтлийг урьдчилан таамаглах систем.', votes: 5, voters: [] }
+            { id: 'p1', category: CAT_MANAGEMENT, teamInfo: 'Team Munkhchuluun', projectName: 'Legal Chat Agent (PCR)', description: 'Улсын болон орон нутгийн Хууль, журам, зөвшөөрөл, нийцэл, захирамж зэрэг зохицуулалттай холбоотой нэгдсэн мэдлэгийн санг үүсгэж, ухаалаг чатбот, автомат бичиг баримт боловсруулалт хийх систем.\n\n- Тогтмол мэдэгдэл: Хууль журмын шинэчлэлтийг илгээх\n- Ухаалаг чатбот: Бүрдүүлэх баримт бичиг, үе шат, хугацааны зөвлөгөө өгөх\n- Автоматжуулалт: Албан бичгийн ноорог боловсруулах', votes: 15, voters: [] },
+            { id: 'p2', category: CAT_MANAGEMENT, teamInfo: 'Team Tsogtbayar', projectName: 'Tender Research Agent', description: 'Гадаад болон дотоодын тендерийн нээлттэй мэдээллийн санг байгууллагын профайлтай уялдуулан нэгтгэж, оролцох боломжийг үнэлэх систем.\n\n- Шинэ тендерийн мэдэгдэл\n- Тендерийн шаардлагад дүн шинжилгээ хийх\n- Тендерийн саналын эхний нооргийг боловсруулах', votes: 12, voters: [] },
+            { id: 'p3', category: CAT_MANAGEMENT, teamInfo: 'Team Lkhagvaragchaa', projectName: 'Lesson Learned Bot', description: 'Өмнөх төслүүдийн туршлага, алдаа оноог цуглуулан ангилж, шинэ төсөл эхлүүлэх үед зөвлөмж өгөх туслах.\n\n- Chimege Voice-to-text ашиглан аудиог текст болгох\n- Эрсдэлийн сануулга илгээх\n- Өмнөх өгөгдөл дээр үндэслэн төлөвлөгөө сайжруулах', votes: 11, voters: [] },
+            { id: 'p4', category: CAT_MANAGEMENT, teamInfo: 'Team Lkhagvaragchaa', projectName: 'PMBOK Multi agents', description: 'PMBOK аргачлалд суурилсан төлөвлөлт, гүйцэтгэл, эрсдэлийн хяналтыг нэгтгэсэн олон агент бүхий систем.\n\n- Нөөц, хугацааны оновчтой хуваарилалт\n- Гүйцэтгэлийн аудит хийх\n- Хазайлтыг илрүүлж сайжруулах санал гаргах', votes: 10, voters: [] },
+            { id: 'p5', category: CAT_MANAGEMENT, teamInfo: 'Team Tsogtbayar', projectName: 'Мэдлэг, туршлагын сан', description: 'Экспертүүдийн мэдлэг, туршлагыг дижитал хөрвүүлж, ажилтнуудын асуултад хариулах дотоод ухаалаг чатбот.\n\n- Know-how мэдээллийг ангилах\n- Сургалт хөгжлийн зөвлөмж өгөх\n- Чиглүүлэх (onboarding) материалыг санал болгох', votes: 9, voters: [] },
+            { id: 'p6', category: CAT_MANAGEMENT, teamInfo: 'Team Tsogtbayar', projectName: 'Гэрээний Agent', description: 'Гэрээний төсөлд автоматаар дүн шинжилгээ хийж, хууль болон стандартад нийцэж буй эсэхийг хянаж эрсдэлийг анхааруулах систем.\n\n- Гэрээний автомат хяналт\n- Эрсдэлтэй заалтыг илрүүлэх\n- Засаж сайжруулсан хувилбарыг санал болгох', votes: 8, voters: [] },
+            { id: 'p7', category: CAT_MANAGEMENT, teamInfo: 'Team Tsogtbayar', projectName: 'IMS Agent', description: 'Байгууллагын нэгдсэн удирдлагын систем (ISO)-ийн хүрээнд аудит хийх, үл тохирлыг илрүүлж зөвлөмж өгөх систем.\n\n- Аудитын хуваарийн мэдэгдэл\n- Стандартын шаардлагаар чиглүүлэх\n- Залруулах арга хэмжээний төлөвлөгөө боловсруулах', votes: 8, voters: [] },
+            { id: 'p8', category: CAT_MANAGEMENT, teamInfo: 'Team Tsogtbayar', projectName: 'MoM agent', description: 'Хурлын яриаг бодит цагт сонсож тэмдэглэл хөтлөн, гарсан шийдвэрүүдээс Action plan автоматаар үүсгэх систем.\n\n- Яриаг хураангуйлан тэмдэглэх\n- Ажлын биелэлтийн хугацааг сануулах\n- Төслийн системд ажлуудыг бүртгэх', votes: 7, voters: [] },
+            { id: 'p9', category: CAT_MANAGEMENT, teamInfo: 'Team Tsogtbayar', projectName: 'Зураг төслийн Agent', description: 'Инженерийн зураг төслийн норм дүрэм, стандартын дагуу хиймэл оюунд суурилсан дизайны хувилбаруудыг санал болгох систем.\n\n- Норм дүрмийн зөрчлийн мэдэгдэл\n- Generative design хувилбарууд гаргах\n- Материалын орцын жагсаалт (BoQ) боловсруулах', votes: 6, voters: [] },
+            { id: 'p10', category: CAT_OPERATIONS, teamInfo: 'Team Khurtsdulguun', projectName: 'DCD (Тархмал сүлжээг хянах)', description: 'Тархмал сүлжээний бүрэлдэхүүн хэсгүүдийн өгөгдөлд анализ хийж, эвдрэл гэмтлийг урьдчилан таамаглах систем.\n\n- Хүчин чадал хэтрэх эрсдэлийн мэдэгдэл\n- Сүлжээний найдвартай байдлыг хянах\n- Засварын зардлыг бууруулах санал гаргах', votes: 5, voters: [] },
+            { id: 'p11', category: CAT_OPERATIONS, teamInfo: 'Team Ganbat', projectName: 'Ухаалаг тоолуур + AI', description: 'Ухаалаг тоолууруудаас ирж буй өгөгдөлд анализ хийж, техникийн болон арилжааны алдагдлыг илрүүлэх систем.\n\n- Хөндлөнгийн оролцооны анхааруулга\n- Алдагдлын голомтыг үнэн зөв илрүүлэх\n- Хяналт шалгалтыг оновчлох зөвлөм гаргах', votes: 5, voters: [] },
+            { id: 'p12', category: CAT_OPERATIONS, teamInfo: 'Team Ganbat', projectName: 'Хэрэглэгчийн зан төлөвийн AI', description: 'Хэрэглэгчдийн хэрэглээний зан төлөвт урьдчилан таамаглах анализ хийж, оновчтой тарифын багцыг санал болгох систем.\n\n- Хэрэглээний хэв маягийн өөрчлөлтийн мэдэгдэл\n- Ирээдүйн ачааллын муруй гаргах\n- Хэрэглээг оновчлох зөвлөмж өгөх', votes: 4, voters: [] },
+            { id: 'p13', category: CAT_OPERATIONS, teamInfo: 'Team Ganbat', projectName: 'Цаг агаарын Forecast Agent', description: 'Цаг агаарын урьдчилсан мэдээнд үндэслэн үүсэж болзошгүй гэмтэл, саатлын байршлыг таамаглах систем.\n\n- Байгалийн гамшгийн үеийн сануулга\n- Хүний нөөц, техникийг оновчтой хуваарилах\n- Гэмтлийн байршлыг урьдчилан таамаглах', votes: 4, voters: [] },
+            { id: 'p14', category: CAT_OPERATIONS, teamInfo: 'Team Gantulga', projectName: 'Work Order Үүсгэдэг Agent', description: 'Мэдрэгчүүдийн датанд анализ хийж болзошгүй эвдрэлийг илрүүлэн, автоматаар засварын Work Request үүсгэх систем.\n\n- Эвдрэлийн таамаглал, зардлын тооцоо\n- Сэлбэг хэрэгслийн зөвлөмж гаргах\n- Худалдан авалтын хүсэлт (PR) автоматаар үүсгэх', votes: 3, voters: [] },
+            { id: 'p15', category: CAT_OPERATIONS, teamInfo: 'Team Gantulga', projectName: 'Тайлан хийдэг Agent', description: 'Засвар үйлчилгээний болон зардлын чиг хандлагад анализ хийж, өдөр тутмын тайлангуудыг автоматаар бэлтгэх систем.\n\n- Зардал хэтрэлтийн анхааруулга\n- Тоноглолыг шинэчлэх эдийн засгийн үнэлгээ\n- Тайлангуудыг хүний оролцоогүй үүсгэх', votes: 3, voters: [] },
+            { id: 'p16', category: CAT_OPERATIONS, teamInfo: 'Team Gantulga', projectName: 'Засварын зөвлөмж Bot', description: 'Инженерүүдэд газар дээр нь засварын зааварчилгаа, аюулгүй ажиллагааны зөвлөмжийг чат хэлбэрээр өгөх туслах.\n\n- Аюулгүй ажиллагааны эрсдэлийн сануулга\n- Засварын зааварчилгааг шуурхай хариулах\n- Гүйцэтгэлийн тайланг автоматаар үүсгэх', votes: 2, voters: [] },
+            { id: 'p17', category: CAT_OPERATIONS, teamInfo: 'Team Munkhsaikhan', projectName: 'SCADA - Хяналтын Agents', description: 'SCADA системээс ирж буй бодит хугацааны өгөгдөлд дүн шинжилгээ хийж, тоноглолын элэгдэл, насжилтыг тооцоолох систем.\n\n- Онцгой SCADA event мэдэгдэл\n- Кабелийн гэмтлийг эрт илрүүлэх\n- Тоноглолыг солих хугацааг тооцоолох', votes: 2, voters: [] },
+            { id: 'p18', category: CAT_OPERATIONS, teamInfo: 'Team Munkhsaikhan', projectName: 'Data Quality Manager', description: 'Системүүдээс орж ирж буй өгөгдлийн чанарыг тогтмол шалгаж, дутуу болон стандартын бус датаг цэвэрлэх систем.\n\n- Өгөгдлийн урсгал тасалдлын мэдэгдэл\n- Алдаатай датаг автоматаар цэвэрлэх\n- Мэдээллийн чанарын хяналтын тайлан үүсгэх', votes: 1, voters: [] }
         ];
 
         const App = () => {
@@ -70,7 +85,14 @@
             const [ideas, setIdeas] = useState([{ ...initialIdea }]);
             const [currentIndex, setCurrentIndex] = useState(0);
             
-            const activeIdea = useMemo(() => ideas[currentIndex], [ideas, currentIndex]);
+            const client = useMemo(() => {
+                if (typeof window.supabase !== 'undefined') {
+                    return window.supabase.createClient(supabaseUrl, supabaseKey);
+                }
+                return null;
+            }, []);
+
+            const activeIdea = useMemo(() => ideas[currentIndex] || initialIdea, [ideas, currentIndex]);
 
             useEffect(() => {
                 let localUserId = localStorage.getItem('pitch_voter_id');
@@ -82,34 +104,48 @@
             }, []);
 
             const fetchVotingData = async () => {
-                if (!supabase) return;
-                const { data: dbIdeas, error } = await supabase.from('pitch_voting').select('*');
-                if (error) return;
+                if (!client) return;
+                try {
+                    const { data: dbIdeas, error } = await client.from('pitch_voting').select('*');
+                    if (error) throw error;
 
-                const dbIdeaMap = {};
-                dbIdeas.forEach(idea => dbIdeaMap[idea.id] = idea);
-
-                let combined = PREDEFINED_IDEAS.map(pIdea => {
-                    return dbIdeaMap[pIdea.id] ? dbIdeaMap[pIdea.id] : pIdea;
-                });
-
-                dbIdeas.forEach(idea => {
-                    if (!PREDEFINED_IDEAS.find(p => p.id === idea.id)) {
-                        combined.push(idea);
+                    const dbIdeaMap = {};
+                    if (dbIdeas) {
+                        dbIdeas.forEach(idea => dbIdeaMap[idea.id] = idea);
                     }
-                });
 
-                combined.sort((a, b) => (b.votes || 0) - (a.votes || 0));
-                setVotingIdeas(combined);
+                    let combined = PREDEFINED_IDEAS.map(pIdea => {
+                        return dbIdeaMap[pIdea.id] ? dbIdeaMap[pIdea.id] : pIdea;
+                    });
+
+                    if (dbIdeas) {
+                        dbIdeas.forEach(idea => {
+                            if (!PREDEFINED_IDEAS.find(p => p.id === idea.id)) {
+                                combined.push(idea);
+                            }
+                        });
+                    }
+
+                    combined.sort((a, b) => (b.votes || 0) - (a.votes || 0));
+                    setVotingIdeas(combined);
+                } catch (e) {
+                    console.error("Fetch error:", e);
+                }
             };
 
             useEffect(() => {
+                if (!client) return;
+                
+                // Анхны өгөгдлийг татах
                 fetchVotingData();
-                const channel = supabase.channel('pitch_changes')
-                    .on('postgres_changes', { event: '*', schema: 'public', table: 'pitch_voting' }, () => fetchVotingData())
-                    .subscribe();
-                return () => supabase.removeChannel(channel);
-            }, []);
+
+                // WebSocket хориглогдсон тул 5 секунд тутамд шинэчлэх (Polling)
+                const intervalId = setInterval(() => {
+                    fetchVotingData();
+                }, 5000);
+
+                return () => clearInterval(intervalId);
+            }, [client]);
 
             const showToast = (msg) => {
                 setToastMsg(msg);
@@ -117,7 +153,7 @@
             };
 
             const toggleVote = async (idea) => {
-                if (!user || !supabase) return;
+                if (!user || !client) return;
                 const hasVoted = idea.voters && idea.voters.includes(user.uid);
                 let newVoters = idea.voters || [];
                 let newVotes = idea.votes || 0;
@@ -130,7 +166,7 @@
                     newVotes = newVotes + 1;
                 }
 
-                await supabase.from('pitch_voting').upsert({
+                const { error } = await client.from('pitch_voting').upsert({
                     id: idea.id,
                     votes: newVotes,
                     voters: newVoters,
@@ -139,9 +175,17 @@
                     description: idea.description,
                     category: idea.category
                 });
+                
+                if (error) {
+                    showToast("Санал өгөхөд алдаа гарлаа");
+                } else {
+                    fetchVotingData(); // Санал өгсний дараа шууд шинэчлэх
+                }
             };
 
             const publishToVoting = async () => {
+                if (!client || !user) return showToast("Өгөгдлийн сан холбогдоогүй байна");
+                
                 if (!activeIdea.projectName || !activeIdea.members) {
                     return showToast("Мэдээллийг бүрэн оруулна уу");
                 }
@@ -150,29 +194,34 @@
                 const uniqueId = `workshop_${user.uid}_${currentIndex}`;
                 const desc = `Асуудал: ${activeIdea.problem}\n\nШийдэл: ${activeIdea.solutionStep1}, ${activeIdea.solutionStep2}\n\nҮнэ цэн: ${activeIdea.businessValueDesc}`;
 
-                const { error } = await supabase.from('pitch_voting').upsert({
-                    id: uniqueId,
-                    teamInfo: activeIdea.members,
-                    projectName: activeIdea.projectName,
-                    description: desc,
-                    category: activeIdea.category,
-                    isNewWorkshopIdea: true,
-                    createdAt: new Date().toISOString()
-                });
+                try {
+                    const { error } = await client.from('pitch_voting').upsert({
+                        id: uniqueId,
+                        teamInfo: activeIdea.members,
+                        projectName: activeIdea.projectName,
+                        description: desc,
+                        category: activeIdea.category,
+                        isNewWorkshopIdea: true,
+                        createdAt: new Date().toISOString()
+                    });
 
-                setIsSaving(false);
-                if (!error) {
+                    if (error) throw error;
+                    
+                    await fetchVotingData(); // Илгээсний дараа өгөгдлийг шууд татах
                     showToast("Санал хураалтад илгээгдлээ");
                     setView('voting');
+                } catch (error) {
+                    showToast("Алдаа гарлаа: " + error.message);
                 }
+                setIsSaving(false);
             };
 
             const handleChange = (e) => {
                 const { name, value } = e.target;
-                setIdeas(prevIdeas => {
-                    const nextIdeas = [...prevIdeas];
-                    nextIdeas[currentIndex] = { ...nextIdeas[currentIndex], [name]: value };
-                    return nextIdeas;
+                setIdeas(prev => {
+                    const next = [...prev];
+                    next[currentIndex] = { ...next[currentIndex], [name]: value };
+                    return next;
                 });
             };
 
@@ -189,20 +238,29 @@
                 setCurrentIndex(Math.min(currentIndex, newIdeas.length - 1));
             };
 
-            const TopNav = () => (
+            const renderToast = () => {
+                if (!toastMsg) return null;
+                return (
+                    <div className="fixed top-6 right-6 bg-slate-800 border border-slate-600 text-white px-5 py-3 rounded-lg shadow-xl z-[100] flex items-center gap-3 text-sm" style={{animation: 'slideUp 0.3s ease-out'}}>
+                        <span className="font-medium">{toastMsg}</span>
+                    </div>
+                );
+            };
+
+            const renderTopNav = () => (
                 <div className="flex justify-center mb-6">
                     <div className="bg-slate-800/60 p-1 rounded-xl border border-slate-700 flex space-x-1">
-                        <button onClick={() => setView('form')} className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${view === 'form' ? 'bg-cyan-500/20 text-cyan-400' : 'text-slate-400'}`}>Боловсруулах</button>
-                        <button onClick={() => setView('voting')} className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${view === 'voting' ? 'bg-emerald-500/20 text-emerald-400' : 'text-slate-400'}`}>Санал хураалт</button>
+                        <button onClick={() => setView('form')} className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${view === 'form' ? 'bg-cyan-500/20 text-cyan-400' : 'text-slate-400 hover:text-slate-200'}`}>Боловсруулах</button>
+                        <button onClick={() => setView('voting')} className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${view === 'voting' ? 'bg-emerald-500/20 text-emerald-400' : 'text-slate-400 hover:text-slate-200'}`}>Санал хураалт</button>
                     </div>
                 </div>
             );
 
-            const VotingView = () => {
+            const renderVotingView = () => {
                 const filtered = selectedTab === 'All' ? votingIdeas : votingIdeas.filter(i => i.category === selectedTab);
                 return (
-                    <div className="max-w-7xl mx-auto p-6 bg-slate-900 min-h-screen text-slate-200">
-                        <TopNav />
+                    <div className="max-w-7xl mx-auto p-6 bg-slate-900 min-h-screen">
+                        {renderTopNav()}
                         <div className="flex flex-col mb-8 bg-slate-800/40 p-6 rounded-2xl border border-slate-700 text-center">
                             <h1 className="text-3xl font-bold text-white mb-4 tracking-tight uppercase">AI in Enterprise</h1>
                             <div className="flex justify-center flex-wrap gap-2">
@@ -245,10 +303,9 @@
                 );
             };
 
-            const FormView = () => (
+            const renderFormView = () => (
                 <div className="max-w-4xl mx-auto p-6 bg-slate-900 min-h-screen text-slate-200">
-                    <ToastMessage />
-                    <TopNav />
+                    {renderTopNav()}
                     <div className="bg-slate-800/40 p-6 rounded-2xl border border-slate-700 mb-6 flex justify-between items-center shadow-md">
                         <h1 className="text-2xl font-bold text-white tracking-tight uppercase">AI in Enterprise</h1>
                         <button onClick={publishToVoting} disabled={isSaving} className="bg-cyan-600 hover:bg-cyan-500 text-white font-bold py-2.5 px-6 rounded-xl transition-all shadow-lg text-sm border border-cyan-500/50">
@@ -297,11 +354,11 @@
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div className="space-y-1">
                                 <label className="text-[10px] uppercase font-bold text-slate-500 ml-1">Шийдлийн алхам 1</label>
-                                <input type="text" name="solutionStep1" value={activeIdea.solutionStep1} onChange={handleChange} className="w-full p-3 bg-slate-800/50 border border-slate-700 rounded-lg outline-none focus:border-cyan-500 text-sm text-white" placeholder="Алхам 1..." />
+                                <input type="text" name="solutionStep1" value={activeIdea.solutionStep1} onChange={handleChange} className="w-full p-3 bg-slate-900/50 border border-slate-700 rounded-lg outline-none focus:border-cyan-500 text-sm text-white" placeholder="Алхам 1..." />
                             </div>
                             <div className="space-y-1">
                                 <label className="text-[10px] uppercase font-bold text-slate-500 ml-1">Шийдлийн алхам 2</label>
-                                <input type="text" name="solutionStep2" value={activeIdea.solutionStep2} onChange={handleChange} className="w-full p-3 bg-slate-800/50 border border-slate-700 rounded-lg outline-none focus:border-cyan-500 text-sm text-white" placeholder="Алхам 2..." />
+                                <input type="text" name="solutionStep2" value={activeIdea.solutionStep2} onChange={handleChange} className="w-full p-3 bg-slate-900/50 border border-slate-700 rounded-lg outline-none focus:border-cyan-500 text-sm text-white" placeholder="Алхам 2..." />
                             </div>
                         </div>
                         <div className="space-y-1">
@@ -315,7 +372,7 @@
                 </div>
             );
 
-            const PresentationView = () => (
+            const renderPresentationView = () => (
                 <div className="fixed inset-0 bg-[#0a0f1c] z-50 flex items-center justify-center p-20 text-center" onClick={() => setView('form')}>
                     <div className="max-w-4xl" style={{animation: 'fadeIn 0.5s ease-out'}}>
                         <h1 className="text-7xl font-black text-transparent bg-clip-text bg-gradient-to-r from-white to-slate-500 mb-8 uppercase tracking-tighter">{activeIdea.projectName || 'AI in Enterprise'}</h1>
@@ -326,7 +383,12 @@
                 </div>
             );
 
-            return view === 'voting' ? <VotingView /> : (view === 'form' ? <FormView /> : <PresentationView />);
+            return (
+                <div className="min-h-screen bg-slate-900 relative">
+                    {renderToast()}
+                    {view === 'voting' ? renderVotingView() : (view === 'form' ? renderFormView() : renderPresentationView())}
+                </div>
+            );
         };
 
         const root = ReactDOM.createRoot(document.getElementById('root'));
