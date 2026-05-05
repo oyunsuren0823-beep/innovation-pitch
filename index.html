@@ -55,6 +55,14 @@
         const CAT_MANAGEMENT = 'Төслийн удирдлага ба Төлөвлөлт';
         const CAT_OPERATIONS = 'Ашиглалт, Засвар үйлчилгээ, түгээх (O&M) бизнес';
         const CAT_SUPPORT = 'Support operation'; 
+        const CAT_PAINPOINT = 'Pain Point'; 
+
+        const DEPARTMENTS = [
+            'Хүний нөөц',
+            'Худалдан авалт',
+            'Санхүү',
+            'Хууль нийцэл, гэрээ'
+        ];
 
         // Бүх 18 санааны дэлгэрэнгүй дата
         const PREDEFINED_IDEAS = [
@@ -78,11 +86,11 @@
             { id: 'p18', category: CAT_OPERATIONS, teamInfo: 'Team Munkhsaikhan', projectName: 'Data Quality Manager', description: '[Meta-V:High|F:High|S:false]\nСистемүүдээс орж ирж буй өгөгдлийн чанарыг тогтмол шалгаж, дутуу болон стандартын бус датаг цэвэрлэх систем.\n\n- Өгөгдлийн урсгал тасалдлын мэдэгдэл\n- Алдаатай датаг автоматаар цэвэрлэх\n- Мэдээллийн чанарын хяналтын тайлан үүсгэх', votes: 1, voters: [] }
         ];
 
-        // Текстийг задалж Value, Feasibility, Shortlisted болон тайлбарыг ялгах функц
+        // Илтгэлийн санааг задлах функц
         const extractMeta = (descString) => {
             let v = 'Medium';
             let f = 'Medium';
-            let s = false; // Shortlisted эсэх
+            let s = false; 
             let text = descString || '';
             let feasDesc = '';
             
@@ -110,10 +118,42 @@
             return { valueLevel: v, feasLevel: f, isShortlisted: s, cleanDesc: text, feasDesc: feasDesc };
         };
 
+        // Pain Point задлах болон угсрах туслах функцууд
+        const extractPPMeta = (descString) => {
+            let status = 'Шийдвэрлэх шаардлагатай';
+            let text = descString || '';
+            let discussion = '';
+            
+            if (text.startsWith('[PP-')) {
+                const endIdx = text.indexOf(']');
+                if (endIdx > -1) {
+                    const metaStr = text.substring(4, endIdx); 
+                    const parts = metaStr.split('|');
+                    parts.forEach(p => {
+                        if(p.startsWith('Status:')) status = p.replace('Status:', '');
+                    });
+                    text = text.substring(endIdx + 1).trim();
+                }
+            }
+
+            const discDivider = '---DISCUSSION---';
+            const discIdx = text.indexOf(discDivider);
+            if (discIdx > -1) {
+                discussion = text.substring(discIdx + discDivider.length).trim();
+                text = text.substring(0, discIdx).trim();
+            }
+
+            return { status, cleanText: text, discussion };
+        };
+
+        const buildPPDesc = (cleanText, status, discussion) => {
+            return `[PP-Status:${status}]\n${cleanText}${discussion ? '\n\n---DISCUSSION---\n' + discussion : ''}`;
+        };
+
         const getFeasScore = (level) => level === 'High' ? 3 : (level === 'Medium' ? 2 : 1);
 
         const App = () => {
-            const [view, setView] = useState('form'); 
+            const [view, setView] = useState('collab'); 
             const [currentSlide, setCurrentSlide] = useState(0);
             const [user, setUser] = useState(null);
             const [toastMsg, setToastMsg] = useState('');
@@ -125,6 +165,13 @@
             const [selectedIdeaId, setSelectedIdeaId] = useState(null);
             const [modalFeasLevel, setModalFeasLevel] = useState('Medium');
             const [modalFeasDesc, setModalFeasDesc] = useState('');
+
+            // Collaboration (Pain Point) View State
+            const [collabDept, setCollabDept] = useState(DEPARTMENTS[0]);
+            const [collabPainText, setCollabPainText] = useState('');
+            const [collabAuthor, setCollabAuthor] = useState('');
+            const [editingPPId, setEditingPPId] = useState(null);
+            const [editPPData, setEditPPData] = useState({ status: 'Шийдвэрлэх шаардлагатай', discussion: '' });
 
             const selectedIdeaDetail = useMemo(() => {
                 return votingIdeas.find(i => i.id === selectedIdeaId) || null;
@@ -163,6 +210,8 @@
                     const votesB = b.votes || 0;
                     if (votesB !== votesA) return votesB - votesA;
                     
+                    if(a.category === CAT_PAINPOINT && b.category === CAT_PAINPOINT) return 0;
+
                     const feasA = getFeasScore(extractMeta(a.description).feasLevel);
                     const feasB = getFeasScore(extractMeta(b.description).feasLevel);
                     return feasB - feasA;
@@ -231,7 +280,7 @@
 
                 const csvRows = [headers.join(',')];
                 
-                votingIdeas.forEach(idea => {
+                votingIdeas.filter(i => i.category !== CAT_PAINPOINT).forEach(idea => {
                     const meta = extractMeta(idea.description);
                     const row = [
                         escapeCSV(idea.category),
@@ -279,8 +328,8 @@
                         id: idea.id,
                         votes: newVotes,
                         voters: newVoters,
-                        projectname: idea.projectName, 
-                        teaminfo: idea.teamInfo,       
+                        projectname: idea.projectName || idea.projectname || 'Pain Point', 
+                        teaminfo: idea.teamInfo || idea.teaminfo,       
                         description: idea.description,
                         category: idea.category
                     });
@@ -294,7 +343,6 @@
                 }
             };
 
-            // Shortlisted болгох/хасах функц
             const toggleShortlist = async (idea) => {
                 const meta = extractMeta(idea.description);
                 const newIsShortlisted = !meta.isShortlisted;
@@ -350,13 +398,8 @@
                         category: selectedIdeaDetail.category,
                         description: newDesc
                     });
-
-                    if (error) {
-                        showToast("Үнэлгээ хадгалахад алдаа гарлаа");
-                        fetchVotingData();
-                    } else {
-                        showToast("Технологийн үнэлгээ шинэчлэгдлээ!");
-                    }
+                    if (error) fetchVotingData();
+                    else showToast("Технологийн үнэлгээ шинэчлэгдлээ!");
                 } else {
                     showToast("Технологийн үнэлгээ хадгалагдлаа (Local горим)");
                 }
@@ -433,18 +476,250 @@
             };
 
             const renderTopNav = () => (
-                <div className="flex justify-center mb-6 w-full max-w-5xl mx-auto">
+                <div className="flex justify-center mb-6 w-full max-w-6xl mx-auto">
                     <div className="bg-slate-800/60 p-1.5 rounded-2xl border border-slate-700 flex flex-wrap justify-center gap-1 w-full sm:w-auto">
-                        <button onClick={() => setView('form')} className={`px-5 py-2.5 rounded-xl text-sm font-medium transition-all flex-grow sm:flex-grow-0 ${view === 'form' ? 'bg-cyan-500/20 text-cyan-400' : 'text-slate-400 hover:text-slate-200 hover:bg-slate-700/50'}`}>Боловсруулах</button>
-                        <button onClick={() => setView('voting')} className={`px-5 py-2.5 rounded-xl text-sm font-medium transition-all flex-grow sm:flex-grow-0 ${view === 'voting' ? 'bg-emerald-500/20 text-emerald-400' : 'text-slate-400 hover:text-slate-200 hover:bg-slate-700/50'}`}>Бидний үнэ цэнтэй IDEAS</button>
+                        <button onClick={() => setView('collab')} className={`px-4 py-2.5 rounded-xl text-sm font-medium transition-all flex-grow sm:flex-grow-0 ${view === 'collab' ? 'bg-fuchsia-500/20 text-fuchsia-400' : 'text-slate-400 hover:text-slate-200 hover:bg-slate-700/50'}`}>Collaborative Work Management</button>
+                        <button onClick={() => setView('form')} className={`px-4 py-2.5 rounded-xl text-sm font-medium transition-all flex-grow sm:flex-grow-0 ${view === 'form' ? 'bg-cyan-500/20 text-cyan-400' : 'text-slate-400 hover:text-slate-200 hover:bg-slate-700/50'}`}>Санал боловсруулах</button>
+                        <button onClick={() => setView('voting')} className={`px-4 py-2.5 rounded-xl text-sm font-medium transition-all flex-grow sm:flex-grow-0 ${view === 'voting' ? 'bg-emerald-500/20 text-emerald-400' : 'text-slate-400 hover:text-slate-200 hover:bg-slate-700/50'}`}>Бидний үнэ цэнтэй IDEAS</button>
                         <div className="hidden sm:block w-px h-8 bg-slate-600 self-center mx-2"></div>
-                        <button onClick={downloadExcel} className={`px-5 py-2.5 rounded-xl text-sm font-medium transition-all bg-green-500/10 text-green-400 border border-green-500/30 hover:bg-green-500/30 flex items-center justify-center gap-2 flex-grow sm:flex-grow-0 mt-2 sm:mt-0`} title="Бүх санааг Excel-ээр татах">
+                        <button onClick={downloadExcel} className={`px-4 py-2.5 rounded-xl text-sm font-medium transition-all bg-green-500/10 text-green-400 border border-green-500/30 hover:bg-green-500/30 flex items-center justify-center gap-2 flex-grow sm:flex-grow-0 mt-2 sm:mt-0`} title="Бүх санааг Excel-ээр татах">
                             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
                             Татах
                         </button>
                     </div>
                 </div>
             );
+
+            // ==========================================
+            // COLLABORATION (PAIN POINTS) VIEW
+            // ==========================================
+            const addPainPoint = async () => {
+                if (!collabAuthor.trim()) return showToast("Нэрээ бичнэ үү!");
+                if (!collabPainText.trim()) return showToast("Асуудлаа бичнэ үү!");
+                
+                const newId = `pp_${user?.uid || 'local'}_${Date.now()}`;
+                // Шинэ асуудал үүсгэхдээ default: Status: Шийдвэрлэх шаардлагатай
+                const desc = buildPPDesc(collabPainText, 'Шийдвэрлэх шаардлагатай', '');
+                const newPP = {
+                    id: newId,
+                    teaminfo: collabDept,
+                    projectname: collabAuthor.trim(), 
+                    description: desc,
+                    category: CAT_PAINPOINT,
+                    votes: 1,
+                    voters: [user?.uid || 'local_user']
+                };
+
+                setVotingIdeas(prev => sortIdeas([...prev, newPP]));
+                setCollabPainText('');
+
+                if (client) {
+                    try {
+                        const { error } = await client.from('pitch_voting').upsert(newPP);
+                        if (error) throw error;
+                        fetchVotingData();
+                    } catch (err) {
+                        showToast("Хадгалахад алдаа гарлаа: " + err.message);
+                    }
+                }
+            };
+
+            const startEditPP = (pp) => {
+                const meta = extractPPMeta(pp.description);
+                setEditingPPId(pp.id);
+                setEditPPData({ status: meta.status, discussion: meta.discussion });
+            };
+
+            const saveEditPP = async (pp) => {
+                const meta = extractPPMeta(pp.description);
+                const newDesc = buildPPDesc(meta.cleanText, editPPData.status, editPPData.discussion);
+                
+                setVotingIdeas(prev => prev.map(i => i.id === pp.id ? { ...i, description: newDesc } : i));
+                setEditingPPId(null);
+
+                if (client) {
+                    const { error } = await client.from('pitch_voting').upsert({
+                        id: pp.id,
+                        votes: pp.votes || 0,
+                        voters: pp.voters || [],
+                        projectname: pp.projectName || pp.projectname || 'Pain Point',
+                        teaminfo: pp.teamInfo || pp.teaminfo,
+                        category: pp.category,
+                        description: newDesc
+                    });
+                    if (error) {
+                        showToast("Хадгалахад алдаа гарлаа");
+                        fetchVotingData();
+                    } else {
+                        showToast("Асуудлын мэдээлэл шинэчлэгдлээ!");
+                    }
+                }
+            };
+
+            const solvePainPoint = (pp) => {
+                const meta = extractPPMeta(pp.description);
+                const updatedIdeas = [...ideas];
+                updatedIdeas[currentIndex] = { 
+                    ...updatedIdeas[currentIndex], 
+                    problem: meta.cleanText,
+                    targetUser: pp.teamInfo || pp.teaminfo 
+                };
+                setIdeas(updatedIdeas);
+                setView('form');
+                showToast("Асуудлыг шийдэх хэсэгт орууллаа!");
+            };
+
+            const getPBStatusClass = (status) => {
+                if (status.includes('Шийдвэрлэх')) return 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30';
+                if (status.includes('Давхардсан')) return 'bg-amber-500/20 text-amber-400 border-amber-500/30';
+                if (status.includes('Ач холбогдол бага')) return 'bg-slate-500/20 text-slate-400 border-slate-500/30';
+                return 'bg-slate-500/20 text-slate-400 border-slate-500/30';
+            };
+
+            const renderCollaborationView = () => {
+                const painPoints = votingIdeas.filter(i => i.category === CAT_PAINPOINT && (i.teamInfo === collabDept || i.teaminfo === collabDept));
+
+                return (
+                    <div className="max-w-7xl mx-auto p-4 md:p-6 bg-slate-900 min-h-screen">
+                        {renderTopNav()}
+                        
+                        <div className="flex flex-col mb-8 bg-slate-800/40 p-6 rounded-2xl border border-fuchsia-500/30 text-center shadow-lg">
+                            <h1 className="text-3xl font-bold text-white mb-2 tracking-tight uppercase">Collaborative Work Management</h1>
+                            <p className="text-slate-400 text-sm">Багаараа асуудал бүрийг ангилах, үнэлэх, хэлэлцэх.</p>
+                            
+                            <div className="flex justify-center flex-wrap gap-2 mt-6">
+                                {DEPARTMENTS.map(dept => (
+                                    <button 
+                                        key={dept} 
+                                        onClick={() => {setCollabDept(dept); setEditingPPId(null);}} 
+                                        className={`px-6 py-2.5 rounded-xl text-sm font-bold border transition-colors ${collabDept === dept ? 'bg-fuchsia-500 text-white border-fuchsia-500 shadow-[0_0_15px_rgba(217,70,239,0.4)]' : 'bg-slate-800 text-slate-400 border-slate-700 hover:border-slate-500 hover:bg-slate-700'}`}
+                                    >
+                                        {dept}
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+
+                        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                            {/* Зүүн тал - Шинэ Pain point оруулах */}
+                            <div className="lg:col-span-1 bg-slate-800/50 p-6 rounded-2xl border border-slate-700 shadow-inner h-fit sticky top-6">
+                                <h3 className="text-lg font-bold text-fuchsia-400 mb-4 border-b border-slate-700 pb-2">Шинэ асуудал бүртгэх (Pain point)</h3>
+                                <input
+                                    type="text"
+                                    value={collabAuthor}
+                                    onChange={(e) => setCollabAuthor(e.target.value)}
+                                    className="w-full p-3.5 bg-slate-900/50 border border-slate-600 rounded-xl outline-none focus:border-fuchsia-500 text-sm text-slate-200 transition-colors mb-3"
+                                    placeholder="Таны нэр..."
+                                />
+                                <textarea
+                                    value={collabPainText}
+                                    onChange={(e) => setCollabPainText(e.target.value)}
+                                    className="w-full p-4 bg-slate-900/50 border border-slate-600 rounded-xl outline-none focus:border-fuchsia-500 text-sm text-slate-200 resize-none transition-colors mb-4"
+                                    placeholder="Ямар ажил дээр их цаг алдаж байна вэ? Эсвэл юу хамгийн их хүндрэлтэй байна?..."
+                                    rows="5"
+                                />
+                                <button 
+                                    onClick={addPainPoint}
+                                    className="w-full px-6 py-3 bg-fuchsia-600 hover:bg-fuchsia-500 text-white rounded-xl text-sm font-bold transition-all shadow-lg shadow-fuchsia-500/20"
+                                >
+                                    Бүртгэх
+                                </button>
+                            </div>
+
+                            {/* Баруун тал - Pain points жагсаалт */}
+                            <div className="lg:col-span-2 space-y-5">
+                                {painPoints.length === 0 ? (
+                                    <div className="text-center text-slate-500 py-16 bg-slate-800/30 rounded-2xl border border-slate-700/50">
+                                        <p className="text-lg">Одоогоор асуудал бүртгэгдээгүй байна.</p>
+                                    </div>
+                                ) : (
+                                    painPoints.map((pp, idx) => {
+                                        const meta = extractPPMeta(pp.description);
+                                        const hasVoted = pp.voters?.includes(user?.uid || 'local_user');
+                                        const isEditing = editingPPId === pp.id;
+
+                                        return (
+                                            <div key={pp.id} className="bg-slate-800/50 p-6 rounded-2xl border border-slate-700 hover:border-slate-500 transition-all shadow-lg flex flex-col gap-4" style={{animation: `fadeIn 0.3s ease-out ${idx * 0.1}s both`}}>
+                                                
+                                                {/* Header: Badges & Votes */}
+                                                <div className="flex justify-between items-center border-b border-slate-700/50 pb-3">
+                                                    <div className="flex gap-2 items-center flex-wrap">
+                                                        <span className="text-xs font-bold text-slate-300 mr-1">{pp.projectName || pp.projectname}</span>
+                                                        <span className={`text-[10px] px-2 py-1 rounded-md border font-bold uppercase tracking-wider ${getPBStatusClass(meta.status)}`}>{meta.status === 'Шийдвэрлэх шаардлагатай' ? 'Шийдвэрлэх шаардлагатай' : meta.status === 'Давхардсан' ? 'Давхардсан' : 'Ач холбогдол бага'}</span>
+                                                    </div>
+                                                    <div className="text-sm font-black text-emerald-400 whitespace-nowrap ml-2">
+                                                        {pp.votes || 0} Санал
+                                                    </div>
+                                                </div>
+
+                                                {/* Body: Problem Text */}
+                                                <div className="text-slate-200 whitespace-pre-wrap text-base leading-relaxed font-medium">
+                                                    {meta.cleanText}
+                                                </div>
+
+                                                {/* Edit Mode OR Display Mode for Discussion */}
+                                                {isEditing ? (
+                                                    <div className="bg-slate-900/60 p-4 rounded-xl border border-slate-600 mt-2 space-y-4">
+                                                        <div className="space-y-1">
+                                                            <label className="text-[10px] text-slate-400 uppercase font-bold">Төлөв</label>
+                                                            <select value={editPPData.status} onChange={e => setEditPPData({...editPPData, status: e.target.value})} className="w-full p-2.5 bg-slate-800 border border-slate-600 rounded-lg text-xs text-white outline-none focus:border-fuchsia-500">
+                                                                <option value="Шийдвэрлэх шаардлагатай">Шийдвэрлэх шаардлагатай (Чухал асуудал)</option>
+                                                                <option value="Давхардсан">Давхардсан (Ижил төстэй асуудал)</option>
+                                                                <option value="Ач холбогдол бага">Ач холбогдол бага (Одоогоор хойшлуулах)</option>
+                                                            </select>
+                                                        </div>
+                                                        <div className="space-y-1">
+                                                            <label className="text-[10px] text-slate-400 uppercase font-bold">Тэмдэглэл / Ярилцсан зүйл</label>
+                                                            <textarea value={editPPData.discussion} onChange={e => setEditPPData({...editPPData, discussion: e.target.value})} rows="3" className="w-full p-3 bg-slate-800 border border-slate-600 rounded-lg text-xs text-white outline-none focus:border-fuchsia-500 resize-none" placeholder="Багаараа хэлэлцсэн зүйлээ энд тэмдэглэнэ үү..."></textarea>
+                                                        </div>
+                                                        <div className="flex justify-end gap-2">
+                                                            <button onClick={() => setEditingPPId(null)} className="px-4 py-2 bg-slate-700 hover:bg-slate-600 text-white rounded-lg text-xs font-bold transition-colors">Цуцлах</button>
+                                                            <button onClick={() => saveEditPP(pp)} className="px-4 py-2 bg-fuchsia-600 hover:bg-fuchsia-500 text-white rounded-lg text-xs font-bold transition-colors">Хадгалах</button>
+                                                        </div>
+                                                    </div>
+                                                ) : (
+                                                    meta.discussion && (
+                                                        <div className="bg-slate-900/40 p-4 rounded-xl border border-slate-700/50 mt-2">
+                                                            <div className="text-[10px] uppercase font-bold text-slate-500 mb-1">Тэмдэглэл / Ярилцсан зүйл:</div>
+                                                            <div className="text-sm text-slate-300 whitespace-pre-wrap">{meta.discussion}</div>
+                                                        </div>
+                                                    )
+                                                )}
+
+                                                {/* Footer Actions */}
+                                                {!isEditing && (
+                                                    <div className="flex flex-wrap gap-3 mt-2 border-t border-slate-700/50 pt-4">
+                                                        <button 
+                                                            onClick={() => toggleVote(pp)} 
+                                                            className={`flex-grow md:flex-grow-0 px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 ${hasVoted ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/50' : 'bg-slate-700 text-slate-300 border border-slate-600 hover:bg-slate-600'}`}
+                                                        >
+                                                            <span>👍</span> Надад ч бас
+                                                        </button>
+                                                        <button 
+                                                            onClick={() => startEditPP(pp)}
+                                                            className="flex-grow md:flex-grow-0 px-4 py-2 rounded-xl text-xs font-bold bg-slate-700 text-slate-300 border border-slate-600 hover:bg-slate-600 transition-all flex items-center justify-center gap-1.5"
+                                                        >
+                                                            <span>💬</span> Үнэлэх / Ярилцах
+                                                        </button>
+                                                        <div className="w-full md:w-auto md:ml-auto">
+                                                            <button 
+                                                                onClick={() => solvePainPoint(pp)}
+                                                                className="w-full px-5 py-2 rounded-xl text-xs font-bold bg-cyan-600 hover:bg-cyan-500 text-white transition-all shadow-md flex items-center justify-center gap-1.5"
+                                                            >
+                                                                <span>💡</span> Шийдэл гаргах
+                                                            </button>
+                                                        </div>
+                                                    </div>
+                                                )}
+                                            </div>
+                                        );
+                                    })
+                                )}
+                            </div>
+                        </div>
+                    </div>
+                );
+            };
 
             const getBadgeClass = (type, level) => {
                 if(type === 'F') { 
@@ -456,14 +731,14 @@
             };
 
             const renderVotingView = () => {
-                // Shortlisted tab-г нэмж шүүх логик
+                const actualIdeas = votingIdeas.filter(i => i.category !== CAT_PAINPOINT);
                 let filtered = [];
                 if (selectedTab === 'All') {
-                    filtered = votingIdeas;
+                    filtered = actualIdeas;
                 } else if (selectedTab === 'Shortlisted') {
-                    filtered = votingIdeas.filter(i => extractMeta(i.description).isShortlisted);
+                    filtered = actualIdeas.filter(i => extractMeta(i.description).isShortlisted);
                 } else {
-                    filtered = votingIdeas.filter(i => i.category === selectedTab);
+                    filtered = actualIdeas.filter(i => i.category === selectedTab);
                 }
 
                 return (
@@ -502,7 +777,7 @@
                                         )}
 
                                         <div className="text-[10px] uppercase font-bold text-slate-500 mb-3">{idea.category}</div>
-                                        <h3 className="text-lg font-bold text-white mb-3 group-hover:text-cyan-400">{idea.projectName}</h3>
+                                        <h3 className="text-lg font-bold text-white mb-3 group-hover:text-cyan-400">{idea.projectName || idea.projectname}</h3>
                                         
                                         <div className="flex gap-2 mb-4">
                                             <span className={`text-[10px] px-2 py-1 rounded-md border font-semibold ${getBadgeClass('F', meta.feasLevel)}`}>Боломж (Feasibility): {meta.feasLevel}</span>
@@ -529,21 +804,20 @@
                             const hasVoted = selectedIdeaDetail.voters?.includes(user?.uid || 'local_user');
                             return (
                                 <div className="fixed inset-0 bg-slate-950/90 backdrop-blur-sm z-[150] flex items-center justify-center p-4" onClick={() => setSelectedIdeaId(null)}>
-                                    <div className="bg-slate-800 border border-slate-600 p-8 rounded-3xl max-w-3xl w-full shadow-2xl relative flex flex-col max-h-[95vh]" onClick={e => e.stopPropagation()}>
+                                    <div className="bg-slate-800 border border-slate-600 p-6 md:p-8 rounded-3xl max-w-4xl w-full shadow-2xl relative flex flex-col h-[90vh] md:h-[85vh]" onClick={e => e.stopPropagation()}>
                                         <button onClick={() => setSelectedIdeaId(null)} className="absolute top-6 right-6 text-slate-400 hover:text-white text-3xl leading-none transition-colors">&times;</button>
                                         
-                                        <div className="mb-6 border-b border-slate-700 pb-4 pr-10 flex justify-between items-start">
+                                        <div className="mb-4 border-b border-slate-700 pb-4 pr-10 flex justify-between items-start flex-shrink-0">
                                             <div>
-                                                <div className="text-xs font-bold text-cyan-400 uppercase tracking-widest mb-1">{selectedIdeaDetail.teamInfo}</div>
-                                                <h2 className="text-3xl font-bold text-white mb-4">{selectedIdeaDetail.projectName}</h2>
+                                                <div className="text-xs font-bold text-cyan-400 uppercase tracking-widest mb-1">{selectedIdeaDetail.teamInfo || selectedIdeaDetail.teaminfo}</div>
+                                                <h2 className="text-2xl md:text-3xl font-bold text-white mb-3">{selectedIdeaDetail.projectName || selectedIdeaDetail.projectname}</h2>
                                                 
                                                 <div className="flex flex-wrap gap-3 mt-2">
-                                                    <span className={`text-xs px-3 py-1.5 rounded-lg border font-bold uppercase tracking-wider ${getBadgeClass('F', meta.feasLevel)}`}>Хэрэгжих боломж: {meta.feasLevel}</span>
+                                                    <span className={`text-[10px] md:text-xs px-3 py-1.5 rounded-lg border font-bold uppercase tracking-wider ${getBadgeClass('F', meta.feasLevel)}`}>Хэрэгжих боломж: {meta.feasLevel}</span>
                                                     
-                                                    {/* Shortlist товч - Зөвхөн цонх дотроос дарж өөрчилнө */}
                                                     <button 
                                                         onClick={() => toggleShortlist(selectedIdeaDetail)}
-                                                        className={`text-xs px-4 py-1.5 rounded-lg font-bold uppercase tracking-wider transition-all flex items-center gap-1.5 shadow-md ${meta.isShortlisted ? 'bg-amber-500 text-slate-900 hover:bg-amber-400' : 'bg-slate-700 text-slate-300 border border-slate-600 hover:bg-slate-600 hover:text-white'}`}
+                                                        className={`text-[10px] md:text-xs px-4 py-1.5 rounded-lg font-bold uppercase tracking-wider transition-all flex items-center gap-1.5 shadow-md ${meta.isShortlisted ? 'bg-amber-500 text-slate-900 hover:bg-amber-400' : 'bg-slate-700 text-slate-300 border border-slate-600 hover:bg-slate-600 hover:text-white'}`}
                                                     >
                                                         {meta.isShortlisted ? '⭐ Shortlisted (Хасах)' : '☆ Shortlist-д нэмэх'}
                                                     </button>
@@ -551,20 +825,19 @@
                                             </div>
                                         </div>
                                         
-                                        <div className="text-slate-300 whitespace-pre-wrap text-base leading-relaxed mb-6 overflow-y-auto custom-scrollbar pr-4 flex-grow bg-slate-900/40 p-6 rounded-2xl border border-slate-700/50">
+                                        <div className="text-slate-300 whitespace-pre-wrap text-sm md:text-base leading-relaxed mb-4 overflow-y-auto custom-scrollbar pr-4 flex-grow bg-slate-900/40 p-5 md:p-6 rounded-2xl border border-slate-700/50">
                                             {meta.cleanDesc}
                                         </div>
 
-                                        {/* Feasibility Үнэлгээ өгөх хэсэг - Бүрэн Нээлттэй */}
-                                        <div className="mb-6 bg-slate-900/60 p-6 rounded-2xl border border-blue-500/30 shadow-inner">
-                                            <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-4 gap-3">
-                                                <h4 className="text-sm font-bold text-blue-400 uppercase tracking-widest">Технологийн үнэлгээ (Feasibility)</h4>
-                                                <div className="flex gap-2">
+                                        <div className="mb-4 bg-slate-900/60 p-3 md:p-4 rounded-xl border border-blue-500/30 shadow-inner flex-shrink-0">
+                                            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-2">
+                                                <h4 className="text-xs font-bold text-blue-400 uppercase tracking-widest">Технологийн үнэлгээ:</h4>
+                                                <div className="flex gap-1.5">
                                                     {['High', 'Medium', 'Low'].map(level => (
                                                         <button
                                                             key={level}
                                                             onClick={() => setModalFeasLevel(level)}
-                                                            className={`px-4 py-1.5 rounded-lg text-xs font-bold border transition-all ${
+                                                            className={`px-3 py-1 rounded-md text-[10px] font-bold border transition-all ${
                                                                 modalFeasLevel === level 
                                                                     ? getBadgeClass('F', level) + ' shadow-md'
                                                                     : 'bg-slate-800 text-slate-500 border-slate-700 hover:bg-slate-700'
@@ -575,31 +848,29 @@
                                                     ))}
                                                 </div>
                                             </div>
-                                            
-                                            <textarea
-                                                value={modalFeasDesc}
-                                                onChange={(e) => setModalFeasDesc(e.target.value)}
-                                                className="w-full p-4 bg-slate-800/80 border border-slate-600 rounded-xl outline-none focus:border-blue-500 text-sm text-slate-200 resize-none transition-colors"
-                                                placeholder="Технологийн хэрэгжих боломжийн талаарх дүгнэлт, саналаа энд бичнэ үү..."
-                                                rows="3"
-                                            />
-                                            
-                                            <div className="flex justify-end mt-4">
+                                            <div className="flex gap-2 items-start">
+                                                <textarea
+                                                    value={modalFeasDesc}
+                                                    onChange={(e) => setModalFeasDesc(e.target.value)}
+                                                    className="w-full p-2.5 bg-slate-800/80 border border-slate-600 rounded-lg outline-none focus:border-blue-500 text-xs text-slate-200 resize-none transition-colors"
+                                                    placeholder="Дүгнэлтээ энд бичнэ үү..."
+                                                    rows="2"
+                                                />
                                                 <button 
                                                     onClick={saveFeasibility}
-                                                    className="px-6 py-2.5 bg-blue-600 hover:bg-blue-500 text-white rounded-xl text-xs font-bold transition-all shadow-lg shadow-blue-500/20"
+                                                    className="px-4 py-2 h-fit bg-blue-600 hover:bg-blue-500 text-white rounded-lg text-xs font-bold transition-all shadow-md whitespace-nowrap"
                                                 >
-                                                    Үнэлгээ хадгалах
+                                                    Хадгалах
                                                 </button>
                                             </div>
                                         </div>
                                         
-                                        <div className="pt-4 flex justify-between items-center mt-auto border-t border-slate-700/80">
-                                            <div className="text-3xl font-black text-white flex flex-col mt-4">
-                                                <span className="text-xs font-bold text-emerald-400 uppercase tracking-wide mb-1">Бизнесийн үнэ цэн (Санал)</span>
+                                        <div className="pt-3 flex justify-between items-center flex-shrink-0 border-t border-slate-700/80">
+                                            <div className="text-2xl font-black text-white flex flex-col mt-2">
+                                                <span className="text-[10px] font-bold text-emerald-400 uppercase tracking-wide mb-1">Бизнесийн үнэ цэн (Санал)</span>
                                                 {selectedIdeaDetail.votes || 0} 
                                             </div>
-                                            <button onClick={() => toggleVote(selectedIdeaDetail)} className={`px-8 py-3 mt-4 rounded-xl text-sm font-bold transition-all shadow-lg ${hasVoted ? 'bg-emerald-500 text-slate-900' : 'bg-cyan-600 hover:bg-cyan-500 text-white'}`}>
+                                            <button onClick={() => toggleVote(selectedIdeaDetail)} className={`px-6 py-2.5 mt-2 rounded-xl text-sm font-bold transition-all shadow-lg ${hasVoted ? 'bg-emerald-500 text-slate-900' : 'bg-cyan-600 hover:bg-cyan-500 text-white'}`}>
                                                 {hasVoted ? '✓ Санал өгсөн' : 'Санал өгөх'}
                                             </button>
                                         </div>
@@ -737,7 +1008,7 @@
                     
                     <div className="flex justify-center mt-10 pb-12">
                         <button onClick={() => {setCurrentSlide(0); setView('presentation');}} className="px-12 py-5 bg-slate-800 hover:bg-slate-700 rounded-2xl font-black text-sm transition-all border border-slate-600 shadow-2xl text-cyan-400 uppercase tracking-widest hover:-translate-y-1">
-                            Start Presentation
+                            Start presentation
                         </button>
                     </div>
                 </div>
@@ -868,7 +1139,7 @@
             return (
                 <div className="min-h-screen bg-slate-900 relative">
                     {renderToast()}
-                    {view === 'voting' ? renderVotingView() : (view === 'form' ? renderFormView() : renderPresentationView())}
+                    {view === 'collab' ? renderCollaborationView() : (view === 'voting' ? renderVotingView() : (view === 'form' ? renderFormView() : renderPresentationView()))}
                 </div>
             );
         };
