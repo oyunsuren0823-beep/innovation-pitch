@@ -9,6 +9,7 @@
     <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
     
+    <!-- Supabase JS Client -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
     <style>
@@ -19,32 +20,36 @@
         .custom-scrollbar::-webkit-scrollbar-thumb { background: #334155; border-radius: 10px; }
         .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #475569; }
         body { background-color: #0f172a; margin: 0; }
+        .line-clamp-3 {
+            display: -webkit-box;
+            -webkit-line-clamp: 3;
+            -webkit-box-orient: vertical;  
+            overflow: hidden;
+        }
     </style>
 </head>
 <body>
     <div id="root"></div>
 
     <script type="text/babel">
-        const { useState, useEffect } = React;
+        const { useState, useEffect, useMemo } = React;
 
         // ==========================================
-        // SUPABASE ТОХИРГОО (URL зассан)
+        // SUPABASE ТОХИРГОО (Зураг дээрх мэдээллээр шинэчлэв)
         // ==========================================
         const supabaseUrl = 'https://yyprkhrmvlpiknqqbpww.supabase.co'; 
         const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inl5cHJraHJtdmxwaWtucXFicHd3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc5MDE3NTEsImV4cCI6MjA5MzQ3Nzc1MX0.qRuIVqaqBdv3n95fAezZAEFAP7FNCqZ-RsEPJoYmE0U';
         
-        // Supabase клиент үүсгэх
         const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
 
         const CAT_MANAGEMENT = 'Төслийн удирдлага ба Төлөвлөлт';
         const CAT_OPERATIONS = 'Ашиглалт, Засвар үйлчилгээ, түгээх (O&M) бизнес';
 
-        // Өмнөх Workshop-ийн дата
         const PREDEFINED_IDEAS = [
-            { id: 'p1', category: CAT_MANAGEMENT, teamInfo: 'Team Munkhchuluun', projectName: 'Legal Chat Agent (PCR)', description: 'Улсын болон орон нутгийн Хууль, журам, зөвшөөрөл, нийцэл, захирамж зэрэг зохицуулалттай холбоотой нэгдсэн мэдлэгийн санг үүсгэж (open data, shuukh.mn, legal info, e-mongolia API), сангийн мэдээлэл дээр үндэслэн:\n\nТогтмол мэдэгдэл (Alert): Хууль журмын шинэчлэлт, өөрчлөлтийн талаарх мэдээллийг цаг тухайд нь илгээх.\nУхаалаг Чатбот: Хэрэглэгчийн асуултын дагуу хуулийн уялдаа, бүрдүүлэх баримт бичиг, үе шат, хугацаа, хураамж, эрсдэл болон харьяа байгууллагын мэдээллийг цогцоор нь өгөх.\nТуршлагад суурилсан зөвлөмж: Өмнөх бодит туршлага болон дотоод мэдээллийн санд үндэслэн асуудал шийдвэрлэх арга зам, бодит хугацааны санал гаргах.\nБичиг баримтын автоматжуулалт: Зөвлөмжийн дагуу шаардлагатай бичиг баримтыг бүрдүүлэх, албан бичгийн ноорог (draft) автоматаар боловсруулах.', votes: 15, voters: [] },
-            { id: 'p2', category: CAT_MANAGEMENT, teamInfo: 'Team Tsogtbayar', projectName: 'Tender Research Agent', description: 'Гадаад болон дотоодын тендерийн нээлттэй мэдээллийн санг байгууллагын профайл, үйл ажиллагааны чиглэлтэй уялдуулан нэгтгэх бөгөөд уг мэдээлэл дээр үндэслэн:\n\nТогтмол мэдэгдэл (Alert): Компанийн шалгуур, нөөц боломжид нийцэхүйц шинэ тендер зарлагдсан тухай бүрд холбогдох мэдээллийг цаг алдалгүй илгээх.\nУхаалаг хайлт ба Анализ: Олон эх сурвалжаас тендерийн мэдээллийг шүүж, тавигдах шаардлага, тендерийн баримт бичигт дүн шинжилгээ хийн, оролцох боломжийг үнэлэх, тендерийн санал автоматаар бэлтгэх систем.\nТуршлагад суурилсан зөвлөмж: Өмнө нь оролцож байсан болон ялсан тендерүүдийн туршлага, өрсөлдөгчдийн мэдээлэлд тулгуурлан үнийн санал, стратегийн талаар оновчтой санал гаргах.\nБичиг баримтын автоматжуулалт: Тендерийн шаардлагад нийцүүлэн компанийн танилцуулга, туршлага, аргачлал зэргийг нэгтгэн тендерийн саналын (Proposal) эхний нооргийг автоматаар боловсруулах.', votes: 12, voters: [] },
-            { id: 'p3', category: CAT_MANAGEMENT, teamInfo: 'Team Lkhagvaragchaa', projectName: 'Lesson Learned Bot', description: 'Өмнөх төслүүдийн туршлага, алдаа оноог (Lessons learned) цуглуулан ангилж мэдлэгийн сан үүсгэх бөгөөд уг сангийн өгөгдөл болон аудио мэдээлэл дээр үндэслэн:\n\nМэдээлэл цуглуулалт ба хөрвүүлэлт: "Chimege Voice-to-text" систем ашиглан хурлын тэмдэглэл, яриа зэрэг аудио мэдээллийг текст рүү хөрвүүлэн боловсруулж, мэдлэгийн санг автоматаар баяжуулах.\nУхаалаг сануулга (Alert): Долоо хоногийн төлөвлөгөө гаргах эсвэл шинэ төсөл эхлүүлэх үед өмнө нь гарч байсан ижил төстэй алдаа, эрсдэлүүдийн талаарх сануулгыг цаг тухайд нь илгээх.\nТуршлагад суурилсан зөвлөмж: Өнгөрсөн төслүүдийн ололт амжилт, алдаа оноонд анализ хийж, одоогийн төслийн явцад тулгарч болох асуудлуудыг шийдвэрлэх шилдэг туршлагуудыг санал болгох.\nТөлөвлөлтийн автоматжуулалт: Өмнөх өгөгдөл болон сургамжууд дээр үндэслэн илүү сайжруулсан, эрсдэл багатай төслийн төлөвлөгөө эсвэл долоо хоногийн ажлын хуваарийн санал (draft) боловсруулах.', votes: 11, voters: [] },
-            { id: 'p10', category: CAT_OPERATIONS, teamInfo: 'Team Khurtsdulguun', projectName: 'DCD (Тархмал сүлжээг хянах систем)', description: 'Тархмал сүлжээний бүрэлдэхүүн хэсгүүдийн өгөгдлийн сан (Data storage) үүсгэж, уг мэдээлэл дээр үндэслэн:\n\nТогтмол мэдэгдэл (Alert): Сүлжээнд доголдол үүсэх, хүчин чадал хэтрэх эсвэл эвдрэл гарах эрсдэлтэй үед холбогдох инженерүүдэд яаралтай мэдэгдэл илгээх.\nУхаалаг Анализ: Сүлжээний ачаалал болон өгөгдөлд хиймэл оюун ухаанаар тооцоолол хийж, эвдрэл гэмтлийг урьдчилан таамаглах, сүлжээний найдвартай байдлыг хянах.\nТуршлагад суурилсан зөвлөмж: Өмнөх эвдрэл гэмтлийн түүх болон засварын мэдээлэлд үндэслэн төсөв хэрхэн оновчтой төлөвлөх, засварын зардлыг бууруулах талаар санал гаргах.\nБичиг баримтын автоматжуулалт: Сүлжээний ажиллагааны нэгдсэн тайлан, гэмтлийн акт, ээлжит төсвийн төлөвлөгөөний нооргийг (draft) автоматаар боловсруулах.', votes: 5, voters: [] }
+            { id: 'p1', category: CAT_MANAGEMENT, teamInfo: 'Team Munkhchuluun', projectName: 'Legal Chat Agent (PCR)', description: 'Улсын болон орон нутгийн Хууль, журам, зөвшөөрөл, нийцэл, захирамж зэрэг зохицуулалттай холбоотой нэгдсэн мэдлэгийн санг үүсгэж, ухаалаг чатбот, автомат бичиг баримт боловсруулалт хийх систем.', votes: 15, voters: [] },
+            { id: 'p2', category: CAT_MANAGEMENT, teamInfo: 'Team Tsogtbayar', projectName: 'Tender Research Agent', description: 'Гадаад болон дотоодын тендерийн нээлттэй мэдээллийн санг байгууллагын профайлтай уялдуулан нэгтгэж, оролцох боломжийг үнэлэх систем.', votes: 12, voters: [] },
+            { id: 'p3', category: CAT_MANAGEMENT, teamInfo: 'Team Lkhagvaragchaa', projectName: 'Lesson Learned Bot', description: 'Өмнөх төслүүдийн туршлага, алдаа оноог цуглуулан ангилж, шинэ төсөл эхлүүлэх үед зөвлөмж өгөх туслах.', votes: 11, voters: [] },
+            { id: 'p10', category: CAT_OPERATIONS, teamInfo: 'Team Khurtsdulguun', projectName: 'DCD (Тархмал сүлжээг хянах систем)', description: 'Тархмал сүлжээний бүрэлдэхүүн хэсгүүдийн өгөгдөлд анализ хийж, эвдрэл гэмтлийг урьдчилан таамаглах систем.', votes: 5, voters: [] }
         ];
 
         const App = () => {
@@ -59,15 +64,14 @@
 
             const initialIdea = {
                 members: '', projectName: '', targetUser: '', category: CAT_MANAGEMENT, problem: '',
-                solutionStep1: '', solutionStep2: '', solutionStep3: '', solutionStep4: '',
-                businessValueLevel: 'High', businessValueDesc: '', dataReq: '', implSteps: '', implTime: ''
+                solutionStep1: '', solutionStep2: '', businessValueDesc: ''
             };
 
             const [ideas, setIdeas] = useState([{ ...initialIdea }]);
             const [currentIndex, setCurrentIndex] = useState(0);
-            const activeIdea = ideas[currentIndex];
+            
+            const activeIdea = useMemo(() => ideas[currentIndex], [ideas, currentIndex]);
 
-            // 1. Unique User ID үүсгэх
             useEffect(() => {
                 let localUserId = localStorage.getItem('pitch_voter_id');
                 if (!localUserId) {
@@ -77,13 +81,10 @@
                 setUser({ uid: localUserId });
             }, []);
 
-            // 2. Supabase-ээс дата татах
             const fetchVotingData = async () => {
+                if (!supabase) return;
                 const { data: dbIdeas, error } = await supabase.from('pitch_voting').select('*');
-                if (error) {
-                    console.error("Fetch error:", error);
-                    return;
-                }
+                if (error) return;
 
                 const dbIdeaMap = {};
                 dbIdeas.forEach(idea => dbIdeaMap[idea.id] = idea);
@@ -104,10 +105,10 @@
 
             useEffect(() => {
                 fetchVotingData();
-                const subscription = supabase.channel('pitch_changes')
+                const channel = supabase.channel('pitch_changes')
                     .on('postgres_changes', { event: '*', schema: 'public', table: 'pitch_voting' }, () => fetchVotingData())
                     .subscribe();
-                return () => supabase.removeChannel(subscription);
+                return () => supabase.removeChannel(channel);
             }, []);
 
             const showToast = (msg) => {
@@ -115,10 +116,8 @@
                 setTimeout(() => setToastMsg(''), 3000);
             };
 
-            // 3. Санал өгөх
             const toggleVote = async (idea) => {
-                if (!user || !supabase) return showToast("Холболт амжилтгүй");
-                
+                if (!user || !supabase) return;
                 const hasVoted = idea.voters && idea.voters.includes(user.uid);
                 let newVoters = idea.voters || [];
                 let newVotes = idea.votes || 0;
@@ -131,7 +130,7 @@
                     newVotes = newVotes + 1;
                 }
 
-                const { error } = await supabase.from('pitch_voting').upsert({
+                await supabase.from('pitch_voting').upsert({
                     id: idea.id,
                     votes: newVotes,
                     voters: newVoters,
@@ -140,14 +139,9 @@
                     description: idea.description,
                     category: idea.category
                 });
-
-                if (error) showToast("Алдаа гарлаа");
             };
 
-            // 4. Төслийг DB рүү илгээх
             const publishToVoting = async () => {
-                if (!supabase || !user) return showToast("Өгөгдлийн сан холбогдоогүй байна");
-                
                 if (!activeIdea.projectName || !activeIdea.members) {
                     return showToast("Мэдээллийг бүрэн оруулна уу");
                 }
@@ -168,18 +162,18 @@
 
                 setIsSaving(false);
                 if (!error) {
-                    showToast("Санал хураалтад амжилттай илгээгдлээ");
+                    showToast("Санал хураалтад илгээгдлээ");
                     setView('voting');
-                } else {
-                    showToast("Илгээхэд алдаа гарлаа");
                 }
             };
 
             const handleChange = (e) => {
                 const { name, value } = e.target;
-                const updatedIdeas = [...ideas];
-                updatedIdeas[currentIndex] = { ...activeIdea, [name]: value };
-                setIdeas(updatedIdeas);
+                setIdeas(prevIdeas => {
+                    const nextIdeas = [...prevIdeas];
+                    nextIdeas[currentIndex] = { ...nextIdeas[currentIndex], [name]: value };
+                    return nextIdeas;
+                });
             };
 
             const addNewIdea = () => {
@@ -210,10 +204,10 @@
                     <div className="max-w-7xl mx-auto p-6 bg-slate-900 min-h-screen text-slate-200">
                         <TopNav />
                         <div className="flex flex-col mb-8 bg-slate-800/40 p-6 rounded-2xl border border-slate-700 text-center">
-                            <h1 className="text-3xl font-bold text-white mb-4 tracking-tight">AI in Enterprise</h1>
-                            <div className="flex justify-center gap-2">
+                            <h1 className="text-3xl font-bold text-white mb-4 tracking-tight uppercase">AI in Enterprise</h1>
+                            <div className="flex justify-center flex-wrap gap-2">
                                 {['All', CAT_MANAGEMENT, CAT_OPERATIONS].map(tab => (
-                                    <button key={tab} onClick={() => setSelectedTab(tab)} className={`px-4 py-2 rounded-lg text-xs font-bold border ${selectedTab === tab ? 'bg-white text-slate-900 border-white' : 'bg-slate-800 text-slate-400 border-slate-700'}`}>
+                                    <button key={tab} onClick={() => setSelectedTab(tab)} className={`px-4 py-2 rounded-lg text-xs font-bold border transition-colors ${selectedTab === tab ? 'bg-white text-slate-900 border-white' : 'bg-slate-800 text-slate-400 border-slate-700 hover:border-slate-500'}`}>
                                         {tab === 'All' ? 'Бүгд' : tab}
                                     </button>
                                 ))}
@@ -222,13 +216,13 @@
 
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                             {filtered.map((idea) => (
-                                <div key={idea.id} onClick={() => setSelectedIdeaDetail(idea)} className="bg-slate-800/50 p-6 rounded-xl border border-slate-700 hover:border-cyan-500/50 transition-all cursor-pointer relative flex flex-col">
+                                <div key={idea.id} onClick={() => setSelectedIdeaDetail(idea)} className="bg-slate-800/50 p-6 rounded-xl border border-slate-700 hover:border-cyan-500/50 transition-all cursor-pointer relative flex flex-col group shadow-lg">
                                     <div className="text-[10px] uppercase font-bold text-slate-500 mb-2">{idea.category}</div>
-                                    <h3 className="text-lg font-bold text-white mb-2">{idea.projectName}</h3>
-                                    <p className="text-sm text-slate-400 line-clamp-3 mb-4">{idea.description}</p>
+                                    <h3 className="text-lg font-bold text-white mb-2 group-hover:text-cyan-400">{idea.projectName}</h3>
+                                    <p className="text-sm text-slate-400 line-clamp-3 mb-4 leading-relaxed">{idea.description}</p>
                                     <div className="mt-auto pt-4 border-t border-slate-700 flex justify-between items-center" onClick={e => e.stopPropagation()}>
-                                        <div className="text-xl font-bold">Санал: {idea.votes || 0}</div>
-                                        <button onClick={() => toggleVote(idea)} className={`px-4 py-1.5 rounded-lg text-xs font-bold ${idea.voters?.includes(user?.uid) ? 'bg-emerald-500/20 text-emerald-400' : 'bg-slate-700 text-slate-300'}`}>
+                                        <div className="text-xl font-bold text-slate-200">Санал: {idea.votes || 0}</div>
+                                        <button onClick={() => toggleVote(idea)} className={`px-4 py-1.5 rounded-lg text-xs font-bold transition-all ${idea.voters?.includes(user?.uid) ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/50' : 'bg-slate-700 text-slate-300 border border-slate-600 hover:bg-slate-600'}`}>
                                             {idea.voters?.includes(user?.uid) ? 'Өгсөн' : 'Өгөх'}
                                         </button>
                                     </div>
@@ -237,11 +231,13 @@
                         </div>
 
                         {selectedIdeaDetail && (
-                            <div className="fixed inset-0 bg-slate-950/90 backdrop-blur-sm z-[100] flex items-center justify-center p-4" onClick={() => setSelectedIdeaDetail(null)}>
-                                <div className="bg-slate-800 border border-slate-700 p-8 rounded-2xl max-w-2xl w-full" onClick={e => e.stopPropagation()}>
-                                    <h2 className="text-2xl font-bold text-white mb-4">{selectedIdeaDetail.projectName}</h2>
-                                    <div className="text-slate-300 whitespace-pre-wrap text-sm leading-relaxed mb-8 max-h-96 overflow-y-auto custom-scrollbar">{selectedIdeaDetail.description}</div>
-                                    <button onClick={() => setSelectedIdeaDetail(null)} className="w-full py-3 bg-slate-700 text-white rounded-xl font-bold">Хаах</button>
+                            <div className="fixed inset-0 bg-slate-950/90 backdrop-blur-sm z-[150] flex items-center justify-center p-4" onClick={() => setSelectedIdeaDetail(null)}>
+                                <div className="bg-slate-800 border border-slate-600 p-8 rounded-2xl max-w-2xl w-full shadow-2xl" onClick={e => e.stopPropagation()}>
+                                    <h2 className="text-2xl font-bold text-white mb-4 border-b border-slate-700 pb-2">{selectedIdeaDetail.projectName}</h2>
+                                    <div className="text-slate-300 whitespace-pre-wrap text-sm leading-relaxed mb-8 max-h-[60vh] overflow-y-auto custom-scrollbar pr-2">
+                                        {selectedIdeaDetail.description}
+                                    </div>
+                                    <button onClick={() => setSelectedIdeaDetail(null)} className="w-full py-3 bg-slate-700 hover:bg-slate-600 text-white rounded-xl font-bold transition-colors">Хаах</button>
                                 </div>
                             </div>
                         )}
@@ -253,58 +249,84 @@
                 <div className="max-w-4xl mx-auto p-6 bg-slate-900 min-h-screen text-slate-200">
                     <ToastMessage />
                     <TopNav />
-                    <div className="bg-slate-800/40 p-6 rounded-2xl border border-slate-700 mb-6 flex justify-between items-center">
-                        <h1 className="text-2xl font-bold text-white tracking-tight">AI in Enterprise</h1>
-                        <button onClick={publishToVoting} disabled={isSaving} className="bg-cyan-600 hover:bg-cyan-500 text-white font-bold py-2 px-6 rounded-xl transition-all shadow-lg text-sm">
-                            САНАЛ ХУРААЛТАД ИЛГЭЭХ
+                    <div className="bg-slate-800/40 p-6 rounded-2xl border border-slate-700 mb-6 flex justify-between items-center shadow-md">
+                        <h1 className="text-2xl font-bold text-white tracking-tight uppercase">AI in Enterprise</h1>
+                        <button onClick={publishToVoting} disabled={isSaving} className="bg-cyan-600 hover:bg-cyan-500 text-white font-bold py-2.5 px-6 rounded-xl transition-all shadow-lg text-sm border border-cyan-500/50">
+                            {isSaving ? 'Илгээж байна...' : 'САНАЛ ХУРААЛТАД ИЛГЭЭХ'}
                         </button>
                     </div>
 
                     <div className="flex overflow-x-auto space-x-2 mb-6 pb-2 custom-scrollbar">
                         {ideas.map((idea, idx) => (
-                            <button key={idx} onClick={() => setCurrentIndex(idx)} className={`px-4 py-2 rounded-xl text-sm font-medium transition-all ${currentIndex === idx ? 'bg-cyan-500/10 text-cyan-400 border border-cyan-500/30' : 'bg-slate-800/60 text-slate-400 border border-slate-700'}`}>
+                            <button key={idx} onClick={() => setCurrentIndex(idx)} className={`px-4 py-2 rounded-xl text-sm font-medium transition-all ${currentIndex === idx ? 'bg-cyan-500/10 text-cyan-400 border border-cyan-500/30' : 'bg-slate-800/60 text-slate-400 border border-slate-700 hover:bg-slate-700'}`}>
                                 {idea.projectName || `Санаа ${idx + 1}`}
-                                {ideas.length > 1 && <span onClick={(e) => removeIdea(idx, e)} className="ml-2 text-rose-400">✕</span>}
+                                {ideas.length > 1 && <span onClick={(e) => removeIdea(idx, e)} className="ml-2 text-rose-500 hover:text-rose-400">✕</span>}
                             </button>
                         ))}
-                        <button onClick={addNewIdea} className="px-4 py-2 rounded-xl text-sm font-medium text-slate-400 border border-slate-600 border-dashed hover:text-cyan-400">Шинэ санаа</button>
+                        <button onClick={addNewIdea} className="px-4 py-2 rounded-xl text-sm font-medium text-slate-400 border border-slate-600 border-dashed hover:text-cyan-400 hover:border-cyan-500 transition-all">Шинэ санаа</button>
                     </div>
 
-                    <div className="space-y-4">
-                        <div className="bg-slate-800/50 p-6 rounded-xl border border-slate-700">
+                    <div className="space-y-4" style={{animation: 'fadeIn 0.3s ease-out'}}>
+                        <div className="bg-slate-800/50 p-6 rounded-xl border border-slate-700 shadow-inner">
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <input type="text" name="members" value={activeIdea.members} onChange={handleChange} className="p-3 bg-slate-900/50 border border-slate-700 rounded-lg outline-none focus:border-cyan-500 text-sm text-white" placeholder="Багийн илтгэгч / Гишүүд" />
-                                <input type="text" name="projectName" value={activeIdea.projectName} onChange={handleChange} className="p-3 bg-slate-900/50 border border-slate-700 rounded-lg outline-none focus:border-cyan-500 text-sm text-white" placeholder="Төслийн нэр" />
-                                <select name="category" value={activeIdea.category} onChange={handleChange} className="p-3 bg-slate-900/50 border border-slate-700 rounded-lg outline-none focus:border-cyan-500 text-sm text-white">
-                                    <option value={CAT_MANAGEMENT}>{CAT_MANAGEMENT}</option>
-                                    <option value={CAT_OPERATIONS}>{CAT_OPERATIONS}</option>
-                                </select>
-                                <input type="text" name="targetUser" value={activeIdea.targetUser} onChange={handleChange} className="p-3 bg-slate-900/50 border border-slate-700 rounded-lg outline-none focus:border-cyan-500 text-sm text-white" placeholder="Хэрэглэгч" />
+                                <div className="space-y-1">
+                                    <label className="text-[10px] uppercase font-bold text-slate-500 ml-1">Баг / Илтгэгч</label>
+                                    <input type="text" name="members" value={activeIdea.members} onChange={handleChange} className="w-full p-3 bg-slate-900/50 border border-slate-700 rounded-lg outline-none focus:border-cyan-500 text-sm text-white" placeholder="Багийн нэр" />
+                                </div>
+                                <div className="space-y-1">
+                                    <label className="text-[10px] uppercase font-bold text-slate-500 ml-1">Төслийн нэр</label>
+                                    <input type="text" name="projectName" value={activeIdea.projectName} onChange={handleChange} className="w-full p-3 bg-slate-900/50 border border-slate-700 rounded-lg outline-none focus:border-cyan-500 text-sm text-white" placeholder="Төслийн нэр" />
+                                </div>
+                                <div className="space-y-1">
+                                    <label className="text-[10px] uppercase font-bold text-slate-500 ml-1">Ангилал</label>
+                                    <select name="category" value={activeIdea.category} onChange={handleChange} className="w-full p-3 bg-slate-900/50 border border-slate-700 rounded-lg outline-none focus:border-cyan-500 text-sm text-white">
+                                        <option value={CAT_MANAGEMENT}>{CAT_MANAGEMENT}</option>
+                                        <option value={CAT_OPERATIONS}>{CAT_OPERATIONS}</option>
+                                    </select>
+                                </div>
+                                <div className="space-y-1">
+                                    <label className="text-[10px] uppercase font-bold text-slate-500 ml-1">Хэрэглэгч</label>
+                                    <input type="text" name="targetUser" value={activeIdea.targetUser} onChange={handleChange} className="w-full p-3 bg-slate-900/50 border border-slate-700 rounded-lg outline-none focus:border-cyan-500 text-sm text-white" placeholder="Хэрэглэгч" />
+                                </div>
                             </div>
                         </div>
-                        <textarea name="problem" value={activeIdea.problem} onChange={handleChange} rows="3" className="w-full p-4 bg-slate-800/50 border border-slate-700 rounded-xl outline-none focus:border-rose-500 text-sm text-white resize-none" placeholder="1. Асуудал"></textarea>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <input type="text" name="solutionStep1" value={activeIdea.solutionStep1} onChange={handleChange} className="p-3 bg-slate-900/50 border border-slate-700 rounded-xl outline-none focus:border-cyan-500 text-sm text-white" placeholder="Шийдлийн алхам 1" />
-                            <input type="text" name="solutionStep2" value={activeIdea.solutionStep2} onChange={handleChange} className="p-3 bg-slate-900/50 border border-slate-700 rounded-xl outline-none focus:border-cyan-500 text-sm text-white" placeholder="Шийдлийн алхам 2" />
+                        <div className="space-y-1">
+                            <label className="text-[10px] uppercase font-bold text-slate-500 ml-1">1. Асуудал</label>
+                            <textarea name="problem" value={activeIdea.problem} onChange={handleChange} rows="3" className="w-full p-4 bg-slate-800/50 border border-slate-700 rounded-xl outline-none focus:border-rose-500 text-sm text-white resize-none" placeholder="Асуудлын тайлбар..."></textarea>
                         </div>
-                        <textarea name="businessValueDesc" value={activeIdea.businessValueDesc} onChange={handleChange} rows="2" className="w-full p-4 bg-slate-800/50 border border-slate-700 rounded-xl outline-none focus:border-emerald-500 text-sm text-white resize-none" placeholder="3. Бизнесийн үнэ цэн"></textarea>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div className="space-y-1">
+                                <label className="text-[10px] uppercase font-bold text-slate-500 ml-1">Шийдлийн алхам 1</label>
+                                <input type="text" name="solutionStep1" value={activeIdea.solutionStep1} onChange={handleChange} className="w-full p-3 bg-slate-800/50 border border-slate-700 rounded-lg outline-none focus:border-cyan-500 text-sm text-white" placeholder="Алхам 1..." />
+                            </div>
+                            <div className="space-y-1">
+                                <label className="text-[10px] uppercase font-bold text-slate-500 ml-1">Шийдлийн алхам 2</label>
+                                <input type="text" name="solutionStep2" value={activeIdea.solutionStep2} onChange={handleChange} className="w-full p-3 bg-slate-800/50 border border-slate-700 rounded-lg outline-none focus:border-cyan-500 text-sm text-white" placeholder="Алхам 2..." />
+                            </div>
+                        </div>
+                        <div className="space-y-1">
+                            <label className="text-[10px] uppercase font-bold text-slate-500 ml-1">3. Бизнесийн үнэ цэн</label>
+                            <textarea name="businessValueDesc" value={activeIdea.businessValueDesc} onChange={handleChange} rows="2" className="w-full p-4 bg-slate-800/50 border border-slate-700 rounded-xl outline-none focus:border-emerald-500 text-sm text-white resize-none" placeholder="Үр өгөөжийн тайлбар..."></textarea>
+                        </div>
+                        <div className="flex justify-center pt-4">
+                             <button onClick={() => {setCurrentSlide(0); setView('presentation');}} className="px-8 py-3 bg-slate-700 hover:bg-slate-600 rounded-xl font-bold text-sm transition-colors border border-slate-600">ТАНИЛЦУУЛАХ (СЛАЙД)</button>
+                        </div>
                     </div>
                 </div>
             );
 
             const PresentationView = () => (
                 <div className="fixed inset-0 bg-[#0a0f1c] z-50 flex items-center justify-center p-20 text-center" onClick={() => setView('form')}>
-                    <div className="max-w-4xl">
-                        <h1 className="text-7xl font-black text-white mb-8">{activeIdea.projectName || 'AI in Enterprise'}</h1>
-                        <p className="text-2xl text-cyan-400 mb-12">Хэрэглэгч: {activeIdea.targetUser}</p>
-                        <div className="text-3xl text-slate-300 font-light leading-relaxed">{activeIdea.problem}</div>
-                        <div className="mt-20 text-slate-500 text-sm uppercase tracking-widest font-bold">Буцахын тулд хаана нэгтээ дарна уу</div>
+                    <div className="max-w-4xl" style={{animation: 'fadeIn 0.5s ease-out'}}>
+                        <h1 className="text-7xl font-black text-transparent bg-clip-text bg-gradient-to-r from-white to-slate-500 mb-8 uppercase tracking-tighter">{activeIdea.projectName || 'AI in Enterprise'}</h1>
+                        <p className="text-2xl text-cyan-400 mb-12 font-medium tracking-widest uppercase">Хэрэглэгч: {activeIdea.targetUser}</p>
+                        <div className="text-3xl text-slate-300 font-light leading-relaxed border-l-4 border-cyan-500 pl-8 text-left">{activeIdea.problem}</div>
+                        <div className="mt-24 text-slate-600 text-xs uppercase tracking-[0.3em] font-bold">Буцахын тулд хаана нэгтээ дарна уу</div>
                     </div>
                 </div>
             );
 
-            if (view === 'voting') return <VotingView />;
-            return view === 'form' ? <FormView /> : <PresentationView />;
+            return view === 'voting' ? <VotingView /> : (view === 'form' ? <FormView /> : <PresentationView />);
         };
 
         const root = ReactDOM.createRoot(document.getElementById('root'));
