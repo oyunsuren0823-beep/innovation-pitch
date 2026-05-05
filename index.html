@@ -28,16 +28,12 @@
         const { useState, useEffect } = React;
 
         // ==========================================
-        // SUPABASE ТОХИРГОО (ЭНД ӨӨРИЙН МЭДЭЭЛЛЭЭ ОРУУЛНА УУ)
+        // SUPABASE ТОХИРГОО (ХОЛБОЛТ АМЖИЛТТАЙ)
         // ==========================================
-        const supabaseUrl = 'sb_publishable_BvWvF5IVKEeeAzgjonD-Cg_KMA52pEy';
+        const supabaseUrl = 'https://yyprkhrmvlpiknq qbpww.supabase.co'; // Таны URL-ийн зайг арилгаж оруулна уу
         const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inl5cHJraHJtdmxwaWtucXFicHd3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc5MDE3NTEsImV4cCI6MjA5MzQ3Nzc1MX0.qRuIVqaqBdv3n95fAezZAEFAP7FNCqZ-RsEPJoYmE0U';
         
-        // Supabase клиент үүсгэх
-        let supabase = null;
-        if (supabaseUrl !== 'sb_publishable_BvWvF5IVKEeeAzgjonD-Cg_KMA52pEy') {
-            supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
-        }
+        const db = window.supabase.createClient(supabaseUrl, supabaseKey);
 
         const CAT_MANAGEMENT = 'Төслийн удирдлага ба Төлөвлөлт';
         const CAT_OPERATIONS = 'Ашиглалт, Засвар үйлчилгээ, түгээх (O&M) бизнес';
@@ -45,34 +41,20 @@
         // Өмнөх Workshop-ийн дата
         const PREDEFINED_IDEAS = [
             { id: 'p1', category: CAT_MANAGEMENT, teamInfo: 'Team Munkhchuluun', projectName: 'Legal Chat Agent (PCR)', description: 'Улсын болон орон нутгийн Хууль, журам, зөвшөөрөл, нийцэл, захирамж зэрэг зохицуулалттай холбоотой нэгдсэн мэдлэгийн санг үүсгэж (open data, shuukh.mn, legal info, e-mongolia API), сангийн мэдээлэл дээр үндэслэн:\n\nТогтмол мэдэгдэл (Alert): Хууль журмын шинэчлэлт, өөрчлөлтийн талаарх мэдээллийг цаг тухайд нь илгээх.\nУхаалаг Чатбот: Хэрэглэгчийн асуултын дагуу хуулийн уялдаа, бүрдүүлэх баримт бичиг, үе шат, хугацаа, хураамж, эрсдэл болон харьяа байгууллагын мэдээллийг цогцоор нь өгөх.\nТуршлагад суурилсан зөвлөмж: Өмнөх бодит туршлага болон дотоод мэдээллийн санд үндэслэн асуудал шийдвэрлэх арга зам, бодит хугацааны санал гаргах.\nБичиг баримтын автоматжуулалт: Зөвлөмжийн дагуу шаардлагатай бичиг баримтыг бүрдүүлэх, албан бичгийн ноорог (draft) автоматаар боловсруулах.', votes: 15, voters: [] },
-            { id: 'p2', category: CAT_MANAGEMENT, teamInfo: 'Team Tsogtbayar', projectName: 'Tender Research Agent', description: 'Гадаад болон дотоодын тендерийн нээлттэй мэдээллийн санг байгууллагын профайл, үйл ажиллагааны чиглэлтэй уялдуулан нэгтгэх бөгөөд уг мэдээлэл дээр үндэслэн:\n\nТогтмол мэдэгдэл (Alert): Компанийн шалгуур, нөөц боломжид нийцэхүйц шинэ тендер зарлагдсан тухай бүрд холбогдох мэдээллийг цаг алдалгүй илгээх.\nУхаалаг хайлт ба Анализ: Олон эх сурвалжаас тендерийн мэдээллийг шүүж, тавигдах шаардлага, тендерийн баримт бичигт дүн шинжилгээ хийн, оролцох боломжтой эсэхийг хувиар үнэлж харуулах.\nТуршлагад суурилсан зөвлөмж: Өмнө нь оролцож байсан болон ялсан тендерүүдийн туршлага, өрсөлдөгчдийн мэдээлэлд тулгуурлан үнийн санал, стратегийн талаар оновчтой санал гаргах.\nБичиг баримтын автоматжуулалт: Тендерийн шаардлагад нийцүүлэн компанийн танилцуулга, туршлага, аргачлал зэргийг нэгтгэн тендерийн саналын (Proposal) эхний нооргийг автоматаар боловсруулах.', votes: 12, voters: [] },
+            { id: 'p2', category: CAT_MANAGEMENT, teamInfo: 'Team Tsogtbayar', projectName: 'Tender Research Agent', description: 'Гадаад болон дотоодын тендерийн нээлттэй мэдээллийн санг байгууллагын профайл, үйл ажиллагааны чиглэлтэй уялдуулан нэгтгэх бөгөөд уг мэдээлэл дээр үндэслэн:\n\nТогтмол мэдэгдэл (Alert): Компанийн шалгуур, нөөц боломжид нийцэхүйц шинэ тендер зарлагдсан тухай бүрд холбогдох мэдээллийг цаг алдалгүй илгээх.\nУхаалаг хайлт ба Анализ: Олон эх сурвалжаас тендерийн мэдээллийг шүүж, тавигдах шаардлага, тендерийн баримт бичигт дүн шинжилгээ хийн, оролцох боломжийг үнэлэх, тендерийн санал автоматаар бэлтгэх систем.\nТуршлагад суурилсан зөвлөмж: Өмнө нь оролцож байсан болон ялсан тендерүүдийн туршлага, өрсөлдөгчдийн мэдээлэлд тулгуурлан үнийн санал, стратегийн талаар оновчтой санал гаргах.\nБичиг баримтын автоматжуулалт: Тендерийн шаардлагад нийцүүлэн компанийн танилцуулга, туршлага, аргачлал зэргийг нэгтгэн тендерийн саналын (Proposal) эхний нооргийг автоматаар боловсруулах.', votes: 12, voters: [] },
             { id: 'p3', category: CAT_MANAGEMENT, teamInfo: 'Team Lkhagvaragchaa', projectName: 'Lesson Learned Bot', description: 'Өмнөх төслүүдийн туршлага, алдаа оноог (Lessons learned) цуглуулан ангилж мэдлэгийн сан үүсгэх бөгөөд уг сангийн өгөгдөл болон аудио мэдээлэл дээр үндэслэн:\n\nМэдээлэл цуглуулалт ба хөрвүүлэлт: "Chimege Voice-to-text" систем ашиглан хурлын тэмдэглэл, яриа зэрэг аудио мэдээллийг текст рүү хөрвүүлэн боловсруулж, мэдлэгийн санг автоматаар баяжуулах.\nУхаалаг сануулга (Alert): Долоо хоногийн төлөвлөгөө гаргах эсвэл шинэ төсөл эхлүүлэх үед өмнө нь гарч байсан ижил төстэй алдаа, эрсдэлүүдийн талаарх сануулгыг цаг тухайд нь илгээх.\nТуршлагад суурилсан зөвлөмж: Өнгөрсөн төслүүдийн ололт амжилт, алдаа оноонд анализ хийж, одоогийн төслийн явцад тулгарч болох асуудлуудыг шийдвэрлэх шилдэг туршлагуудыг санал болгох.\nТөлөвлөлтийн автоматжуулалт: Өмнөх өгөгдөл болон сургамжууд дээр үндэслэн илүү сайжруулсан, эрсдэл багатай төслийн төлөвлөгөө эсвэл долоо хоногийн ажлын хуваарийн санал (draft) боловсруулах.', votes: 11, voters: [] },
-            { id: 'p4', category: CAT_MANAGEMENT, teamInfo: 'Team Lkhagvaragchaa', projectName: 'PMBOK Multi agents', description: 'Төслийн удирдлагын олон улсын PMBOK аргачлалд суурилсан, домэйн бүрд ажиллах тусгай agent-уудыг нэгдсэн PM agent удирдах зарчмаар ажиллах бөгөөд төслийн өгөгдөл дээр үндэслэн:\n\nТөлөвлөлт ба Анализ: Төслийн анхны мэдээлэл болон шаардлагуудад гүнзгий анализ хийж, нөөц болон хугацааны оновчтой хуваарилалт бүхий нарийвчилсан төлөвлөгөө гаргах.\nГүйцэтгэлийн аудит (Monitoring): Төслийн хэрэгжилтийн явцад тогтмол аудит хийж, төлөвлөгөөний дагуу явагдаж буй эсэхэд хяналт тавин, явцын тайланг нэгтгэн харуулах.\nСайжруулалт ба Эрсдэлийн зөвлөмж: Гүйцэтгэлийн явцад гарч буй хазайлт, удаашралд үнэлгээ өгч сайжруулалтын санал гаргах ба үүсэж болзошгүй эрсдэлээс урьдчилан сэргийлэх хувилбаруудыг санал болгох.\nАвтомат зохицуулалт: Нэг салбарын agent-аас гарсан өөрчлөлтийг (жишээ нь төсөв эсвэл хугацаа сунах) бусад холбогдох agent-уудад автоматаар мэдэгдэж, төслийн нэгдсэн төлөвлөгөөг шинэчлэн боловсруулах.', votes: 10, voters: [] },
-            { id: 'p5', category: CAT_MANAGEMENT, teamInfo: 'Team Tsogtbayar', projectName: 'Мэдлэг, туршлагын сан (Knowledge Base)', description: 'Компанид удаан ажилласан туршлагатай экспертүүдийн нарийн мэдлэг (Know-how) болон Sugar GPT-ийн өгөгдлийг дижитал хэлбэрт хөрвүүлж, байгууллагын дотоод өгөгдлийн нэгдсэн сан үүсгэх бөгөөд энэхүү сан дээр үндэслэн:\n\nМэдээллийн ангилал ба Дижиталжилт: Байгууллагын үйл ажиллагааны онцлог, түүхэн туршлагуудыг системчлэн ангилж, хэдийд ч хайж олох боломжтой бүтэцтэй өгөгдөл болгон хадгалах.\nУхаалаг Чатбот (Internal BOT): Ажилтнуудын ажилдаа тулгарсан өдөр тутмын болон нарийн мэргэжлийн асуултуудад дотоод мэдлэгийн сангаас шүүн, үнэн зөв, шуурхай хариулт өгөх.\nСургалт, хөгжлийн зөвлөмж: Шинэ болон одоогийн ажилтнуудын ур чадварыг дээшлүүлэх зорилгоор тэдний хэрэгцээнд нийцсэн чиглүүлэг (onboarding) болон холбогдох материалуудыг санал болгох.\nМэдлэг түгээлтийн автоматжуулалт: Байгууллагад шинэчлэгдсэн дүрэм журам, шинээр нэвтэрсэн туршлагуудыг холбогдох ажилтнуудад автоматаар түгээх, сургалтын гарын авлагын ноорог боловсруулах.', votes: 9, voters: [] },
-            { id: 'p6', category: CAT_MANAGEMENT, teamInfo: 'Team Tsogtbayar', projectName: 'Гэрээний Agent', description: 'Хууль эрх зүйн актууд болон байгууллагын дотоод стандартуудыг агуулсан мэдлэгийн сан үүсгэж, гэрээний бүх төрлийн төсөл, баримт бичиг дээр үндэслэн:\n\nАвтомат хяналт (Compliance check): Оруулж ирсэн гэрээний төсөл нь хүчин төгөлдөр хууль тогтоомж болон компанийн дотоод журам, стандартад бүрэн нийцэж байгаа эсэхэд автоматаар дүн шинжилгээ хийх.\nЭрсдэлийн илрүүлэлт ба Анхааруулга: Гэрээний нөхцөлүүд дундаас компанид санхүүгийн болон хуулийн хувьд хариуцлага, эрсдэл үүсгэж болзошгүй заалтуудыг тодруулан анхааруулга өгөх.\nТуршлагад суурилсан зөвлөмж: Өмнө нь байгуулсан гэрээнүүдийн туршлага, үүсэж байсан маргаантай асуудлууд дээр үндэслэн гэрээний заалтуудыг хэрхэн өөрчлөх, сайжруулах талаар хууль зүйн зөвлөгөө өгөх.\nБичиг баримтын автоматжуулалт: Эрсдэлтэй болон дутуу заалтуудыг засаж сайжруулсан хувилбарыг санал болгох, гэрээний нэмэлт, өөрчлөлтийн нооргийг (draft) стандартын дагуу автоматаар боловсруулах.', votes: 8, voters: [] },
-            { id: 'p7', category: CAT_MANAGEMENT, teamInfo: 'Team Tsogtbayar', projectName: 'IMS Agent', description: 'Байгууллагын нэгдсэн удирдлагын систем (IMS)-ийн стандартууд (ISO 9001, 45001 гэх мэт) болон дотоод журмуудын нэгдсэн сан үүсгэж, уг мэдээлэл дээр үндэслэн:\n\nТогтмол мэдэгдэл (Alert): Стандартын шинэчлэлт, ээлжит дотоод аудитын хуваарь болон шалгалтаар илэрсэн үл тохирол гарах үед холбогдох ажилтнуудад цаг тухайд нь мэдэгдэл илгээх.\nУхаалаг чиглүүлэгч: Ажилтнуудын асуултад хариулж, өдөр тутмын үйл ажиллагааг IMS-ийн стандартад хэрхэн нийцүүлэх талаар чиглүүлэг, шалгалтын удирдамжаар хангах.\nТуршлагад суурилсан зөвлөмж: Өмнөх аудитын тайлан, илэрч байсан үл тохирлын дата дээр үндэслэн нийтлэг гардаг алдааг засах, тэдгээрээс урьдчилан сэргийлэх оновчтой зөвлөмж гаргах.\nБичиг баримтын автоматжуулалт: Дотоод аудитын тайлан, үл тохирлын хуудас, залруулах арга хэмжээний төлөвлөгөө зэрэг стандартын шаардлагат баримт бичгийн нооргийг (draft) автоматаар боловсруулах.', votes: 8, voters: [] },
-            { id: 'p8', category: CAT_MANAGEMENT, teamInfo: 'Team Tsogtbayar', projectName: 'MoM agent', description: 'Хурлын дуу авиа, ярианы өгөгдлийг текст рүү хөрвүүлэх технологийг ашиглан хурлын шийдвэр, мэдээллийн сан үүсгэж, уг өгөгдөл дээр үндэслэн:\n\nТогтмол мэдэгдэл (Alert): Хурлаас гарсан шийдвэрийн дагуу үүрэг хүлээсэн ажилтнуудад хийх ажлын (Action plan) хугацаа дөхөх үед сануулга, анхааруулга илгээх.\nУхаалаг Чатбот: Хурлын яриаг бодит цагт сонсож гол агуулгыг хураангуйлан гаргах бөгөөд хэрэглэгч асуулт асуух үед өмнөх хурлуудын шийдвэрийг цаг алдалгүй шүүж мэдээлэх.\nТуршлагад суурилсан зөвлөмж: Өмнөх хурлуудаас гарсан ажлын хэрэгжилт, явцын өгөгдөл дээр тулгуурлан дараагийн алхмуудыг хурдасгах, хүн цагийн хуваарилалтыг хэрхэн оновчтой хийх талаар санал гаргах.\nБичиг баримтын автоматжуулалт: Хурлын албан ёсны тэмдэглэлийн (MoM) эх бэлтгэх, гаргасан шийдвэрүүдээс автоматаар "Action plan" үүсгэн холбогдох хүмүүст хуваарилж, төслийн удирдлагын системд бүртгэх.', votes: 7, voters: [] },
-            { id: 'p9', category: CAT_MANAGEMENT, teamInfo: 'Team Tsogtbayar', projectName: 'Зураг төслийн Agent', description: 'Барилга, архитектур болон инженерийн зураг төслийн норм дүрэм, стандартууд, өмнөх төслүүдийн дизайны өгөгдлийн сан үүсгэж, үүн дээр үндэслэн:\n\nТогтмол мэдэгдэл (Alert): Зураг төслийн явцад норм дүрмийн зөрчил гарах, захиалагчийн өгөгдсөн шаардлагаас хазайх эсвэл дизайны шинэчлэлт хийгдэх үед шууд анхааруулга илгээх.\nУхаалаг Анализ: Хэрэглэгчээс өгөгдсөн анхны шаардлага (талбайн хэмжээ, зориулалт, төсөв гэх мэт)-д дүн шинжилгээ хийж, хиймэл оюунд суурилсан (Generative design) олон төрлийн дизайны хувилбаруудыг санал болгох.\nТуршлагад суурилсан зөвлөмж: Өмнө нь хийгдэж байсан амжилттай төслүүдийн шийдэл, өртгийн тооцоололд үндэслэн хамгийн оновчтой, эдийн засгийн хэмнэлттэй хувилбарыг сонгох инженерийн зөвлөмж өгөх.\nБичиг баримтын автоматжуулалт: Сонгогдсон дизайны хувилбарыг нарийвчилсан зураг төсөл (Detail design) болгон хөгжүүлэх анхан шатны ажлыг гүйцэтгэж, шаардлагатай техникийн тодорхойлолт, материалын орцын жагсаалтын (BoQ) нооргийг автоматаар гаргах.', votes: 6, voters: [] },
-            
-            { id: 'p10', category: CAT_OPERATIONS, teamInfo: 'Team Khurtsdulguun', projectName: 'DCD (Тархмал сүлжээг хянах систем)', description: 'Тархмал сүлжээний бүрэлдэхүүн хэсгүүдийн өгөгдлийн сан (Data storage) үүсгэж, уг мэдээлэл дээр үндэслэн:\n\nТогтмол мэдэгдэл (Alert): Сүлжээнд доголдол үүсэх, хүчин чадал хэтрэх эсвэл эвдрэл гарах эрсдэлтэй үед холбогдох инженерүүдэд яаралтай мэдэгдэл илгээх.\nУхаалаг Анализ: Сүлжээний ачаалал болон өгөгдөлд хиймэл оюун ухаанаар тооцоолол хийж, эвдрэл гэмтлийг урьдчилан таамаглах, сүлжээний найдвартай байдлыг хянах.\nТуршлагад суурилсан зөвлөмж: Өмнөх эвдрэл гэмтлийн түүх болон засварын мэдээлэлд үндэслэн төсөв хэрхэн оновчтой төлөвлөх, засварын зардлыг бууруулах талаар санал гаргах.\nБичиг баримтын автоматжуулалт: Сүлжээний ажиллагааны нэгдсэн тайлан, гэмтлийн акт, ээлжит төсвийн төлөвлөгөөний нооргийг (draft) автоматаар боловсруулах.', votes: 5, voters: [] },
-            { id: 'p11', category: CAT_OPERATIONS, teamInfo: 'Team Ganbat', projectName: 'Ухаалаг тоолуур + AI', description: 'Түгээлтийн сүлжээний ухаалаг тоолууруудаас ирж буй өгөгдлийн нэгдсэн сан үүсгэж, уг мэдээлэл дээр үндэслэн:\n\nТогтмол мэдэгдэл (Alert): Тоолуурын заалт огцом өөрчлөгдөх, хөндлөнгийн оролцоо илрэх эсвэл техникийн бус алдагдал гарч болзошгүй сэжигтэй үед анхааруулга илгээх.\nУхаалаг Анализ: Тоолуурын өгөгдөлд нарийвчилсан анализ хийж, түгээлтийн техникийн болон арилжааны (хулгай, алдаа) алдагдлын голомтыг үнэн зөвөөр илрүүлэх.\nТуршлагад суурилсан зөвлөмж: Өмнөх алдагдлын хэв маяг, хэрэглээний түүхэн өгөгдөл дээр үндэслэн алдагдлыг бууруулах, хяналт шалгалтыг хаана төвлөрүүлэх талаар зөвлөмж гаргах.\nБичиг баримтын автоматжуулалт: Алдагдлын дүн шинжилгээний тайлан, зөрчлийн акт, хяналтын багийн шалгах хуудасны нооргийг автоматаар боловсруулах.', votes: 5, voters: [] },
-            { id: 'p12', category: CAT_OPERATIONS, teamInfo: 'Team Ganbat', projectName: 'Хэрэглэгчийн зан төлөвийн AI', description: 'Хэрэглэгчдийн эрчим хүч болон үйлчилгээний хэрэглээний өгөгдлийн сан үүсгэж, уг мэдээлэл дээр үндэслэн:\n\nТогтмол мэдэгдэл (Alert): Хэрэглэгчийн хэрэглээний хэв маяг огцом өөрчлөгдөх эсвэл төлбөр хэвийн хэмжээнээс ихсэх үед хэрэглэгчид болон байгууллагад мэдэгдэл илгээх.\nУхаалаг Анализ: Хэрэглэгч бүрийн 24 цагийн хэрэглээний зан төлөвт урьдчилан таамаглах (Predictive) анализ хийж, ирээдүйн ачааллын муруйг гаргах.\nТуршлагад суурилсан зөвлөмж: Хэрэглээний түүхэн өгөгдөлд тулгуурлан хэрэглэгчид хэрэглээгээ оновчлох, хэмнэх зөвлөмж өгч, тэдний зан төлөвт хамгийн сайн тохирох тарифын багцыг санал болгох.\nБичиг баримтын автоматжуулалт: Хэрэглэгчдэд зориулсан хэрэглээний харьцуулсан тайлан, зөвлөмж мэдээлэл болон тариф өөрчлөх хүсэлтийн формыг автоматаар үүсгэх.', votes: 4, voters: [] },
-            { id: 'p13', category: CAT_OPERATIONS, teamInfo: 'Team Ganbat', projectName: 'Цаг агаарын Forecast Agent', description: 'Цаг агаарын урьдчилсан мэдээний сан болон өнгөрсөн хугацааны гэмтлийн түүхэн өгөгдлийг нэгтгэж, уг мэдээлэл дээр үндэслэн:\n\nТогтмол мэдэгдэл (Alert): Хүчтэй салхи, шуурга, аянга зэрэг байгалийн гамшигт үзэгдэл болох төлөвтэй үед засвар үйлчилгээний багт яаралтай сануулга илгээх.\nУхаалаг Таамаглал: Цаг агаарын нөхцөл байдал түгээх сүлжээнд хэрхэн нөлөөлөхийг тооцоолж, үүсч болзошгүй гэмтэл, саатлын байршлыг урьдчилан таамаглах.\nТуршлагад суурилсан зөвлөмж: Өмнөх цаг агаарын эрс тэс үзэгдлийн үед гарч байсан гэмтлүүдийн туршлага дээр үндэслэн хүний нөөц, техникийг хэрхэн хуваарилах, хаана бэлэн байдалд оруулах зөвлөгөө гаргах.\nҮйл явцын автоматжуулалт: Болзошгүй эрсдэлийн үнэлгээний тайлан, засварын багийн бэлэн байдлын төлөвлөгөө болон гамшгийн үеийн удирдамжийг автоматаар боловсруулах.', votes: 4, voters: [] },
-            { id: 'p14', category: CAT_OPERATIONS, teamInfo: 'Team Gantulga', projectName: 'Work Order Үүсгэдэг Agent', description: 'Тоног төхөөрөмжүүд дэх хэмжүүрийн буюу ухаалаг мэдрэгчүүдийн (smart sensor) өгөгдлийн санг үүсгэж, уг мэдээлэл дээр үндэслэн:\n\nТогтмол мэдэгдэл (Alert): Тоног төхөөрөмжийн хэвийн ажиллагаа алдагдах эсвэл мэдрэгчээс ноцтой дохио ирэх үед инженерүүдэд шууд мэдэгдэл (alert) илгээх.\nУхаалаг Анализ: Мэдрэгчүүдийн датанд анализ хийж болзошгүй эвдрэлийг урьдчилан таамаглах ба засварын ажлын нийт зардал, цар хүрээг тооцоолох.\nТуршлагад суурилсан зөвлөмж: Өмнө гарч байсан ижил төрлийн гэмтлүүдийн мэдээлэлд үндэслэн ямар сэлбэг хэрэгсэл шаардагдах, хэр их хугацаа зарцуулах талаар нарийвчилсан зөвлөмж гаргах.\nҮйл явцын автоматжуулалт: Зөвлөмжийг шууд Work Request (WR) болгон Maintenance Planner-т илгээх, сэлбэг хэрэгсэл дутмаг тохиолдолд худалдан авалтын хүсэлтийг (PR) автоматаар үүсгэх.', votes: 3, voters: [] },
-            { id: 'p15', category: CAT_OPERATIONS, teamInfo: 'Team Gantulga', projectName: 'Тайлан хийдэг Agent', description: 'Тоног төхөөрөмжийн өдөр тутмын үйл ажиллагаа болон засвар үйлчилгээний нэгдсэн мэдээллийн санг бүрдүүлж, үүн дээр үндэслэн:\n\nТогтмол мэдэгдэл (Alert): Засвар үйлчилгээний зардал төсөвлөсөн хэмжээнээс хэтрэх, эсвэл тодорхой тоноглолд дахин давтагдсан гэмтэл гарах үед удирдлагад анхааруулга илгээх.\nУхаалаг Анализ: Зардлын болон засварын чиг хандлагад (Trend) анализ хийж, хуучин тоноглолд хийгдэж буй нийт засварын зардлыг шинээр авах үнийн дүнтэй харьцуулан үнэлэх.\nТуршлагад суурилсан зөвлөмж: Түүхэн өгөгдөл болон зардлын тренд дээр үндэслэн аль тоноглолыг шинэчлэх нь илүү эдийн засгийн үр өгөөжтэй байх талаар удирдах түвшинд шийдвэр гаргах зөвлөмж өгөх.\nБичиг баримтын автоматжуулалт: Өдөр тутмын болон засварын тайлангууд, зардлын харьцуулалтын график зэргийг хүний оролцоогүйгээр автоматаар үүсгэж удирдлагыг мэдээллээр хангах.', votes: 3, voters: [] },
-            { id: 'p16', category: CAT_OPERATIONS, teamInfo: 'Team Gantulga', projectName: 'Засварын зөвлөмж өгдөг Bot', description: 'Тоног төхөөрөмжүүдийн гарын авлага, аюулгүй ажиллагааны дүрэм болон өмнөх засварын түүхийг агуулсан мэдлэгийн санг үүсгэж, уг мэдээлэл дээр үндэслэн:\n\nТогтмол мэдэгдэл (Alert): Засварын ажил эхлэх үед тухайн тоног төхөөрөмжтэй холбоотой онцгой анхаарах аюулгүй ажиллагааны эрсдэлүүдийн талаар ажилтанд сануулга илгээх.\nУхаалаг Чатбот: Засварын ажилтнуудад газар дээр нь (Мобайл/Чат хэлбэрээр) хийж буй ажил, тоног төхөөрөмтэй холбоотой зааварчилгааг шуурхай хариулж өгөх.\nТуршлагад суурилсан зөвлөмж: Өмнө нь хийгдэж байсан засваруудын үед гарч байсан хүндрэл, шилдэг туршлага дээр үндэслэн гэмтлийг хэрхэн хурдан, аюулгүй засах зөвлөмж санал болгох.\nБичиг баримтын автоматжуулалт: Ажил дууссаны дараа засварын ажилтны оруулсан мэдээлэлд тулгуурлан гүйцэтгэлийн тайлан, ашигласан сэлбэгийн бүртгэлийг системд автоматаар үүсгэх.', votes: 2, voters: [] },
-            { id: 'p17', category: CAT_OPERATIONS, teamInfo: 'Team Munkhsaikhan', projectName: 'SCADA - Хяналт, мэдээллийн Agents', description: 'Тоног төхөөрөмжүүдээс ирж буй бодит хугацааны өгөгдөл (SCADA event) болон түүхэн дата санг үүсгэж, уг мэдээлэл дээр үндэслэн:\n\nТогтмол мэдэгдэл (Alert): Тоног төхөөрөмжийн хэвийн ажиллагаа алдагдах, кабелийн гэмтэл гарах зэрэг онцгой SCADA event үүсэх үед холбогдох инженерүүд болон удирдлагуудад яаралтай мэдээлэл, дохио илгээх.\nУхаалаг Анализ: SCADA-ийн өгөгдөлд дүн шинжилгээ хийж, гэмтлийг эрт үе шатанд нь илрүүлэх, сүлжээний нөөцийн бэлэн байдлыг тасралтгүй хянах, тоноглолын элэгдэл, насжилтыг тооцоолох.\nТуршлагад суурилсан зөвлөмж: Өмнө нь гарч байсан гэмтлийн түүх, насжилтын тооцоололд үндэслэн тоноглолыг хэзээ солих, ямар төрлийн урьдчилан сэргийлэх засвар хийх талаар инженерийн түвшний оновчтой зөвлөмж гаргах.\nБичиг баримтын автоматжуулалт: Гэмтлийн анхан шатны бүртгэл, шалтгааны анализ (RCA) тайлан болон тоноглолын ашиглалтын паспортын шинэчлэлтийг системд автоматаар боловсруулах.', votes: 2, voters: [] },
-            { id: 'p18', category: CAT_OPERATIONS, teamInfo: 'Team Munkhsaikhan', projectName: 'Data Manager (Quality Check Agent)', description: 'Байгууллагын дотоод системүүд болон SCADA системээс орж ирж буй өгөгдлүүдийн нэгдсэн урсгалын баазыг хянаж, уг систем дээр үндэслэн:\n\nТогтмол мэдэгдэл (Alert): Өгөгдлийн урсгал тасалдах, өгөгдөл алдагдах эсвэл чанарын шаардлага хангахгүй (алдаатай, дутуу) их хэмжээний дата системд бүртгэгдэх үед мэдээллийн технологийн багт анхааруулга илгээх.\nУхаалаг Хяналт (Quality check): Системүүдээс орж ирж буй өгөгдлийн чанарыг (Data quality) тогтмол шалгаж, дутуу болон стандартын бус датаг илрүүлэн, өгөгдөл хоорондын уялдааг хангаж урсгалыг зохицуулах.\nТуршлагад суурилсан зөвлөмж: Өгөгдөлд байнга гардаг алдааны хэв маяг, давтамжийг шинжилж, датаг анх бүртгэх үйл явцыг сайжруулах, алдааг бууруулах технологийн болон архитектурын зөвлөмж өгөх.\nҮйл явцын автоматжуулалт: Алдаатай эсвэл дутуу датаг автоматаар цэвэрлэх (Data cleansing), стандартын дагуу форматлах болон өгөгдлийн чанарын өдөр тутмын хяналтын тайланг (draft) автоматаар үүсгэх.', votes: 1, voters: [] }
+            { id: 'p10', category: CAT_OPERATIONS, teamInfo: 'Team Khurtsdulguun', projectName: 'DCD (Тархмал сүлжээг хянах систем)', description: 'Тархмал сүлжээний бүрэлдэхүүн хэсгүүдийн өгөгдлийн сан (Data storage) үүсгэж, уг мэдээлэл дээр үндэслэн:\n\nТогтмол мэдэгдэл (Alert): Сүлжээнд доголдол үүсэх, хүчин чадал хэтрэх эсвэл эвдрэл гарах эрсдэлтэй үед холбогдох инженерүүдэд яаралтай мэдэгдэл илгээх.\nУхаалаг Анализ: Сүлжээний ачаалал болон өгөгдөлд хиймэл оюун ухаанаар тооцоолол хийж, эвдрэл гэмтлийг урьдчилан таамаглах, сүлжээний найдвартай байдлыг хянах.\nТуршлагад суурилсан зөвлөмж: Өмнөх эвдрэл гэмтлийн түүх болон засварын мэдээлэлд үндэслэн төсөв хэрхэн оновчтой төлөвлөх, засварын зардлыг бууруулах талаар санал гаргах.\nБичиг баримтын автоматжуулалт: Сүлжээний ажиллагааны нэгдсэн тайлан, гэмтлийн акт, ээлжит төсвийн төлөвлөгөөний нооргийг (draft) автоматаар боловсруулах.', votes: 5, voters: [] }
         ];
 
         const PitchApp = () => {
             const [view, setView] = useState('form'); 
             const [currentSlide, setCurrentSlide] = useState(0);
             const [user, setUser] = useState(null);
-            
             const [toastMsg, setToastMsg] = useState('');
             const [isSaving, setIsSaving] = useState(false);
             const [selectedTab, setSelectedTab] = useState('All'); 
+            const [votingIdeas, setVotingIdeas] = useState(PREDEFINED_IDEAS);
+            const [selectedIdeaDetail, setSelectedIdeaDetail] = useState(null);
 
             const initialIdea = {
                 members: '', projectName: '', targetUser: '', category: CAT_MANAGEMENT, problem: '',
@@ -84,20 +66,47 @@
             const [currentIndex, setCurrentIndex] = useState(0);
             const activeIdea = ideas[currentIndex];
 
-            const [votingIdeas, setVotingIdeas] = useState(PREDEFINED_IDEAS);
-            const [showAddModal, setShowAddModal] = useState(false);
-            const [newPrevIdea, setNewPrevIdea] = useState({ teamInfo: '', projectName: '', description: '' });
-            
-            const [selectedIdeaDetail, setSelectedIdeaDetail] = useState(null);
-
-            // DB Auth - Local storage UUID approach for workshop convenience
+            // 1. Unique User ID үүсгэх (Local)
             useEffect(() => {
-                let localUserId = localStorage.getItem('voter_uid');
+                let localUserId = localStorage.getItem('pitch_voter_id');
                 if (!localUserId) {
                     localUserId = 'user_' + Math.random().toString(36).substr(2, 9);
-                    localStorage.setItem('voter_uid', localUserId);
+                    localStorage.setItem('pitch_voter_id', localUserId);
                 }
                 setUser({ uid: localUserId });
+            }, []);
+
+            // 2. Supabase-ээс Realtime дата татах
+            const fetchVotingData = async () => {
+                const { data: dbIdeas, error } = await db.from('pitch_voting').select('*');
+                if (error) {
+                    console.error("Fetch error:", error);
+                    return;
+                }
+
+                const dbIdeaMap = {};
+                dbIdeas.forEach(idea => dbIdeaMap[idea.id] = idea);
+
+                let combined = PREDEFINED_IDEAS.map(pIdea => {
+                    return dbIdeaMap[pIdea.id] ? dbIdeaMap[pIdea.id] : pIdea;
+                });
+
+                dbIdeas.forEach(idea => {
+                    if (!PREDEFINED_IDEAS.find(p => p.id === idea.id)) {
+                        combined.push(idea);
+                    }
+                });
+
+                combined.sort((a, b) => (b.votes || 0) - (a.votes || 0));
+                setVotingIdeas(combined);
+            };
+
+            useEffect(() => {
+                fetchVotingData();
+                const subscription = db.channel('pitch_changes')
+                    .on('postgres_changes', { event: '*', schema: 'public', table: 'pitch_voting' }, () => fetchVotingData())
+                    .subscribe();
+                return () => db.removeChannel(subscription);
             }, []);
 
             const showToast = (msg) => {
@@ -105,95 +114,59 @@
                 setTimeout(() => setToastMsg(''), 3000);
             };
 
-            // Fetch Data from Supabase
-            const fetchVotingData = async () => {
-                if (!supabase) return;
-                
-                try {
-                    const { data: dbIdeas, error } = await supabase.from('pitch_voting').select('*');
-                    if (error) throw error;
-
-                    const dbIdeaMap = {};
-                    if (dbIdeas) {
-                        dbIdeas.forEach(idea => dbIdeaMap[idea.id] = idea);
-                    }
-
-                    let combined = PREDEFINED_IDEAS.map(pIdea => {
-                        return dbIdeaMap[pIdea.id] ? dbIdeaMap[pIdea.id] : pIdea;
-                    });
-
-                    if (dbIdeas) {
-                        dbIdeas.forEach(idea => {
-                            if (!PREDEFINED_IDEAS.find(p => p.id === idea.id)) {
-                                combined.push(idea);
-                            }
-                        });
-                    }
-
-                    combined.sort((a, b) => (b.votes || 0) - (a.votes || 0));
-                    setVotingIdeas(combined);
-                    
-                    if (selectedIdeaDetail) {
-                        const updatedDetail = combined.find(i => i.id === selectedIdeaDetail.id);
-                        if (updatedDetail) setSelectedIdeaDetail(updatedDetail);
-                    }
-                } catch (err) {
-                    console.error("Fetch error:", err);
-                }
-            };
-
-            useEffect(() => {
-                if (!supabase || !user) return;
-                
-                fetchVotingData();
-
-                // Setup realtime subscription
-                const subscription = supabase.channel('public:pitch_voting')
-                    .on('postgres_changes', { event: '*', schema: 'public', table: 'pitch_voting' }, payload => {
-                        fetchVotingData();
-                    })
-                    .subscribe();
-
-                return () => {
-                    supabase.removeChannel(subscription);
-                };
-            }, [supabase, user, selectedIdeaDetail]);
-
+            // 3. Санал өгөх (Supabase Update)
             const toggleVote = async (idea) => {
-                if (!supabase || !user) return showToast("Баазтай холбогдоогүй байна");
-                
+                if (!user) return;
                 const hasVoted = idea.voters && idea.voters.includes(user.uid);
                 
-                try {
-                    let newVoters = idea.voters || [];
-                    let newVotes = idea.votes || 0;
+                let newVoters = idea.voters || [];
+                let newVotes = idea.votes || 0;
 
-                    if (hasVoted) {
-                        newVoters = newVoters.filter(uid => uid !== user.uid);
-                        newVotes = Math.max(0, newVotes - 1);
-                    } else {
-                        newVoters = [...newVoters, user.uid];
-                        newVotes = newVotes + 1;
-                    }
+                if (hasVoted) {
+                    newVoters = newVoters.filter(uid => uid !== user.uid);
+                    newVotes = Math.max(0, newVotes - 1);
+                } else {
+                    newVoters = [...newVoters, user.uid];
+                    newVotes = newVotes + 1;
+                }
 
-                    const { error } = await supabase.from('pitch_voting').upsert({
-                        id: idea.id,
-                        teamInfo: idea.teamInfo || '',
-                        projectName: idea.projectName || '',
-                        description: idea.description || '',
-                        category: idea.category || CAT_MANAGEMENT,
-                        isNewWorkshopIdea: idea.isNewWorkshopIdea || false,
-                        votes: newVotes,
-                        voters: newVoters
-                    });
+                const { error } = await db.from('pitch_voting').upsert({
+                    id: idea.id,
+                    votes: newVotes,
+                    voters: newVoters,
+                    projectName: idea.projectName,
+                    teamInfo: idea.teamInfo,
+                    description: idea.description,
+                    category: idea.category
+                });
 
-                    if (error) throw error;
-                    
-                    // Local fallback update for instant feedback
-                    fetchVotingData();
-                } catch (error) {
-                    console.error("Vote error:", error);
-                    showToast("Санал өгөхөд алдаа гарлаа");
+                if (error) showToast("Алдаа гарлаа");
+            };
+
+            // 4. Төслийг DB рүү илгээх
+            const publishToVoting = async () => {
+                if (!activeIdea.projectName || !activeIdea.members) {
+                    return showToast("Төслийн нэр болон гишүүдийг оруулна уу");
+                }
+
+                setIsSaving(true);
+                const uniqueId = `workshop_${user.uid}_${currentIndex}`;
+                const desc = `Асуудал: ${activeIdea.problem}\n\nШийдэл:\n1. ${activeIdea.solutionStep1}\n2. ${activeIdea.solutionStep2}\n\nҮнэ цэн: ${activeIdea.businessValueDesc}`;
+
+                const { error } = await db.from('pitch_voting').upsert({
+                    id: uniqueId,
+                    teamInfo: activeIdea.members,
+                    projectName: activeIdea.projectName,
+                    description: desc,
+                    category: activeIdea.category,
+                    isNewWorkshopIdea: true,
+                    createdAt: new Date().toISOString()
+                });
+
+                setIsSaving(false);
+                if (!error) {
+                    showToast("Санал хураалтад илгээгдлээ");
+                    setView('voting');
                 }
             };
 
@@ -217,446 +190,104 @@
                 setCurrentIndex(Math.min(currentIndex, newIdeas.length - 1));
             };
 
-            const publishToVoting = async () => {
-                if (!supabase || !user) return showToast("Өгөгдлийн сан холбогдоогүй байна (Local горим)");
-                
-                if (!activeIdea.projectName || !activeIdea.members) {
-                    return showToast("Төслийн нэр болон Гишүүдийн нэрийг заавал оруулна уу!");
-                }
-
-                setIsSaving(true);
-                try {
-                    for (let i = 0; i < ideas.length; i++) {
-                        const idea = ideas[i];
-                        if (!idea.projectName) continue;
-                        
-                        const uniqueId = `${user.uid}_idea_${i}`; 
-                        
-                        const steps = [idea.solutionStep1, idea.solutionStep2, idea.solutionStep3, idea.solutionStep4]
-                                      .filter(s => s).map((s, idx) => `• ${s}`).join('\n');
-
-                        const generatedDesc = `Асуудал:\n${idea.problem || 'Тодорхойгүй'}\n\nШийдэл:\n${steps || 'Тодорхойгүй'}\n\nҮнэ цэн (${idea.businessValueLevel}):\n${idea.businessValueDesc || 'Тодорхойгүй'}\n\nӨгөгдөл:\n${idea.dataReq || 'Тодорхойгүй'}\n\nХэрэгжүүлэлт (MVP: ${idea.implTime || 'Тодорхойгүй'}):\n${idea.implSteps || 'Тодорхойгүй'}`;
-
-                        const { error } = await supabase.from('pitch_voting').upsert({
-                            id: uniqueId,
-                            teamInfo: idea.members,
-                            projectName: idea.projectName,
-                            description: generatedDesc,
-                            category: idea.category || CAT_MANAGEMENT,
-                            isNewWorkshopIdea: true, 
-                            createdAt: new Date().toISOString()
-                        });
-                        
-                        if (error) throw error;
-                    }
-                    showToast("Санаанууд санал хураалт руу амжилттай нийтлэгдлээ!");
-                    fetchVotingData();
-                    setTimeout(() => setView('voting'), 1500);
-                } catch (error) {
-                    console.error("Publish error:", error);
-                    showToast("Илгээхэд алдаа гарлаа");
-                }
-                setIsSaving(false);
-            };
-
-            const savePrevIdea = async () => {
-                if (!supabase || !user) return showToast("Баазтай холбогдоогүй байна");
-                if (!newPrevIdea.projectName) return showToast("Төслийн нэрийг оруулна уу");
-                
-                try {
-                    const newId = 'user_added_' + Math.random().toString(36).substr(2, 9);
-                    const { error } = await supabase.from('pitch_voting').insert([{
-                        id: newId,
-                        ...newPrevIdea,
-                        category: CAT_MANAGEMENT,
-                        votes: 0,
-                        voters: [],
-                        createdBy: user.uid,
-                        createdAt: new Date().toISOString()
-                    }]);
-                    
-                    if (error) throw error;
-
-                    setShowAddModal(false);
-                    setNewPrevIdea({ teamInfo: '', projectName: '', description: '' });
-                    showToast("Өмнөх санаа амжилттай нэмэгдлээ!");
-                    fetchVotingData();
-                } catch (error) {
-                    console.error(error);
-                    showToast("Хадгалахад алдаа гарлаа");
-                }
-            };
-
-            useEffect(() => {
-                const handleKeyDown = (e) => {
-                    if (view === 'presentation') {
-                        if (e.key === 'ArrowRight' || e.key === 'Space') setCurrentSlide((prev) => Math.min(prev + 1, 4));
-                        else if (e.key === 'ArrowLeft') setCurrentSlide((prev) => Math.max(prev - 1, 0));
-                        else if (e.key === 'Escape') setView('form');
-                    }
-                };
-                window.addEventListener('keydown', handleKeyDown);
-                return () => window.removeEventListener('keydown', handleKeyDown);
-            }, [view]);
-
-            const ToastMessage = () => {
-                if (!toastMsg) return null;
-                return (
-                    <div className="fixed top-6 right-6 bg-slate-800 border border-slate-600 text-white px-5 py-3 rounded-lg shadow-xl z-[100] flex items-center gap-3 text-sm" style={{animation: 'slideUp 0.3s ease-out'}}>
-                        <span className="font-medium">{toastMsg}</span>
-                    </div>
-                );
-            };
-
             const TopNav = () => (
                 <div className="flex justify-center mb-6">
-                    <div className="bg-slate-800/60 p-1.5 rounded-2xl border border-slate-700/50 backdrop-blur-md flex space-x-2">
-                        <button 
-                            onClick={() => setView('form')} 
-                            className={`px-5 py-2.5 rounded-xl text-sm font-semibold transition-all ${view === 'form' ? 'bg-cyan-500/20 text-cyan-400 border border-cyan-500/30' : 'text-slate-400 hover:text-slate-200 hover:bg-slate-700/50'}`}
-                        >
-                            Шинэ санаа боловсруулах
-                        </button>
-                        <button 
-                            onClick={() => setView('voting')} 
-                            className={`px-5 py-2.5 rounded-xl text-sm font-semibold transition-all ${view === 'voting' ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30' : 'text-slate-400 hover:text-slate-200 hover:bg-slate-700/50'}`}
-                        >
-                            Санал хураалт & Эрэмбэ
-                        </button>
+                    <div className="bg-slate-800/60 p-1 rounded-xl border border-slate-700 flex space-x-1">
+                        <button onClick={() => setView('form')} className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${view === 'form' ? 'bg-cyan-500/20 text-cyan-400' : 'text-slate-400'}`}>Боловсруулах</button>
+                        <button onClick={() => setView('voting')} className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${view === 'voting' ? 'bg-emerald-500/20 text-emerald-400' : 'text-slate-400'}`}>Санал хураалт</button>
                     </div>
                 </div>
             );
 
-            // -------------------- САНАЛ ХУРААЛТЫН ХУУДАС --------------------
             const VotingView = () => {
-                const filteredIdeas = selectedTab === 'All' 
-                    ? votingIdeas 
-                    : votingIdeas.filter(idea => idea.category === selectedTab);
-
+                const filtered = selectedTab === 'All' ? votingIdeas : votingIdeas.filter(i => i.category === selectedTab);
                 return (
-                    <div className="max-w-7xl mx-auto p-4 md:p-6 relative z-10 bg-slate-900 min-h-screen text-slate-200">
-                        <ToastMessage />
+                    <div className="max-w-7xl mx-auto p-6 bg-slate-900 min-h-screen text-slate-200">
                         <TopNav />
-
-                        <div className="flex flex-col mb-8 bg-slate-800/40 backdrop-blur-md p-6 rounded-2xl border border-slate-700/50 shadow-lg">
-                            <h1 className="text-2xl md:text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-cyan-400 tracking-tight text-center mb-6">
-                                Санаануудын Нэгдсэн Жагсаалт & Санал Хураалт
-                            </h1>
-                            
-                            <div className="flex flex-wrap justify-center gap-3">
-                                <button 
-                                    onClick={() => setSelectedTab('All')}
-                                    className={`px-6 py-2.5 rounded-xl text-sm font-bold transition-all ${selectedTab === 'All' ? 'bg-slate-200 text-slate-800 shadow-md' : 'bg-slate-800 border border-slate-600 text-slate-400 hover:bg-slate-700'}`}
-                                >
-                                    Бүгд ({votingIdeas.length})
-                                </button>
-                                <button 
-                                    onClick={() => setSelectedTab(CAT_MANAGEMENT)}
-                                    className={`px-6 py-2.5 rounded-xl text-sm font-bold transition-all ${selectedTab === CAT_MANAGEMENT ? 'bg-indigo-500 text-white shadow-md shadow-indigo-500/30 border border-indigo-400' : 'bg-slate-800 border border-slate-600 text-slate-400 hover:bg-slate-700'}`}
-                                >
-                                    Төслийн удирдлага & Төлөвлөлт
-                                </button>
-                                <button 
-                                    onClick={() => setSelectedTab(CAT_OPERATIONS)}
-                                    className={`px-6 py-2.5 rounded-xl text-sm font-bold transition-all ${selectedTab === CAT_OPERATIONS ? 'bg-fuchsia-500 text-white shadow-md shadow-fuchsia-500/30 border border-fuchsia-400' : 'bg-slate-800 border border-slate-600 text-slate-400 hover:bg-slate-700'}`}
-                                >
-                                    Ашиглалт, ЗҮ, Түгээх (O&M)
-                                </button>
-                            </div>
-                        </div>
-
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5" style={{animation: 'fadeIn 0.3s ease-in-out'}}>
-                            {filteredIdeas.map((idea, index) => {
-                                const hasVoted = idea.voters && user && idea.voters.includes(user.uid);
-                                const isNew = idea.isNewWorkshopIdea;
-                                
-                                return (
-                                    <div 
-                                        key={idea.id} 
-                                        onClick={() => setSelectedIdeaDetail(idea)}
-                                        className={`bg-slate-800/50 p-6 rounded-2xl border flex flex-col relative overflow-hidden transition-all hover:-translate-y-1 hover:shadow-xl cursor-pointer ${isNew ? 'border-cyan-500/50 shadow-[0_0_15px_rgba(6,182,212,0.15)]' : 'border-slate-700/80 hover:border-slate-500'}`}
-                                    >
-                                        <div className="flex justify-between items-start mb-3">
-                                            <span className={`text-[10px] uppercase font-black tracking-widest px-2 py-1 rounded-md ${idea.category === CAT_MANAGEMENT ? 'bg-indigo-500/20 text-indigo-300' : 'bg-fuchsia-500/20 text-fuchsia-300'}`}>
-                                                {idea.category === CAT_MANAGEMENT ? 'Удирдлага' : 'O&M Бизнес'}
-                                            </span>
-                                            {isNew && <span className="bg-cyan-500 text-slate-900 text-[10px] font-black px-2 py-1 rounded-md animate-pulse">ШИНЭ</span>}
-                                        </div>
-
-                                        <div className="text-xs font-bold text-emerald-400 uppercase tracking-widest mb-1">{idea.teamInfo || 'Илтгэгч тодорхойгүй'}</div>
-                                        <h3 className="text-lg font-bold text-slate-100 mb-3 leading-tight">{idea.projectName}</h3>
-                                        
-                                        <p className="text-sm text-slate-400 flex-grow mb-2 leading-relaxed whitespace-pre-wrap line-clamp-3">{idea.description}</p>
-                                        <div className="text-cyan-400 text-xs font-semibold mb-5 hover:underline">Дэлгэрэнгүй...</div>
-                                        
-                                        <div className="mt-auto pt-4 border-t border-slate-700/50 flex justify-between items-center" onClick={(e) => e.stopPropagation()}>
-                                            <div className="text-2xl font-black text-slate-200 flex items-center">
-                                                <span className="text-sm font-medium text-slate-500 mr-2 uppercase tracking-wide">Санал:</span>
-                                                {idea.votes || 0}
-                                            </div>
-                                            <button 
-                                                onClick={() => toggleVote(idea)}
-                                                className={`flex items-center px-4 py-2 rounded-xl text-sm font-bold transition-all ${hasVoted ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/50' : 'bg-slate-700 hover:bg-slate-600 text-slate-300 border border-slate-600'}`}
-                                            >
-                                                {hasVoted ? 'Өгсөн' : 'Өгөх'}
-                                            </button>
-                                        </div>
-                                    </div>
-                                );
-                            })}
-                        </div>
-
-                        {selectedIdeaDetail && (
-                            <div 
-                                className="fixed inset-0 bg-slate-900/80 backdrop-blur-sm z-[150] flex items-center justify-center p-4 md:p-8" 
-                                style={{animation: 'fadeIn 0.2s ease-in-out'}}
-                                onClick={() => setSelectedIdeaDetail(null)}
-                            >
-                                <div 
-                                    className="bg-slate-800 border border-slate-600 rounded-3xl p-6 md:p-8 max-w-3xl w-full shadow-2xl max-h-[90vh] overflow-y-auto custom-scrollbar flex flex-col"
-                                    onClick={(e) => e.stopPropagation()}
-                                >
-                                    <div className="flex justify-between items-start mb-6">
-                                        <div>
-                                            <div className="flex items-center gap-3 mb-2">
-                                                <span className={`text-[10px] uppercase font-black tracking-widest px-2 py-1 rounded-md ${selectedIdeaDetail.category === CAT_MANAGEMENT ? 'bg-indigo-500/20 text-indigo-300' : 'bg-fuchsia-500/20 text-fuchsia-300'}`}>
-                                                    {selectedIdeaDetail.category === CAT_MANAGEMENT ? 'Удирдлага' : 'O&M Бизнес'}
-                                                </span>
-                                                <div className="text-xs font-bold text-emerald-400 uppercase tracking-widest">{selectedIdeaDetail.teamInfo}</div>
-                                            </div>
-                                            <h2 className="text-2xl md:text-3xl font-bold text-slate-100 leading-tight">{selectedIdeaDetail.projectName}</h2>
-                                        </div>
-                                        <button onClick={() => setSelectedIdeaDetail(null)} className="text-slate-400 hover:text-rose-400 text-4xl leading-none ml-4">&times;</button>
-                                    </div>
-                                    
-                                    <div className="text-slate-300 text-base md:text-lg leading-relaxed whitespace-pre-wrap flex-grow bg-slate-900/50 p-6 rounded-2xl border border-slate-700/50 mb-6">
-                                        {selectedIdeaDetail.description}
-                                    </div>
-                                    
-                                    <div className="pt-6 border-t border-slate-700/80 flex justify-between items-center mt-auto">
-                                        <div className="text-3xl font-black text-slate-200 flex items-center">
-                                            <span className="text-sm font-medium text-slate-500 mr-3 uppercase tracking-wide">Нийт Санал:</span>
-                                            {selectedIdeaDetail.votes || 0}
-                                        </div>
-                                        <button 
-                                            onClick={() => toggleVote(selectedIdeaDetail)}
-                                            className={`flex items-center px-6 py-3 rounded-xl text-base font-bold transition-all shadow-lg ${selectedIdeaDetail.voters && user && selectedIdeaDetail.voters.includes(user.uid) ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/50' : 'bg-cyan-600 hover:bg-cyan-500 text-white border border-cyan-500'}`}
-                                        >
-                                            {selectedIdeaDetail.voters && user && selectedIdeaDetail.voters.includes(user.uid) ? 'Санал өгсөн' : 'Санал өгөх'}
-                                        </button>
-                                    </div>
-                                </div>
-                            </div>
-                        )}
-
-                        {showAddModal && (
-                            <div className="fixed inset-0 bg-slate-900/80 backdrop-blur-sm z-[100] flex items-center justify-center p-4" style={{animation: 'fadeIn 0.2s ease-in-out'}}>
-                                <div className="bg-slate-800 border border-slate-600 rounded-3xl p-6 md:p-8 max-w-lg w-full shadow-2xl">
-                                    <div className="flex justify-between items-center mb-6">
-                                        <h2 className="text-xl font-bold text-slate-100">Шинэ санаа оруулах</h2>
-                                        <button onClick={() => setShowAddModal(false)} className="text-slate-400 hover:text-rose-400 text-3xl leading-none">&times;</button>
-                                    </div>
-                                    <div className="space-y-4">
-                                        <div>
-                                            <label className="block text-xs font-medium text-slate-400 uppercase tracking-wide mb-1.5">Багийн нэр / Эзэмшигч</label>
-                                            <input type="text" value={newPrevIdea.teamInfo} onChange={e => setNewPrevIdea({...newPrevIdea, teamInfo: e.target.value})} className="w-full p-3 bg-slate-900/50 border border-slate-700 rounded-xl text-slate-200 focus:border-cyan-500 outline-none text-sm placeholder-slate-600" placeholder="Ж: Team Ganbat" />
-                                        </div>
-                                        <div>
-                                            <label className="block text-xs font-medium text-slate-400 uppercase tracking-wide mb-1.5">Төслийн нэр *</label>
-                                            <input type="text" value={newPrevIdea.projectName} onChange={e => setNewPrevIdea({...newPrevIdea, projectName: e.target.value})} className="w-full p-3 bg-slate-900/50 border border-slate-700 rounded-xl text-slate-200 focus:border-cyan-500 outline-none text-sm placeholder-slate-600" placeholder="Ж: Ухаалаг тоолуур + AI" />
-                                        </div>
-                                        <div>
-                                            <label className="block text-xs font-medium text-slate-400 uppercase tracking-wide mb-1.5">Санааны товч тайлбар</label>
-                                            <textarea value={newPrevIdea.description} onChange={e => setNewPrevIdea({...newPrevIdea, description: e.target.value})} rows="4" className="w-full p-3 bg-slate-900/50 border border-slate-700 rounded-xl text-slate-200 focus:border-cyan-500 outline-none text-sm resize-none placeholder-slate-600" placeholder="Ямар асуудлыг яаж шийдэх тухай..."></textarea>
-                                        </div>
-                                    </div>
-                                    <div className="flex justify-end gap-3 mt-8">
-                                        <button onClick={() => setShowAddModal(false)} className="px-5 py-2.5 rounded-xl text-sm font-medium text-slate-300 bg-slate-700 hover:bg-slate-600 transition-colors">Цуцлах</button>
-                                        <button onClick={savePrevIdea} className="px-5 py-2.5 rounded-xl text-sm font-medium text-white bg-emerald-600 hover:bg-emerald-500 transition-colors shadow-lg shadow-emerald-500/20">Хадгалах</button>
-                                    </div>
-                                </div>
-                            </div>
-                        )}
-                    </div>
-                );
-            };
-
-            // -------------------- ФОРМЫН ХУУДАС --------------------
-            const FormView = () => (
-                <div className="max-w-5xl mx-auto p-4 md:p-6 relative z-10 bg-slate-900 min-h-screen text-slate-200">
-                    <ToastMessage />
-                    <TopNav />
-                    
-                    <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 bg-slate-800/40 backdrop-blur-md p-5 md:px-6 md:py-5 rounded-2xl border border-slate-700/50 shadow-lg">
-                        <div>
-                            <h1 className="text-2xl md:text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-indigo-400 tracking-tight">AI in Enterprise</h1>
-                            <p className="text-slate-400 mt-1 text-sm">Төслийн шинэ санаа боловсруулж, танилцуулах хуудас</p>
-                        </div>
-                        <div className="mt-4 md:mt-0 flex flex-wrap gap-3 w-full md:w-auto">
-                            <button 
-                                onClick={() => {setCurrentSlide(0); setView('presentation');}} 
-                                className="flex-1 md:flex-none justify-center bg-slate-700/80 hover:bg-slate-600 text-slate-200 font-medium py-2.5 px-6 rounded-xl flex items-center transition-all border border-slate-600 text-sm"
-                            >
-                                ТАНИЛЦУУЛАХ
-                            </button>
-                            <button 
-                                onClick={publishToVoting} 
-                                disabled={isSaving}
-                                className="flex-1 md:flex-none justify-center bg-gradient-to-r from-emerald-500 to-cyan-600 hover:from-emerald-400 hover:to-cyan-500 text-white font-bold py-2.5 px-6 rounded-xl flex items-center transition-all shadow-lg shadow-cyan-500/20 text-sm border border-cyan-400/30"
-                            >
-                                {isSaving ? 'Илгээж байна...' : 'САНАЛ ХУРААЛТАД ИЛГЭЭХ'}
-                            </button>
-                        </div>
-                    </div>
-
-                    <div className="flex overflow-x-auto space-x-2 mb-6 pb-2 custom-scrollbar">
-                        {ideas.map((idea, idx) => (
-                            <button key={idx} onClick={() => setCurrentIndex(idx)} className={`px-4 py-2 rounded-xl text-sm font-medium transition-all flex items-center ${currentIndex === idx ? 'bg-cyan-500/10 text-cyan-400 border border-cyan-500/30' : 'bg-slate-800/60 text-slate-400 border border-slate-700 hover:bg-slate-700/50'}`}>
-                                {idea.projectName || `Санаа ${idx + 1}`}
-                                {ideas.length > 1 && <span onClick={(e) => removeIdea(idx, e)} className="ml-2 text-slate-500 hover:text-rose-400">✕</span>}
-                            </button>
-                        ))}
-                        <button onClick={addNewIdea} className="px-4 py-2 rounded-xl text-sm font-medium text-slate-400 border border-slate-600 border-dashed hover:text-cyan-400 hover:bg-slate-800/50 transition-colors">＋ Шинэ санаа</button>
-                    </div>
-
-                    <div className="space-y-5" style={{animation: 'fadeIn 0.3s ease-in-out'}}>
-                        <div className="bg-slate-800/50 p-5 md:p-6 rounded-2xl border border-slate-700/80 shadow-sm">
-                            <h2 className="text-lg font-semibold text-slate-100 mb-4 flex items-center">Ерөнхий мэдээлэл</h2>
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                                <div className="space-y-1.5">
-                                    <label className="text-xs font-medium text-slate-400 uppercase tracking-wide">Багийн илтгэгч / Гишүүд</label>
-                                    <input type="text" name="members" value={activeIdea.members} onChange={handleChange} className="w-full p-2.5 bg-slate-900/50 border border-slate-700 rounded-lg text-slate-200 focus:border-cyan-500 outline-none text-sm transition-colors placeholder-slate-600" placeholder="Ж: Team Ganbat / Дорж" />
-                                </div>
-                                <div className="space-y-1.5">
-                                    <label className="text-xs font-medium text-slate-400 uppercase tracking-wide">Төслийн нэр</label>
-                                    <input type="text" name="projectName" value={activeIdea.projectName} onChange={handleChange} className="w-full p-2.5 bg-slate-900/50 border border-slate-700 rounded-lg text-slate-200 focus:border-cyan-500 outline-none text-sm transition-colors placeholder-slate-600" placeholder="..." />
-                                </div>
-                            </div>
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <div className="space-y-1.5">
-                                    <label className="text-xs font-medium text-slate-400 uppercase tracking-wide">Ангилал (Category)</label>
-                                    <select name="category" value={activeIdea.category} onChange={handleChange} className="w-full p-2.5 bg-slate-900/50 border border-slate-700 rounded-lg text-slate-200 focus:border-cyan-500 outline-none text-sm transition-colors">
-                                        <option value={CAT_MANAGEMENT}>{CAT_MANAGEMENT}</option>
-                                        <option value={CAT_OPERATIONS}>{CAT_OPERATIONS}</option>
-                                    </select>
-                                </div>
-                                <div className="space-y-1.5">
-                                    <label className="text-xs font-medium text-slate-400 uppercase tracking-wide">Зорилтот Хэрэглэгч</label>
-                                    <input type="text" name="targetUser" value={activeIdea.targetUser} onChange={handleChange} className="w-full p-2.5 bg-slate-900/50 border border-slate-700 rounded-lg text-slate-200 focus:border-cyan-500 outline-none text-sm transition-colors placeholder-slate-600" placeholder="..." />
-                                </div>
-                            </div>
-                        </div>
-                        <div className="bg-slate-800/50 p-5 md:p-6 rounded-2xl border border-slate-700/80 shadow-sm">
-                            <h2 className="text-lg font-semibold text-slate-100 mb-4 flex items-center">1. Асуудал</h2>
-                            <textarea name="problem" value={activeIdea.problem} onChange={handleChange} rows="3" className="w-full p-3 bg-slate-900/50 border border-slate-700 rounded-lg text-slate-200 focus:border-cyan-500 outline-none resize-none text-sm transition-colors placeholder-slate-600" placeholder="Одоогийн нөхцөл байдалд ямар асуудал тулгарч байна вэ?"></textarea>
-                        </div>
-                        <div className="bg-slate-800/50 p-5 md:p-6 rounded-2xl border border-slate-700/80 shadow-sm">
-                            <h2 className="text-lg font-semibold text-slate-100 mb-4 flex items-center">2. Шийдэл</h2>
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                {[1,2,3,4].map(num => (
-                                    <div key={num} className="space-y-1.5">
-                                        <label className="text-xs font-medium text-cyan-400/80">Алхам {num}</label>
-                                        <input type="text" name={`solutionStep${num}`} value={activeIdea[`solutionStep${num}`]} onChange={handleChange} className="w-full p-2.5 bg-slate-900/50 border border-slate-700 rounded-lg text-slate-200 focus:border-cyan-500 outline-none text-sm transition-colors placeholder-slate-600" placeholder={`Шийдлийн алхам ${num}...`} />
-                                    </div>
+                        <div className="flex flex-col mb-8 bg-slate-800/40 p-6 rounded-2xl border border-slate-700 text-center">
+                            <h1 className="text-3xl font-bold text-white mb-4 tracking-tight">AI in Enterprise</h1>
+                            <div className="flex justify-center gap-2">
+                                {['All', CAT_MANAGEMENT, CAT_OPERATIONS].map(tab => (
+                                    <button key={tab} onClick={() => setSelectedTab(tab)} className={`px-4 py-2 rounded-lg text-xs font-bold border ${selectedTab === tab ? 'bg-white text-slate-900 border-white' : 'bg-slate-800 text-slate-400 border-slate-700'}`}>
+                                        {tab === 'All' ? 'Бүгд' : tab}
+                                    </button>
                                 ))}
                             </div>
                         </div>
-                        <div className="bg-slate-800/50 p-5 md:p-6 rounded-2xl border border-slate-700/80 shadow-sm">
-                            <h2 className="text-lg font-semibold text-slate-100 mb-4 flex items-center">3. Үнэ цэн</h2>
-                            <div className="flex flex-col md:flex-row gap-4">
-                                <select name="businessValueLevel" value={activeIdea.businessValueLevel} onChange={handleChange} className="md:w-1/4 p-2.5 bg-slate-900/50 border border-slate-700 rounded-lg text-slate-200 outline-none text-sm focus:border-cyan-500 transition-colors">
-                                    <option value="High">Өндөр (High)</option>
-                                    <option value="Medium">Дунд (Medium)</option>
-                                    <option value="Low">Бага (Low)</option>
-                                </select>
-                                <textarea name="businessValueDesc" value={activeIdea.businessValueDesc} onChange={handleChange} rows="2" className="flex-grow p-3 bg-slate-900/50 border border-slate-700 rounded-lg text-slate-200 outline-none resize-none text-sm focus:border-cyan-500 transition-colors placeholder-slate-600" placeholder="Байгууллагад ямар үнэ цэн авчрах вэ?"></textarea>
-                            </div>
+
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                            {filtered.map((idea) => (
+                                <div key={idea.id} onClick={() => setSelectedIdeaDetail(idea)} className="bg-slate-800/50 p-6 rounded-xl border border-slate-700 hover:border-cyan-500/50 transition-all cursor-pointer relative flex flex-col">
+                                    <div className="text-[10px] uppercase font-bold text-slate-500 mb-2">{idea.category}</div>
+                                    <h3 className="text-lg font-bold text-white mb-2">{idea.projectName}</h3>
+                                    <p className="text-sm text-slate-400 line-clamp-3 mb-4">{idea.description}</p>
+                                    <div className="mt-auto pt-4 border-t border-slate-700 flex justify-between items-center" onClick={e => e.stopPropagation()}>
+                                        <div className="text-xl font-bold">Санал: {idea.votes || 0}</div>
+                                        <button onClick={() => toggleVote(idea)} className={`px-4 py-1.5 rounded-lg text-xs font-bold ${idea.voters?.includes(user?.uid) ? 'bg-emerald-500/20 text-emerald-400' : 'bg-slate-700 text-slate-300'}`}>
+                                            {idea.voters?.includes(user?.uid) ? 'Өгсөн' : 'Өгөх'}
+                                        </button>
+                                    </div>
+                                </div>
+                            ))}
                         </div>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                            <div className="bg-slate-800/50 p-5 md:p-6 rounded-2xl border border-slate-700/80 shadow-sm">
-                                <h2 className="text-lg font-semibold text-slate-100 mb-4 flex items-center">4. Өгөгдөл</h2>
-                                <textarea name="dataReq" value={activeIdea.dataReq} onChange={handleChange} rows="3" className="w-full p-3 bg-slate-900/50 border border-slate-700 rounded-lg text-slate-200 outline-none text-sm focus:border-cyan-500 transition-colors resize-none placeholder-slate-600" placeholder="Ямар систем, дата ашиглах вэ?"></textarea>
-                            </div>
-                            <div className="bg-slate-800/50 p-5 md:p-6 rounded-2xl border border-slate-700/80 shadow-sm flex flex-col">
-                                <h2 className="text-lg font-semibold text-slate-100 mb-4 flex items-center">5. Хэрэгжүүлэлт</h2>
-                                <textarea name="implSteps" value={activeIdea.implSteps} onChange={handleChange} rows="2" className="w-full p-3 bg-slate-900/50 border border-slate-700 rounded-lg text-slate-200 outline-none mb-3 flex-grow text-sm focus:border-cyan-500 transition-colors resize-none placeholder-slate-600" placeholder="Эхний алхмууд..."></textarea>
-                                <div className="bg-slate-900/60 p-3 rounded-lg border border-slate-700/50 flex justify-between items-center">
-                                    <span className="text-cyan-400/90 text-sm font-medium">MVP Хугацаа:</span>
-                                    <input type="text" name="implTime" value={activeIdea.implTime} onChange={handleChange} className="bg-transparent border-b border-slate-600 text-right outline-none w-1/2 text-slate-200 text-sm focus:border-cyan-400 transition-colors" placeholder="Ж: 1 сар" />
+
+                        {selectedIdeaDetail && (
+                            <div className="fixed inset-0 bg-slate-950/90 backdrop-blur-sm z-[100] flex items-center justify-center p-4" onClick={() => setSelectedIdeaDetail(null)}>
+                                <div className="bg-slate-800 border border-slate-700 p-8 rounded-2xl max-w-2xl w-full" onClick={e => e.stopPropagation()}>
+                                    <h2 className="text-2xl font-bold text-white mb-4">{selectedIdeaDetail.projectName}</h2>
+                                    <div className="text-slate-300 whitespace-pre-wrap text-sm leading-relaxed mb-8 max-h-96 overflow-y-auto custom-scrollbar">{selectedIdeaDetail.description}</div>
+                                    <button onClick={() => setSelectedIdeaDetail(null)} className="w-full py-3 bg-slate-700 text-white rounded-xl font-bold">Хаах</button>
                                 </div>
                             </div>
+                        )}
+                    </div>
+                );
+            };
+
+            const FormView = () => (
+                <div className="max-w-4xl mx-auto p-6 bg-slate-900 min-h-screen text-slate-200">
+                    <ToastMessage />
+                    <TopNav />
+                    <div className="bg-slate-800/40 p-6 rounded-2xl border border-slate-700 mb-6 flex justify-between items-center">
+                        <h1 className="text-2xl font-bold text-white tracking-tight">AI in Enterprise</h1>
+                        <button onClick={publishToVoting} disabled={isSaving} className="bg-cyan-600 hover:bg-cyan-500 text-white font-bold py-2 px-6 rounded-xl transition-all shadow-lg text-sm">
+                            САНАЛ ХУРААЛТАД ИЛГЭЭХ
+                        </button>
+                    </div>
+
+                    <div className="space-y-4">
+                        <div className="bg-slate-800/50 p-6 rounded-xl border border-slate-700">
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <input type="text" name="members" value={activeIdea.members} onChange={handleChange} className="p-3 bg-slate-900/50 border border-slate-700 rounded-lg outline-none focus:border-cyan-500 text-sm" placeholder="Багийн илтгэгч / Гишүүд" />
+                                <input type="text" name="projectName" value={activeIdea.projectName} onChange={handleChange} className="p-3 bg-slate-900/50 border border-slate-700 rounded-lg outline-none focus:border-cyan-500 text-sm" placeholder="Төслийн нэр" />
+                                <select name="category" value={activeIdea.category} onChange={handleChange} className="p-3 bg-slate-900/50 border border-slate-700 rounded-lg outline-none focus:border-cyan-500 text-sm">
+                                    <option value={CAT_MANAGEMENT}>{CAT_MANAGEMENT}</option>
+                                    <option value={CAT_OPERATIONS}>{CAT_OPERATIONS}</option>
+                                </select>
+                                <input type="text" name="targetUser" value={activeIdea.targetUser} onChange={handleChange} className="p-3 bg-slate-900/50 border border-slate-700 rounded-lg outline-none focus:border-cyan-500 text-sm" placeholder="Хэрэглэгч" />
+                            </div>
                         </div>
+                        <textarea name="problem" value={activeIdea.problem} onChange={handleChange} rows="3" className="w-full p-4 bg-slate-800/50 border border-slate-700 rounded-xl outline-none focus:border-rose-500 text-sm resize-none" placeholder="1. Асуудал"></textarea>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <input type="text" name="solutionStep1" value={activeIdea.solutionStep1} onChange={handleChange} className="p-3 bg-slate-800/50 border border-slate-700 rounded-xl outline-none focus:border-cyan-500 text-sm" placeholder="Шийдлийн алхам 1" />
+                            <input type="text" name="solutionStep2" value={activeIdea.solutionStep2} onChange={handleChange} className="p-3 bg-slate-800/50 border border-slate-700 rounded-xl outline-none focus:border-cyan-500 text-sm" placeholder="Шийдлийн алхам 2" />
+                        </div>
+                        <textarea name="businessValueDesc" value={activeIdea.businessValueDesc} onChange={handleChange} rows="2" className="w-full p-4 bg-slate-800/50 border border-slate-700 rounded-xl outline-none focus:border-emerald-500 text-sm resize-none" placeholder="3. Бизнесийн үнэ цэн"></textarea>
                     </div>
                 </div>
             );
 
-            // -------------------- СЛАЙДЫН ХЭСЭГ --------------------
-            const PresentationView = () => {
-                const Slide0 = () => (
-                    <div className="flex flex-col items-center justify-center h-full text-center px-10 relative">
-                        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-indigo-900/20 via-slate-900 to-slate-900"></div>
-                        <h1 className="text-7xl font-black text-transparent bg-clip-text bg-gradient-to-br from-cyan-300 via-indigo-400 to-purple-500 mb-8 relative z-10">{activeIdea.projectName || 'AI in Enterprise'}</h1>
-                        <p className="text-3xl text-slate-400 mb-12 relative z-10">Хэрэглэгч: <span className="text-cyan-400">{activeIdea.targetUser || '...'}</span></p>
-                        <div className="bg-slate-800/80 px-10 py-5 rounded-full border border-slate-700 relative z-10 flex flex-col items-center">
-                            <span className="text-sm text-slate-500 uppercase tracking-widest mb-1">Илтгэгч / Баг</span>
-                            <span className="text-2xl text-slate-200 font-bold">{activeIdea.members || '...'}</span>
-                        </div>
+            // Презентаци харагдацыг хэвээр үлдээв
+            const PresentationView = () => (
+                <div className="fixed inset-0 bg-[#0a0f1c] z-50 flex items-center justify-center p-20 text-center" onClick={() => setView('form')}>
+                    <div className="max-w-4xl">
+                        <h1 className="text-7xl font-black text-white mb-8">{activeIdea.projectName || 'AI in Enterprise'}</h1>
+                        <p className="text-2xl text-cyan-400 mb-12">Хэрэглэгч: {activeIdea.targetUser}</p>
+                        <div className="text-3xl text-slate-300 font-light leading-relaxed">{activeIdea.problem}</div>
+                        <div className="mt-20 text-slate-500 text-sm uppercase tracking-widest font-bold">Гарахын тулд хаа нэгтээ дарна уу</div>
                     </div>
-                );
-                const Slide1 = () => (
-                    <div className="flex flex-col h-full px-16 py-16">
-                        <h2 className="text-5xl font-black text-white mb-16 flex items-center"><span className="bg-slate-700 text-white w-16 h-16 rounded-2xl flex items-center justify-center mr-6 border border-slate-500">1</span> АСУУДАЛ</h2>
-                        <div className="text-4xl text-slate-200 bg-slate-800/40 p-12 rounded-[2.5rem] border border-slate-600/50 flex-grow whitespace-pre-wrap">{activeIdea.problem}</div>
-                    </div>
-                );
-                const Slide2 = () => (
-                    <div className="flex flex-col h-full px-16 py-16">
-                        <h2 className="text-5xl font-black text-white mb-12 flex items-center"><span className="bg-cyan-600 text-white w-16 h-16 rounded-2xl flex items-center justify-center mr-6 border border-cyan-400">2</span> ШИЙДЭЛ</h2>
-                        <div className="grid grid-cols-2 gap-8 flex-grow">
-                            {[1,2,3,4].map(n => (
-                                <div key={n} className="bg-slate-800/60 p-10 rounded-[2rem] border border-slate-700 relative overflow-hidden">
-                                    <div className="absolute -top-6 -right-6 text-8xl font-black text-slate-700/30">0{n}</div>
-                                    <p className="text-3xl text-slate-200 relative z-10 mt-4">{activeIdea[`solutionStep${n}`]}</p>
-                                </div>
-                            ))}
-                        </div>
-                    </div>
-                );
-                const Slide3 = () => (
-                    <div className="flex flex-col h-full px-16 py-16 items-center justify-center space-y-16">
-                        <h2 className="text-5xl font-black text-white absolute top-16 left-16 flex items-center"><span className="bg-emerald-600 text-white w-16 h-16 rounded-2xl flex items-center justify-center mr-6 border border-emerald-400">3</span> ҮНЭ ЦЭН</h2>
-                        <div className="text-7xl font-black px-24 py-10 rounded-full border border-emerald-500/50 bg-emerald-900/20 text-emerald-400 shadow-[0_0_50px_rgba(16,185,129,0.3)]">{activeIdea.businessValueLevel} VALUE</div>
-                        <div className="text-4xl text-slate-200 text-center max-w-5xl bg-slate-800/40 p-12 rounded-[3rem] border border-slate-700/50">{activeIdea.businessValueDesc}</div>
-                    </div>
-                );
-                const Slide4 = () => (
-                    <div className="flex flex-col h-full px-16 py-16">
-                        <h2 className="text-5xl font-black text-white mb-12 flex items-center"><span className="bg-indigo-600 text-white w-16 h-16 rounded-2xl flex items-center justify-center mr-6 border border-indigo-400">4</span> ӨГӨГДӨЛ & ХЭРЭГЖҮҮЛЭЛТ</h2>
-                        <div className="grid grid-cols-2 gap-12 flex-grow">
-                            <div className="bg-slate-800/50 p-12 rounded-[3rem] border border-slate-700"><h3 className="text-3xl font-bold text-indigo-400 mb-8 tracking-widest">ӨГӨГДӨЛ</h3><p className="text-3xl text-slate-300 whitespace-pre-wrap">{activeIdea.dataReq}</p></div>
-                            <div className="bg-slate-800/50 p-12 rounded-[3rem] border border-slate-700 flex flex-col"><h3 className="text-3xl font-bold text-cyan-400 mb-8 tracking-widest">ХЭРЭГЖҮҮЛЭЛТ</h3><p className="text-3xl text-slate-300 flex-grow whitespace-pre-wrap">{activeIdea.implSteps}</p><div className="bg-slate-900/80 p-8 rounded-3xl border border-cyan-500/30 flex justify-between items-center"><span className="text-slate-400 text-xl tracking-widest">MVP Хугацаа</span><span className="text-5xl font-black text-cyan-400">{activeIdea.implTime}</span></div></div>
-                        </div>
-                    </div>
-                );
-
-                const slides = [<Slide0/>, <Slide1/>, <Slide2/>, <Slide3/>, <Slide4/>];
-
-                return (
-                    <div className="fixed inset-0 bg-[#0a0f1c] z-50 flex flex-col p-4">
-                        <button onClick={() => setView('form')} className="absolute top-6 left-6 z-[60] bg-slate-800/50 px-5 py-2.5 rounded-xl text-white text-sm font-medium border border-slate-600 hover:bg-slate-700 transition-colors">← БУЦАХ</button>
-                        <div className="flex-grow bg-[#0f172a] rounded-[2rem] shadow-[0_0_100px_rgba(0,0,0,0.8)] relative overflow-hidden border border-slate-800">
-                            {slides[currentSlide]}
-                            <div className="absolute bottom-8 left-0 right-0 flex justify-center space-x-6 items-center">
-                                <button onClick={() => setCurrentSlide(p => Math.max(0, p-1))} className="p-3 rounded-full bg-slate-800 text-cyan-400 border border-slate-700 hover:bg-slate-700 transition-colors">←</button>
-                                <div className="flex space-x-3 px-5 py-2.5 rounded-full bg-slate-900 border border-slate-800">
-                                    {slides.map((_, idx) => <div key={idx} className={`w-2.5 h-2.5 rounded-full transition-all ${idx === currentSlide ? 'bg-cyan-400 w-8' : 'bg-slate-600'}`}></div>)}
-                                </div>
-                                <button onClick={() => setCurrentSlide(p => Math.min(slides.length-1, p+1))} className="p-3 rounded-full bg-slate-800 text-cyan-400 border border-slate-700 hover:bg-slate-700 transition-colors">→</button>
-                            </div>
-                        </div>
-                    </div>
-                );
-            };
+                </div>
+            );
 
             if (view === 'voting') return <VotingView />;
             return view === 'form' ? <FormView /> : <PresentationView />;
