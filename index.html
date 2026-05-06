@@ -139,7 +139,7 @@
             },
             { 
                 id: 'p13', category: CAT_OPERATIONS, teamInfo: 'Team Ganbat', projectName: 'Цаг агаарын Forecast Agent', 
-                description: '[Meta-V:Medium|F:High|S:false|E:false]\nЦаг агаарын урьдчилсан мэдээнд үндэслэн үүсэж болзошгүй гэмтэл, саатлын байршлыг таамаглах систем.\n- Байгалийн гамшгийн үеийн сануулга\n- Хүний нөөц, техникийг оновчтой хуваарилах\n- Гэмтлийн байршлыг урьдчилан таамаглах', 
+                description: '[Meta-V:Medium|F:High|S:false|E:false]\nЦаг агаарын урьдчилсан мэдээнд үндэслэн үүсэж болзошгүй гэмтэл, саатлын байршлыг таамаглах систем.\n- Байгалийн гамшгийн үеийн сануулга\n- Хүний нөөц, technical нөөцийг оновчтой хуваарилах\n- Гэмтлийн байршлыг урьдчилан таамаглах', 
                 votes: 4, voters: [] 
             },
             { 
@@ -470,7 +470,7 @@
 
             const onAddPP = async () => {
                 if(!cAuth || !cPain) return showToast("Бүрэн бөглөнө үү");
-                if(cDept === 'Нийт') return showToast("Шинэ асуудал бүртгэхийн тулд өөрийн хэлтсийг сонгоно уу!");
+                if(cDept === 'Нийт') return showToast("Шинэ асуудал бүртгэхийн тулд өөрийн нэгжийн чиглэлийг сонгоно уу!");
                 
                 const id = `pp_${Date.now()}`;
                 const d = buildPPDesc(cPain, 'None', 'None', '');
@@ -777,26 +777,7 @@
                                 </div>
                             </div>
                             
-                            <textarea value={activeIdea.problem} onChange={e => { const v = e.target.value; setIdeas(p => p.map((i, id) => id === currentIndex ? {...i, problem: v} : i)); }} rows="4" className="w-full p-5 bg-slate-900/50 border border-slate-700 rounded-xl text-sm text-white resize-y focus:border-rose-500 outline-none transition-colors mb-4" placeholder="Одоогийн нөхцөл байдалд ямар асуудал тулгарч байна вэ?..." />
-                            
-                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                <div className="space-y-1.5">
-                                    <label className="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Нөлөөлөл (Impact)</label>
-                                    <select value={activeIdea.ppImpact || 'None'} onChange={e => { const v = e.target.value; setIdeas(p => p.map((i, id) => id === currentIndex ? {...i, ppImpact: v} : i)); }} className="w-full p-3.5 bg-slate-900/50 border border-slate-700 rounded-xl text-xs text-white focus:border-rose-500 outline-none transition-colors">
-                                        <option value="None">Сонгоогүй (None)</option>
-                                        <option value="High">Өндөр (High Impact)</option>
-                                        <option value="Low">Бага (Low Impact)</option>
-                                    </select>
-                                </div>
-                                <div className="space-y-1.5">
-                                    <label className="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Яаралтай (Urgency)</label>
-                                    <select value={activeIdea.ppUrgency || 'None'} onChange={e => { const v = e.target.value; setIdeas(p => p.map((i, id) => id === currentIndex ? {...i, ppUrgency: v} : i)); }} className="w-full p-3.5 bg-slate-900/50 border border-slate-700 rounded-xl text-xs text-white focus:border-rose-500 outline-none transition-colors">
-                                        <option value="None">Сонгоогүй (None)</option>
-                                        <option value="Urgent">Яаралтай (Urgent)</option>
-                                        <option value="Not Urgent">Яаралтай биш (Not Urgent)</option>
-                                    </select>
-                                </div>
-                            </div>
+                            <textarea value={activeIdea.problem} onChange={e => { const v = e.target.value; setIdeas(p => p.map((i, id) => id === currentIndex ? {...i, problem: v} : i)); }} rows="4" className="w-full p-5 bg-slate-900/50 border border-slate-700 rounded-xl text-sm text-white resize-y focus:border-rose-500 outline-none transition-colors" placeholder="Одоогийн нөхцөл байдалд ямар асуудал тулгарч байна вэ?..." />
                         </div>
                         
                         {/* 2. Шийдэл */}
@@ -943,10 +924,22 @@
                                 </div>
                                 
                                 <div className="bg-slate-800/60 p-6 rounded-3xl border border-slate-700 flex flex-col w-full">
-                                    <div className="flex justify-between items-center mb-4 border-b border-slate-700 pb-2">
+                                    <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 border-b border-slate-700 pb-4 gap-4 sm:gap-0">
                                         <h3 className="text-lg font-bold text-fuchsia-400 flex items-center gap-2"><span>💬</span> Үнэлгээ & Ярилцлага</h3>
+                                        <div className="flex items-center gap-2 bg-slate-900/50 px-3 py-1.5 rounded-lg border border-slate-600">
+                                            <span className="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Матрицын байрлал:</span>
+                                            <span className={`text-[10px] px-2 py-0.5 rounded border font-bold uppercase tracking-wider ${getMatrixQuadrant(ePPData.impact, ePPData.urgency).bg}`}>
+                                                {getMatrixQuadrant(ePPData.impact, ePPData.urgency).label}
+                                            </span>
+                                        </div>
                                     </div>
                                     
+                                    <div className="bg-blue-900/20 border border-blue-500/30 p-4 rounded-xl text-xs text-blue-300 mb-5 leading-relaxed">
+                                        <strong className="text-blue-400 block mb-1">💡 Үнэлгээний заавар:</strong>
+                                        <span className="block"><b>Нөлөөлөл (Impact):</b> Уг асуудал нь байгууллагын үйл ажиллагаа, зардал, эсвэл цаг хугацаанд хэр их хохирол учруулж байгааг үнэлнэ.</span>
+                                        <span className="block mt-1"><b>Яаралтай (Urgency):</b> Энэ асуудлыг хэр хурдан шийдвэрлэх шаардлагатай вэ гэдгийг үнэлнэ.</span>
+                                    </div>
+
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mb-4">
                                         <div className="space-y-2">
                                             <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Нөлөөлөл (Impact)</label>
