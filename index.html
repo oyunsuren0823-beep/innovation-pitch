@@ -67,7 +67,7 @@
             'Хууль нийцэл, гэрээ'
         ];
 
-        // Тогтмол ашиглагдах шинэ санааны анхны бүтэц (ReferenceError гарахаас сэргийлж глобал зарлав)
+        // Тогтмол ашиглагдах шинэ санааны анхны бүтэц
         const initialIdea = { 
             members: '', projectName: '', targetUser: '', category: CAT_MANAGEMENT, 
             problem: '', solutionGeneral: '', solutionStep1: '', solutionStep2: '', solutionStep3: '', 
@@ -193,7 +193,8 @@
         };
 
         const extractPPMeta = (desc) => {
-            let imp = 'Low', urg = 'Not Urgent', txt = desc || '', disc = '';
+            // Үндсэн утга нь None буюу Сонгогдоогүй байна.
+            let imp = 'None', urg = 'None', txt = desc || '', disc = '';
             if (txt.startsWith('[PP-')) {
                 const end = txt.indexOf(']');
                 if (end > -1) {
@@ -218,7 +219,8 @@
             if (impact === 'High' && urgency === 'Urgent') return { label: 'CRITICAL', bg: 'bg-rose-500/20 text-rose-400 border-rose-500/30' };
             if (impact === 'High' && urgency === 'Not Urgent') return { label: 'STRATEGIC', bg: 'bg-orange-500/20 text-orange-400 border-orange-500/30' };
             if (impact === 'Low' && urgency === 'Urgent') return { label: 'QUICK WIN', bg: 'bg-yellow-500/20 text-yellow-400 border-yellow-500/30' };
-            return { label: 'LOW PRIORITY', bg: 'bg-slate-500/20 text-slate-400 border-slate-500/30' };
+            if (impact === 'Low' && urgency === 'Not Urgent') return { label: 'LOW PRIORITY', bg: 'bg-slate-500/20 text-slate-400 border-slate-500/30' };
+            return { label: 'ҮНЭЛГЭЭГҮЙ', bg: 'bg-slate-700/50 text-slate-400 border-slate-600/50' };
         };
 
         // --- Prioritization Matrix Component ---
@@ -317,7 +319,7 @@
             const [cPain, setCPain] = useState('');
             const [cAuth, setCAuth] = useState('');
             const [ePPId, setEPPId] = useState(null);
-            const [ePPData, setEPPData] = useState({ impact: 'Low', urgency: 'Not Urgent', discussion: '' });
+            const [ePPData, setEPPData] = useState({ impact: 'None', urgency: 'None', discussion: '' });
 
             const [ideas, setIdeas] = useState([{ ...initialIdea }]);
             const [currentIndex, setCurrentIndex] = useState(0);
@@ -431,7 +433,8 @@
                 if(cDept === 'Нийт') return showToast("Шинэ асуудал бүртгэхийн тулд өөрийн хэлтсийг сонгоно уу!");
                 
                 const id = `pp_${Date.now()}`;
-                const d = buildPPDesc(cPain, 'Low', 'Not Urgent', '');
+                // Шинэ асуудал бүртгэхэд автоматаар None (Үнэлгээгүй) орно
+                const d = buildPPDesc(cPain, 'None', 'None', '');
                 const obj = { id, teaminfo: cDept, projectname: cAuth, description: d, category: CAT_PAINPOINT, votes: 1, voters: [user?.uid] };
                 setVotingIdeas(p => sortArr([...p, obj]));
                 setCPain('');
@@ -477,7 +480,7 @@
 
                         <div className="flex flex-col mb-8 bg-slate-800/40 p-6 rounded-2xl border border-fuchsia-500/30 text-center shadow-lg">
                             <h1 className="text-3xl font-bold text-white mb-2 tracking-tight uppercase">CWM</h1>
-                            <p className="text-slate-400 text-sm mb-6">Багаараа асуудал бүрийг ангилах, үнэлэх, хэлэлцэх хэсэг.</p>
+                            <p className="text-slate-400 text-sm mb-6">Багаараа асуудал бүрийг ангилах, үнэлэх, хэлэлцэх.</p>
                             <div className="flex justify-center flex-wrap gap-2">
                                 {['Нийт', ...DEPARTMENTS].map(d => (
                                     <button key={d} onClick={() => {setCDept(d); setEPPId(null);}} className={`px-6 py-2.5 rounded-xl text-sm font-bold border transition-colors ${cDept === d ? 'bg-fuchsia-500 text-white border-fuchsia-500 shadow-[0_0_15px_rgba(217,70,239,0.4)]' : 'bg-slate-800 text-slate-400 border-slate-700 hover:bg-slate-700'}`}>{d}</button>
@@ -489,7 +492,7 @@
                             <div className="lg:col-span-1 bg-slate-800/50 p-6 rounded-2xl border border-slate-700 h-fit sticky top-6 shadow-inner">
                                 <h3 className="text-lg font-bold text-fuchsia-400 mb-4 border-b border-slate-700 pb-2">Шинэ асуудал бүртгэх</h3>
                                 {cDept === 'Нийт' ? (
-                                    <div className="text-sm text-slate-400 text-center py-6">Шинэ асуудал бүртгэхийн тулд өөрийн нэгжийн чиглэлийг сонгоно уу.</div>
+                                    <div className="text-sm text-slate-400 text-center py-6">Шинэ асуудал бүртгэхийн тулд өөрийн чиглэлийг сонгоно уу.</div>
                                 ) : (
                                     <>
                                         <input value={cAuth} onChange={e => setCAuth(e.target.value)} className="w-full p-3.5 bg-slate-900/50 border border-slate-600 rounded-xl text-sm text-slate-200 mb-3 outline-none focus:border-fuchsia-500" placeholder="Таны нэр..." />
@@ -515,7 +518,7 @@
                                         {isEd ? (
                                             <div className="bg-slate-900/60 p-5 rounded-xl border border-slate-600 space-y-4">
                                                 <div className="bg-blue-900/20 border border-blue-500/30 p-4 rounded-xl text-xs text-blue-300 mb-2 leading-relaxed">
-                                                    <strong className="text-blue-400 block mb-1">Үнэлгээний заавар:</strong>
+                                                    <strong className="text-blue-400 block mb-1"> Үнэлгээний заавар:</strong>
                                                     <span className="block"><b>Нөлөөлөл (Impact):</b> Уг асуудал нь байгууллагын үйл ажиллагаа, зардал, эсвэл цаг хугацаанд хэр их хохирол учруулж байгааг үнэлнэ.</span>
                                                     <span className="block mt-1"><b>Яаралтай (Urgency):</b> Энэ асуудлыг хэр хурдан шийдвэрлэх шаардлагатай вэ гэдгийг үнэлнэ.</span>
                                                 </div>
@@ -523,6 +526,7 @@
                                                     <div className="space-y-1">
                                                         <label className="text-[10px] text-slate-400 uppercase font-bold">Нөлөөлөл (Impact)</label>
                                                         <select value={ePPData.impact} onChange={e => setEPPData({...ePPData, impact: e.target.value})} className="w-full p-2.5 bg-slate-800 border border-slate-600 rounded-lg text-xs text-white outline-none focus:border-fuchsia-500 transition-colors">
+                                                            <option value="None">Сонгоогүй (None)</option>
                                                             <option value="High">Өндөр (High Impact)</option>
                                                             <option value="Low">Бага (Low Impact)</option>
                                                         </select>
@@ -530,6 +534,7 @@
                                                     <div className="space-y-1">
                                                         <label className="text-[10px] text-slate-400 uppercase font-bold">Яаралтай байдал (Urgency)</label>
                                                         <select value={ePPData.urgency} onChange={e => setEPPData({...ePPData, urgency: e.target.value})} className="w-full p-2.5 bg-slate-800 border border-slate-600 rounded-lg text-xs text-white outline-none focus:border-fuchsia-500 transition-colors">
+                                                            <option value="None">Сонгоогүй (None)</option>
                                                             <option value="Urgent">Яаралтай (Urgent)</option>
                                                             <option value="Not Urgent">Яаралтай биш (Not Urgent)</option>
                                                         </select>
