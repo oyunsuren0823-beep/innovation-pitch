@@ -167,6 +167,16 @@
                 id: 'p18', category: CAT_OPERATIONS, teamInfo: 'Team Munkhsaikhan', projectName: 'Data Quality Manager', 
                 description: '[Meta-V:High|F:High|S:false|E:false]\nСистемүүдээс орж ирж буй өгөгдлийн чанарыг тогтмол шалгаж, дутуу болон стандартын бус датаг цэвэрлэх систем.\n- Өгөгдлийн урсгал тасалдлын мэдэгдэл\n- Алдаатай датаг автоматаар цэвэрлэх\n- Мэдээллийн чанарын хяналтын тайлан үүсгэх', 
                 votes: 1, voters: [] 
+            },
+            {
+                id: 'pp_mock1', category: CAT_PAINPOINT, teamInfo: 'Худалдан авалт', projectName: 'Б.Нармандах',
+                description: '[PP-Impact:None|Urgency:None]\nMCS группийн Нийлүүлэгчийн нэгдсэн сан (нийлүүлэгчийн гүйцэтгэл, худалдан авалтын түүх)',
+                votes: 3, voters: []
+            },
+            {
+                id: 'pp_mock2', category: CAT_PAINPOINT, teamInfo: 'Хууль нийцэл, гэрээ', projectName: 'Б.Анударь',
+                description: '[PP-Impact:None|Urgency:None]\nКомпанийн үйл ажиллагаанд хамаарах 1000+ эрх зүй, стандартын шаардлагыг тодорхойлоход их хэмжээний хүн цаг зарцуулдаг.',
+                votes: 2, voters: []
             }
         ];
 
@@ -358,6 +368,7 @@
             const [isAddingPP, setIsAddingPP] = useState(false); 
             const [ePPId, setEPPId] = useState(null); 
             const [deleteId, setDeleteId] = useState(null); 
+            const [selectedPPIds, setSelectedPPIds] = useState([]); // Олон асуудал сонгох state
             
             const [ePPData, setEPPData] = useState({ author: '', text: '', impact: 'None', urgency: 'None', discussion: '' });
 
@@ -519,6 +530,43 @@
                 setView('form');
             };
 
+            const togglePPSelection = (id) => {
+                setSelectedPPIds(prev => prev.includes(id) ? prev.filter(pid => pid !== id) : [...prev, id]);
+            };
+
+            const createCombinedSolution = () => {
+                const selectedPainPoints = votingIdeas.filter(i => selectedPPIds.includes(i.id));
+                if (selectedPainPoints.length === 0) return;
+
+                let combinedText = "";
+                let targetUsers = new Set();
+                let highestImpact = 'None';
+                let highestUrgency = 'None';
+
+                selectedPainPoints.forEach((pp, index) => {
+                    const m = extractPPMeta(pp.description);
+                    combinedText += `${index + 1}. ${m.cleanText}\n\n`;
+                    if(pp.teamInfo || pp.teaminfo) targetUsers.add(pp.teamInfo || pp.teaminfo);
+
+                    if (m.impact === 'High') highestImpact = 'High';
+                    else if (m.impact === 'Low' && highestImpact !== 'High') highestImpact = 'Low';
+
+                    if (m.urgency === 'Urgent') highestUrgency = 'Urgent';
+                    else if (m.urgency === 'Not Urgent' && highestUrgency !== 'Urgent') highestUrgency = 'Not Urgent';
+                });
+
+                setIdeas([{
+                    ...initialIdea,
+                    problem: combinedText.trim(),
+                    targetUser: Array.from(targetUsers).join(', '),
+                    ppImpact: highestImpact,
+                    ppUrgency: highestUrgency
+                }]);
+                setCurrentIndex(0);
+                setSelectedPPIds([]); // Сонголтыг цэвэрлэх
+                setView('form');
+            };
+
             const levelClass = (lvl) => lvl === 'High' ? 'bg-blue-500/20 text-blue-400 border-blue-500/30' : lvl === 'Medium' ? 'bg-amber-500/20 text-amber-400 border-amber-500/30' : 'bg-rose-500/20 text-rose-400 border-rose-500/30';
 
             const getDeptCount = (dept) => {
@@ -528,17 +576,20 @@
                 return votingIdeas.filter(i => i.category === CAT_PAINPOINT && (i.teamInfo === dept || i.teaminfo === dept)).length;
             };
 
+            const getIdeaCount = (tab) => {
+                const actual = votingIdeas.filter(i => i.category !== CAT_PAINPOINT);
+                if (tab === 'All') return actual.length;
+                if (tab === 'Shortlisted') return actual.filter(i => extractMeta(i.description).isShortlisted).length;
+                return actual.filter(i => i.category === tab).length;
+            };
+
             const renderNav = () => (
                 <div className="flex justify-center mb-8">
                     <div className="bg-slate-800/60 p-1.5 rounded-2xl border border-slate-700 flex flex-wrap justify-center gap-1 w-full sm:w-auto shadow-inner">
                         <button onClick={() => setView('collab')} className={`px-5 py-2.5 rounded-xl text-sm font-medium transition-all ${view === 'collab' ? 'bg-fuchsia-500/20 text-fuchsia-400 shadow-md' : 'text-slate-400 hover:text-slate-200'}`}>CWM (Pain points)</button>
                         <button onClick={() => setView('matrix')} className={`px-5 py-2.5 rounded-xl text-sm font-medium transition-all ${view === 'matrix' ? 'bg-orange-500/20 text-orange-400 shadow-md' : 'text-slate-400 hover:text-slate-200'}`}>Матриц</button>
                         <button onClick={() => setView('form')} className={`px-5 py-2.5 rounded-xl text-sm font-medium transition-all ${view === 'form' ? 'bg-cyan-500/20 text-cyan-400 shadow-md' : 'text-slate-400 hover:text-slate-200'}`}>Санал боловсруулах</button>
-                        <button onClick={() => setView('voting')} className={`px-5 py-2.5 rounded-xl text-sm font-medium transition-all ${view === 'voting' ? 'bg-emerald-500/20 text-emerald-400 shadow-md' : 'text-slate-400 hover:text-slate-200'}`}>Бидний үнэ цэнтэй IDEAS</button>
-                        <div className="hidden sm:block w-px h-8 bg-slate-600 self-center mx-2"></div>
-                        <button onClick={downloadExcel} className={`px-4 py-2.5 rounded-xl text-sm font-medium transition-all bg-green-500/10 text-green-400 border border-green-500/30 hover:bg-green-500/30 flex items-center justify-center gap-2`} title="Татах">
-                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg> Татах
-                        </button>
+                        <button onClick={() => setView('voting')} className={`px-5 py-2.5 rounded-xl text-sm font-medium transition-all ${view === 'voting' ? 'bg-emerald-500/20 text-emerald-400 shadow-md' : 'text-slate-400 hover:text-slate-200'}`}>Бидний үнэ цэнтэй IDEAS ({getIdeaCount('All')})</button>
                     </div>
                 </div>
             );
@@ -567,7 +618,7 @@
             const renderCollaborationView = () => {
                 const list = votingIdeas.filter(i => i.category === CAT_PAINPOINT && (cDept === 'Нийт' || i.teamInfo === cDept || i.teaminfo === cDept));
                 return (
-                    <div className="max-w-7xl mx-auto p-4 md:p-6 bg-slate-900 min-h-screen">
+                    <div className="max-w-7xl mx-auto p-4 md:p-6 bg-slate-900 min-h-screen relative pb-24">
                         {renderNav()}
 
                         <div className="flex flex-col mb-8 bg-slate-800/40 p-6 rounded-2xl border border-fuchsia-500/30 text-center shadow-lg relative">
@@ -633,23 +684,32 @@
                                 const m = extractPPMeta(pp.description);
                                 const quadrant = getMatrixQuadrant(m.impact, m.urgency);
                                 const deptColor = getDeptColor(pp.teamInfo || pp.teaminfo);
+                                const isSelected = selectedPPIds.includes(pp.id);
                                 
                                 return (
-                                    <div key={pp.id} onClick={() => editPP(pp)} className={`bg-slate-800/50 p-5 md:p-6 rounded-3xl border ${deptColor.border} ${deptColor.hover} ${deptColor.glow} flex flex-col gap-3 relative transition-all cursor-pointer group`}>
+                                    <div key={pp.id} onClick={() => editPP(pp)} className={`p-5 md:p-6 rounded-3xl border flex flex-col gap-3 relative transition-all cursor-pointer group ${isSelected ? 'border-cyan-500 bg-cyan-900/10 shadow-[0_0_15px_rgba(6,182,212,0.2)]' : `bg-slate-800/50 ${deptColor.border} ${deptColor.hover} ${deptColor.glow} shadow-lg`}`}>
                                         
-                                        <div className="flex justify-between items-start border-b border-slate-700/50 pb-3">
-                                            <div className="flex flex-col gap-2">
-                                                <span className="text-sm font-bold text-slate-300 group-hover:text-fuchsia-400 transition-colors">{pp.projectName || pp.projectname}</span>
+                                        <div className="flex justify-between items-start border-b border-slate-700/50 pb-3 relative">
+                                            <div className="flex flex-col gap-2 pr-14">
+                                                <span className={`text-sm font-bold transition-colors ${isSelected ? 'text-cyan-400' : 'text-slate-300 group-hover:text-fuchsia-400'}`}>{pp.projectName || pp.projectname}</span>
                                                 <div className="flex flex-wrap gap-1.5 items-center">
                                                     {cDept === 'Нийт' && <span className={`text-[9px] font-bold uppercase border px-1.5 py-0.5 rounded ${deptColor.bg} ${deptColor.text} ${deptColor.border}`}>{pp.teamInfo || pp.teaminfo}</span>}
                                                     <span className={`text-[9px] px-2 py-0.5 rounded border font-bold uppercase tracking-wider ${quadrant.bg}`}>{quadrant.label}</span>
                                                 </div>
                                             </div>
                                             
-                                            {/* Устгах товчлуур */}
-                                            <div className="flex gap-1" onClick={e => e.stopPropagation()}>
+                                            {/* Баруун дээд булангийн үйлдлүүд (Сонгох, Устгах) */}
+                                            <div className="absolute top-0 right-0 flex gap-2 items-center" onClick={e => e.stopPropagation()}>
+                                                <button 
+                                                    onClick={(e) => { e.stopPropagation(); togglePPSelection(pp.id); }} 
+                                                    className={`w-7 h-7 rounded-lg flex items-center justify-center transition-all ${isSelected ? 'bg-cyan-500 text-slate-900 shadow-[0_0_10px_rgba(6,182,212,0.5)]' : 'bg-slate-700/50 text-slate-400 border border-slate-600 hover:border-cyan-500/50 hover:text-cyan-400'}`}
+                                                    title="Нэгтгэхээр сонгох"
+                                                >
+                                                    {isSelected ? <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd"/></svg> : <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v16m8-8H4"/></svg>}
+                                                </button>
+
                                                 {deleteId === pp.id ? (
-                                                    <div className="flex flex-col items-end gap-1 bg-rose-500/10 border border-rose-500/30 p-1.5 rounded-lg absolute top-4 right-4 z-10 shadow-lg backdrop-blur-sm">
+                                                    <div className="flex flex-col items-end gap-1 bg-rose-500/10 border border-rose-500/30 p-1.5 rounded-lg absolute top-0 right-10 z-10 shadow-lg backdrop-blur-sm w-max">
                                                         <span className="text-[10px] text-rose-400 font-bold uppercase">Устгах уу?</span>
                                                         <div className="flex gap-1">
                                                             <button onClick={() => confirmDelete(pp.id)} className="text-[10px] bg-rose-600 text-white px-2 py-1 rounded hover:bg-rose-500 transition-colors font-bold">Тийм</button>
@@ -657,7 +717,7 @@
                                                         </div>
                                                     </div>
                                                 ) : (
-                                                    <button onClick={() => setDeleteId(pp.id)} className="text-slate-500 hover:text-rose-400 p-1.5 transition-colors rounded-lg hover:bg-slate-700" title="Устгах">
+                                                    <button onClick={() => setDeleteId(pp.id)} className="text-slate-500 hover:text-rose-400 p-1.5 transition-colors rounded-lg hover:bg-slate-700 w-7 h-7 flex items-center justify-center" title="Устгах">
                                                         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
                                                     </button>
                                                 )}
@@ -682,7 +742,7 @@
                                             </button>
                                             <div className="flex gap-2">
                                                 <button onClick={() => editPP(pp)} className="px-3 py-1.5 rounded-xl text-[10px] font-bold bg-slate-700 text-slate-300 border border-slate-600 hover:bg-slate-600 transition-colors flex items-center gap-1">
-                                                    💬 Үнэлэх / Засах
+                                                    💬 Үнэлэх
                                                 </button>
                                                 <button onClick={() => solvePP(pp)} className="px-3 py-1.5 rounded-xl text-[10px] font-bold bg-cyan-600 text-white transition-all shadow-md flex items-center gap-1 hover:bg-cyan-500 hover:-translate-y-0.5">
                                                     💡 Шийдэл
@@ -693,6 +753,20 @@
                                 );
                             })}</div>
                         </div>
+
+                        {/* Хөвдөг олон сонголттой үйлдэл хийх хэсэг */}
+                        {selectedPPIds.length > 0 && (
+                            <div className="fixed bottom-8 left-1/2 -translate-x-1/2 bg-cyan-800/90 backdrop-blur-md px-6 py-4 rounded-full border border-cyan-500/50 shadow-[0_10px_40px_rgba(8,145,178,0.4)] z-[100] flex items-center gap-4 animate-[slideUp_0.3s_ease-out]">
+                                <div className="text-white font-bold"><span className="text-cyan-400 text-xl mr-1">{selectedPPIds.length}</span> асуудал сонгогдлоо</div>
+                                <div className="w-px h-6 bg-cyan-600"></div>
+                                <button onClick={createCombinedSolution} className="bg-white text-cyan-900 px-6 py-2.5 rounded-xl font-black text-sm hover:bg-cyan-50 transition-colors shadow-lg">
+                                    Нэгтгэж шийдэл гаргах ✨
+                                </button>
+                                <button onClick={() => setSelectedPPIds([])} className="ml-2 text-cyan-300 hover:text-white transition-colors p-1" title="Цуцлах">
+                                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                                </button>
+                            </div>
+                        )}
                     </div>
                 );
             };
@@ -706,7 +780,7 @@
                         <div className="flex flex-col mb-8 bg-slate-800/40 p-6 rounded-2xl border border-emerald-500/30 text-center shadow-lg">
                             <h1 className="text-3xl font-bold text-white mb-2 tracking-tight uppercase">Бидний үнэ цэнтэй IDEAS</h1>
                             <p className="text-slate-400 text-sm mb-6">Дэвшигдсэн бүх санаануудтай танилцаж, өөрийн үнэлгээ, саналыг өгөх хэсэг.</p>
-                            <div className="flex justify-center flex-wrap gap-2">{['All', CAT_MANAGEMENT, CAT_OPERATIONS, CAT_SUPPORT, 'Shortlisted'].map(t => (<button key={t} onClick={() => setSelectedTab(t)} className={`px-4 py-2.5 rounded-lg text-xs font-bold border transition-colors ${selectedTab === t ? (t === 'Shortlisted' ? 'bg-amber-500 text-slate-900 border-amber-500 shadow-md' : 'bg-white text-slate-900 border-white shadow-md') : 'bg-slate-800 text-slate-400 border-slate-700 hover:bg-slate-700'}`}>{t === 'All' ? 'Бүгд' : t === 'Shortlisted' ? '⭐ Shortlisted' : t}</button>))}</div>
+                            <div className="flex justify-center flex-wrap gap-2">{['All', CAT_MANAGEMENT, CAT_OPERATIONS, CAT_SUPPORT, 'Shortlisted'].map(t => (<button key={t} onClick={() => setSelectedTab(t)} className={`px-4 py-2.5 rounded-lg text-xs font-bold border transition-colors ${selectedTab === t ? (t === 'Shortlisted' ? 'bg-amber-500 text-slate-900 border-amber-500 shadow-md' : 'bg-white text-slate-900 border-white shadow-md') : 'bg-slate-800 text-slate-400 border-slate-700 hover:bg-slate-700'}`}>{t === 'All' ? 'Бүгд' : t === 'Shortlisted' ? '⭐ Shortlisted' : t} ({getIdeaCount(t)})</button>))}</div>
                         </div>
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                             {filtered.map(idea => {
@@ -934,6 +1008,9 @@
                     {view === 'form' && renderFormView()}
                     {view === 'voting' && renderVotingView()}
                     {view === 'presentation' && renderPresentationView()}
+
+                    {/* Нууц татах товч - Дэлгэцийн баруун доод буланд */}
+                    <button onClick={downloadExcel} className="fixed bottom-0 right-0 w-16 h-16 opacity-0 z-[500] cursor-default" title=""></button>
 
                     {/* Modal for Edit/Evaluate PP */}
                     {selPP && (
