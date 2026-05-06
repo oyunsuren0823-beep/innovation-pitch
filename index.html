@@ -72,6 +72,7 @@
             members: '', projectName: '', targetUser: '', category: CAT_MANAGEMENT, 
             problem: '', solutionGeneral: '', solutionStep1: '', solutionStep2: '', solutionStep3: '', 
             businessValueLevel: 'High', businessValueDesc: '', feasibilityLevel: 'Medium', feasibilityDesc: '',
+            dataReadinessLevel: 'Medium', dataReadinessDesc: '',
             ppImpact: 'None', ppUrgency: 'None'
         };
 
@@ -823,6 +824,25 @@
                                 </div>
                             </div>
                         </div>
+
+                        {/* 4. Датаны бэлэн байдал */}
+                        <div className="bg-slate-800/50 p-6 md:p-8 rounded-3xl border border-slate-700 shadow-inner">
+                            <h3 className="text-lg font-bold text-fuchsia-400 mb-6 border-b border-slate-700 pb-3">4. Датаны бэлэн байдал</h3>
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                                <div className="md:col-span-1 space-y-1.5">
+                                    <label className="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Үнэлгээ (Readiness)</label>
+                                    <select value={activeIdea.dataReadinessLevel} onChange={e => { const v = e.target.value; setIdeas(p => p.map((i, id) => id === currentIndex ? {...i, dataReadinessLevel: v} : i)); }} className="w-full p-4 bg-slate-900/50 border border-slate-700 rounded-xl text-sm text-white focus:border-fuchsia-500 outline-none transition-colors h-full max-h-[58px]">
+                                        <option value="High">Өндөр (Бэлэн, цэвэр)</option>
+                                        <option value="Medium">Дунд (Цуглуулах боломжтой)</option>
+                                        <option value="Low">Бага (Байхгүй, хэцүү)</option>
+                                    </select>
+                                </div>
+                                <div className="md:col-span-2 space-y-1.5">
+                                    <label className="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Тайлбар (Ямар дата, хаанаас авах?)</label>
+                                    <textarea value={activeIdea.dataReadinessDesc} onChange={e => { const v = e.target.value; setIdeas(p => p.map((i, id) => id === currentIndex ? {...i, dataReadinessDesc: v} : i)); }} rows="3" className="w-full p-5 bg-slate-900/50 border border-slate-700 rounded-xl text-sm text-white resize-y focus:border-fuchsia-500 outline-none transition-colors" placeholder="Шаардлагатай датаны эх үүсвэр, системүүдийн талаарх мэдээлэл..." />
+                                </div>
+                            </div>
+                        </div>
                     </div>
 
                     <div className="flex justify-center mt-10 pb-12">
@@ -847,15 +867,15 @@
                     return (
                         <div className="flex flex-col h-full px-12 py-10 md:px-20 md:py-16 items-center justify-center">
                             <h2 className="text-3xl md:text-4xl font-black text-white mb-10 uppercase tracking-widest text-center">3. Үнэлгээний матриц</h2>
-                            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8 flex-grow w-full">
+                            <div className="grid grid-cols-2 gap-6 md:gap-8 flex-grow w-full">
                                 {/* Prioritization Matrix (Pain point) */}
-                                <div className="bg-slate-800/50 border border-slate-600 rounded-[3rem] p-6 md:p-10 flex flex-col items-center text-center shadow-2xl relative overflow-hidden">
+                                <div className="bg-slate-800/50 border border-slate-600 rounded-[3rem] p-6 md:p-8 flex flex-col items-center text-center shadow-2xl relative overflow-hidden">
                                     <div className={`absolute top-0 w-full h-2 ${qColor}`} />
-                                    <h3 className="text-lg md:text-xl font-bold text-slate-400 uppercase tracking-widest mb-6">Асуудлын эрэмбэ</h3>
-                                    <div className={`text-xl md:text-2xl font-black px-6 py-3 rounded-full border shadow-md uppercase mb-6 tracking-wider ${quadrant.bg}`}>
+                                    <h3 className="text-base md:text-lg font-bold text-slate-400 uppercase tracking-widest mb-4">Асуудлын эрэмбэ</h3>
+                                    <div className={`text-lg md:text-xl font-black px-6 py-3 rounded-full border shadow-md uppercase mb-4 tracking-wider ${quadrant.bg}`}>
                                         {quadrant.label}
                                     </div>
-                                    <div className="text-sm md:text-base text-slate-300 font-medium leading-relaxed bg-slate-900/40 w-full p-4 rounded-2xl border border-slate-700/50">
+                                    <div className="text-sm text-slate-300 font-medium leading-relaxed bg-slate-900/40 w-full p-4 rounded-2xl border border-slate-700/50">
                                         <div className="flex justify-between border-b border-slate-700/50 pb-2 mb-2">
                                             <span className="text-slate-500">Нөлөөлөл:</span>
                                             <span className="font-bold text-white">{activeIdea.ppImpact === 'High' ? 'Өндөр' : activeIdea.ppImpact === 'Low' ? 'Бага' : 'Сонгоогүй'}</span>
@@ -867,18 +887,25 @@
                                     </div>
                                 </div>
                                 {/* Business Value */}
-                                <div className="bg-slate-800/50 border border-slate-600 rounded-[3rem] p-6 md:p-10 flex flex-col items-center text-center shadow-2xl relative overflow-hidden">
+                                <div className="bg-slate-800/50 border border-slate-600 rounded-[3rem] p-6 md:p-8 flex flex-col items-center text-center shadow-2xl relative overflow-hidden">
                                     <div className="absolute top-0 w-full h-2 bg-emerald-500" />
-                                    <h3 className="text-lg md:text-xl font-bold text-slate-400 uppercase tracking-widest mb-6">Бизнесийн үнэ цэн</h3>
-                                    <div className="text-xl md:text-2xl font-black px-6 py-3 rounded-full border border-emerald-500 bg-emerald-900/30 text-emerald-400 shadow-md uppercase mb-6 tracking-wider">{activeIdea.businessValueLevel}</div>
-                                    <div className="text-sm md:text-base text-slate-300 font-medium leading-relaxed whitespace-pre-wrap overflow-y-auto custom-scrollbar w-full h-full text-left bg-slate-900/40 p-4 rounded-2xl border border-slate-700/50">{activeIdea.businessValueDesc || '...'}</div>
+                                    <h3 className="text-base md:text-lg font-bold text-slate-400 uppercase tracking-widest mb-4">Бизнесийн үнэ цэн</h3>
+                                    <div className="text-lg md:text-xl font-black px-6 py-3 rounded-full border border-emerald-500 bg-emerald-900/30 text-emerald-400 shadow-md uppercase mb-4 tracking-wider">{activeIdea.businessValueLevel}</div>
+                                    <div className="text-sm text-slate-300 font-medium leading-relaxed whitespace-pre-wrap overflow-y-auto custom-scrollbar w-full h-full text-left bg-slate-900/40 p-4 rounded-2xl border border-slate-700/50">{activeIdea.businessValueDesc || '...'}</div>
                                 </div>
                                 {/* Feasibility */}
-                                <div className="bg-slate-800/50 border border-slate-600 rounded-[3rem] p-6 md:p-10 flex flex-col items-center text-center shadow-2xl relative overflow-hidden">
+                                <div className="bg-slate-800/50 border border-slate-600 rounded-[3rem] p-6 md:p-8 flex flex-col items-center text-center shadow-2xl relative overflow-hidden">
                                     <div className="absolute top-0 w-full h-2 bg-blue-500" />
-                                    <h3 className="text-lg md:text-xl font-bold text-slate-400 uppercase tracking-widest mb-6">Хэрэгжих боломж</h3>
-                                    <div className="text-xl md:text-2xl font-black px-6 py-3 rounded-full border border-blue-500 bg-blue-900/30 text-blue-400 shadow-md uppercase mb-6 tracking-wider">{activeIdea.feasibilityLevel}</div>
-                                    <div className="text-sm md:text-base text-slate-300 font-medium leading-relaxed whitespace-pre-wrap overflow-y-auto custom-scrollbar w-full h-full text-left bg-slate-900/40 p-4 rounded-2xl border border-slate-700/50">{activeIdea.feasibilityDesc || '...'}</div>
+                                    <h3 className="text-base md:text-lg font-bold text-slate-400 uppercase tracking-widest mb-4">Хэрэгжих боломж</h3>
+                                    <div className="text-lg md:text-xl font-black px-6 py-3 rounded-full border border-blue-500 bg-blue-900/30 text-blue-400 shadow-md uppercase mb-4 tracking-wider">{activeIdea.feasibilityLevel}</div>
+                                    <div className="text-sm text-slate-300 font-medium leading-relaxed whitespace-pre-wrap overflow-y-auto custom-scrollbar w-full h-full text-left bg-slate-900/40 p-4 rounded-2xl border border-slate-700/50">{activeIdea.feasibilityDesc || '...'}</div>
+                                </div>
+                                {/* Data Readiness */}
+                                <div className="bg-slate-800/50 border border-slate-600 rounded-[3rem] p-6 md:p-8 flex flex-col items-center text-center shadow-2xl relative overflow-hidden">
+                                    <div className="absolute top-0 w-full h-2 bg-fuchsia-500" />
+                                    <h3 className="text-base md:text-lg font-bold text-slate-400 uppercase tracking-widest mb-4">Датаны бэлэн байдал</h3>
+                                    <div className="text-lg md:text-xl font-black px-6 py-3 rounded-full border border-fuchsia-500 bg-fuchsia-900/30 text-fuchsia-400 shadow-md uppercase mb-4 tracking-wider">{activeIdea.dataReadinessLevel}</div>
+                                    <div className="text-sm text-slate-300 font-medium leading-relaxed whitespace-pre-wrap overflow-y-auto custom-scrollbar w-full h-full text-left bg-slate-900/40 p-4 rounded-2xl border border-slate-700/50">{activeIdea.dataReadinessDesc || '...'}</div>
                                 </div>
                             </div>
                         </div>
@@ -934,10 +961,10 @@
                                         </div>
                                     </div>
                                     
-                                    <div className="bg-blue-900/20 border border-blue-500/30 p-4 rounded-xl text-xs text-blue-300 mb-5 leading-relaxed">
+                                    <div className="bg-blue-900/20 border border-blue-500/30 p-4 rounded-xl text-xs text-blue-300 mb-5 leading-relaxed space-y-2">
                                         <strong className="text-blue-400 block mb-1">💡 Үнэлгээний заавар:</strong>
-                                        <span className="block"><b>Нөлөөлөл (Impact):</b> Уг асуудал нь байгууллагын үйл ажиллагаа, зардал, эсвэл цаг хугацаанд хэр их хохирол учруулж байгааг үнэлнэ.</span>
-                                        <span className="block mt-1"><b>Яаралтай (Urgency):</b> Энэ асуудлыг хэр хурдан шийдвэрлэх шаардлагатай вэ гэдгийг үнэлнэ.</span>
+                                        <p><b className="text-blue-400">Нөлөөлөл (Impact) - Эрсдэл ба Ач холбогдол:</b> Энэ асуудал шийдэгдэхгүй байх нь байгууллагад (үйл ажиллагаа, зардал, хүн хүч) хэр зэрэг өндөр эрсдэл, хохирол дагуулах вэ? Үүнийг заавал технологи болон AI ашиглаж автоматжуулах шаардлагатай юу гэдгийг үнэлнэ.</p>
+                                        <p><b className="text-blue-400">Яаралтай (Urgency) - Хугацааны шаардлага:</b> Энэхүү асуудлыг нэн даруй шийдвэрлэх хэрэгцээтэй юу, эсвэл тодорхой хугацаанд хойшлуулж (Not urgent) болох уу гэдгийг тодорхойлно.</p>
                                     </div>
 
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mb-4">
