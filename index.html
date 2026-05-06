@@ -318,8 +318,11 @@
             const [cDept, setCDept] = useState('Нийт');
             const [cPain, setCPain] = useState('');
             const [cAuth, setCAuth] = useState('');
+            
             const [ePPId, setEPPId] = useState(null);
-            const [ePPData, setEPPData] = useState({ impact: 'None', urgency: 'None', discussion: '' });
+            const [deleteId, setDeleteId] = useState(null); // Устгах confirm төлөв
+            
+            const [ePPData, setEPPData] = useState({ author: '', text: '', impact: 'None', urgency: 'None', discussion: '' });
 
             const [ideas, setIdeas] = useState([{ ...initialIdea }]);
             const [currentIndex, setCurrentIndex] = useState(0);
@@ -430,7 +433,7 @@
 
             const onAddPP = async () => {
                 if(!cAuth || !cPain) return showToast("Бүрэн бөглөнө үү");
-                if(cDept === 'Нийт') return showToast("Шинэ асуудал бүртгэхийн тулд өөрийн хэлтсийг сонгоно уу!");
+                if(cDept === 'Нийт') return showToast("Шинэ асуудал бүртгэхийн тулд өөрийн нэгжийн чиглэлийг сонгоно уу!");
                 
                 const id = `pp_${Date.now()}`;
                 // Шинэ асуудал бүртгэхэд автоматаар None (Үнэлгээгүй) орно
@@ -441,12 +444,32 @@
                 if(client) await client.from('pitch_voting').upsert(obj);
             };
 
-            const saveEditPP = async (pp) => {
+            const editPP = (pp) => {
                 const m = extractPPMeta(pp.description);
-                const d = buildPPDesc(m.cleanText, ePPData.impact, ePPData.urgency, ePPData.discussion);
-                setVotingIdeas(p => p.map(i => i.id === pp.id ? { ...i, description: d } : i));
+                setEPPId(pp.id);
+                setDeleteId(null); // Устгах горимыг цуцлах
+                setEPPData({
+                    author: pp.projectName || pp.projectname,
+                    text: m.cleanText,
+                    impact: m.impact,
+                    urgency: m.urgency,
+                    discussion: m.discussion
+                });
+            };
+
+            const saveEditPP = async (pp) => {
+                const d = buildPPDesc(ePPData.text, ePPData.impact, ePPData.urgency, ePPData.discussion);
+                setVotingIdeas(p => p.map(i => i.id === pp.id ? { ...i, projectName: ePPData.author, projectname: ePPData.author, description: d } : i));
                 setEPPId(null);
-                if(client) await client.from('pitch_voting').upsert({ id: pp.id, votes: pp.votes, voters: pp.voters, projectname: pp.projectName || pp.projectname, teaminfo: pp.teamInfo || pp.teaminfo, category: pp.category, description: d });
+                if(client) await client.from('pitch_voting').upsert({ id: pp.id, votes: pp.votes, voters: pp.voters, projectname: ePPData.author, teaminfo: pp.teamInfo || pp.teaminfo, category: pp.category, description: d });
+            };
+
+            const confirmDelete = async (id) => {
+                setVotingIdeas(p => p.filter(i => i.id !== id));
+                setDeleteId(null);
+                setEPPId(null);
+                if(client) await client.from('pitch_voting').delete().eq('id', id);
+                showToast("Асуудал устгагдлаа");
             };
 
             const solvePP = (pp) => {
@@ -483,7 +506,7 @@
                             <p className="text-slate-400 text-sm mb-6">Багаараа асуудал бүрийг ангилах, үнэлэх, хэлэлцэх.</p>
                             <div className="flex justify-center flex-wrap gap-2">
                                 {['Нийт', ...DEPARTMENTS].map(d => (
-                                    <button key={d} onClick={() => {setCDept(d); setEPPId(null);}} className={`px-6 py-2.5 rounded-xl text-sm font-bold border transition-colors ${cDept === d ? 'bg-fuchsia-500 text-white border-fuchsia-500 shadow-[0_0_15px_rgba(217,70,239,0.4)]' : 'bg-slate-800 text-slate-400 border-slate-700 hover:bg-slate-700'}`}>{d}</button>
+                                    <button key={d} onClick={() => {setCDept(d); setEPPId(null); setDeleteId(null);}} className={`px-6 py-2.5 rounded-xl text-sm font-bold border transition-colors ${cDept === d ? 'bg-fuchsia-500 text-white border-fuchsia-500 shadow-[0_0_15px_rgba(217,70,239,0.4)]' : 'bg-slate-800 text-slate-400 border-slate-700 hover:bg-slate-700'}`}>{d}</button>
                                 ))}
                             </div>
                         </div>
@@ -492,7 +515,7 @@
                             <div className="lg:col-span-1 bg-slate-800/50 p-6 rounded-2xl border border-slate-700 h-fit sticky top-6 shadow-inner">
                                 <h3 className="text-lg font-bold text-fuchsia-400 mb-4 border-b border-slate-700 pb-2">Шинэ асуудал бүртгэх</h3>
                                 {cDept === 'Нийт' ? (
-                                    <div className="text-sm text-slate-400 text-center py-6">Шинэ асуудал бүртгэхийн тулд өөрийн чиглэлийг сонгоно уу.</div>
+                                    <div className="text-sm text-slate-400 text-center py-6">Шинэ асуудал бүртгэхийн тулд өөрийн хэлтсийг сонгоно уу.</div>
                                 ) : (
                                     <>
                                         <input value={cAuth} onChange={e => setCAuth(e.target.value)} className="w-full p-3.5 bg-slate-900/50 border border-slate-600 rounded-xl text-sm text-slate-200 mb-3 outline-none focus:border-fuchsia-500" placeholder="Таны нэр..." />
@@ -505,25 +528,55 @@
                                 const m = extractPPMeta(pp.description), isEd = ePPId === pp.id;
                                 const quadrant = getMatrixQuadrant(m.impact, m.urgency);
                                 return (
-                                    <div key={pp.id} className="bg-slate-800/50 p-6 rounded-2xl border border-slate-700 shadow-lg flex flex-col gap-4">
-                                        <div className="flex justify-between items-center border-b border-slate-700/50 pb-3">
-                                            <div className="flex gap-2 items-center flex-wrap">
+                                    <div key={pp.id} className="bg-slate-800/50 p-6 rounded-2xl border border-slate-700 shadow-lg flex flex-col gap-4 relative">
+                                        <div className="flex justify-between items-start border-b border-slate-700/50 pb-3">
+                                            <div className="flex gap-2 items-center flex-wrap mt-1">
                                                 <span className="text-xs font-bold text-slate-300 mr-1">{pp.projectName || pp.projectname}</span>
                                                 {cDept === 'Нийт' && <span className="text-[10px] text-slate-500 font-bold uppercase border border-slate-700 px-2 py-1 rounded-md">{pp.teamInfo || pp.teaminfo}</span>}
                                                 <span className={`text-[10px] px-2 py-1 rounded-md border font-bold uppercase tracking-wider ${quadrant.bg}`}>{quadrant.label}</span>
                                             </div>
-                                            <div className="text-sm font-black text-emerald-400">{pp.votes || 0} Санал</div>
+                                            
+                                            <div className="flex items-center gap-3">
+                                                <div className="text-sm font-black text-emerald-400">{pp.votes || 0} Санал</div>
+                                                
+                                                {/* Засах & Устгах товчнууд */}
+                                                {!isEd && (
+                                                    <div className="flex gap-1 border-l border-slate-600 pl-3">
+                                                        <button onClick={() => editPP(pp)} className="text-slate-500 hover:text-cyan-400 p-1.5 transition-colors rounded hover:bg-slate-700" title="Засах">
+                                                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" /></svg>
+                                                        </button>
+                                                        
+                                                        {deleteId === pp.id ? (
+                                                            <div className="flex items-center gap-1.5 bg-rose-500/10 border border-rose-500/30 px-2 py-1 rounded-lg ml-1">
+                                                                <span className="text-[10px] text-rose-400 font-bold uppercase px-1">Устгах уу?</span>
+                                                                <button onClick={() => confirmDelete(pp.id)} className="text-[10px] bg-rose-600 text-white px-2 py-1 rounded hover:bg-rose-500 transition-colors">Тийм</button>
+                                                                <button onClick={() => setDeleteId(null)} className="text-[10px] bg-slate-700 text-slate-300 px-2 py-1 rounded hover:bg-slate-600 transition-colors">Үгүй</button>
+                                                            </div>
+                                                        ) : (
+                                                            <button onClick={() => setDeleteId(pp.id)} className="text-slate-500 hover:text-rose-400 p-1.5 transition-colors rounded hover:bg-slate-700" title="Устгах">
+                                                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+                                                            </button>
+                                                        )}
+                                                    </div>
+                                                )}
+                                            </div>
                                         </div>
-                                        <div className="text-slate-200 whitespace-pre-wrap text-base font-medium">{m.cleanText}</div>
+                                        
+                                        {!isEd && <div className="text-slate-200 whitespace-pre-wrap text-base font-medium">{m.cleanText}</div>}
+                                        
                                         {isEd ? (
                                             <div className="bg-slate-900/60 p-5 rounded-xl border border-slate-600 space-y-4">
-                                                <div className="bg-blue-900/20 border border-blue-500/30 p-4 rounded-xl text-xs text-blue-300 mb-2 leading-relaxed">
-                                                    <strong className="text-blue-400 block mb-1"> Үнэлгээний заавар:</strong>
-                                                    <span className="block"><b>Нөлөөлөл (Impact):</b> Уг асуудал нь байгууллагын үйл ажиллагаа, зардал, эсвэл цаг хугацаанд хэр их хохирол учруулж байгааг үнэлнэ.</span>
-                                                    <span className="block mt-1"><b>Яаралтай (Urgency):</b> Энэ асуудлыг хэр хурдан шийдвэрлэх шаардлагатай вэ гэдгийг үнэлнэ.</span>
-                                                </div>
                                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                                    <div className="space-y-1">
+                                                    <div className="space-y-1.5 md:col-span-2">
+                                                        <label className="text-[10px] text-slate-400 uppercase font-bold">Асуудал</label>
+                                                        <textarea value={ePPData.text} onChange={e => setEPPData({...ePPData, text: e.target.value})} rows="2" className="w-full p-3 bg-slate-800 border border-slate-600 rounded-lg text-sm text-white outline-none focus:border-fuchsia-500 transition-colors resize-y" />
+                                                    </div>
+                                                    <div className="space-y-1.5 md:col-span-2">
+                                                        <label className="text-[10px] text-slate-400 uppercase font-bold">Бүртгэсэн хүн</label>
+                                                        <input value={ePPData.author} onChange={e => setEPPData({...ePPData, author: e.target.value})} className="w-full p-2.5 bg-slate-800 border border-slate-600 rounded-lg text-sm text-white outline-none focus:border-fuchsia-500 transition-colors" />
+                                                    </div>
+                                                    
+                                                    <div className="space-y-1 mt-2">
                                                         <label className="text-[10px] text-slate-400 uppercase font-bold">Нөлөөлөл (Impact)</label>
                                                         <select value={ePPData.impact} onChange={e => setEPPData({...ePPData, impact: e.target.value})} className="w-full p-2.5 bg-slate-800 border border-slate-600 rounded-lg text-xs text-white outline-none focus:border-fuchsia-500 transition-colors">
                                                             <option value="None">Сонгоогүй (None)</option>
@@ -531,7 +584,7 @@
                                                             <option value="Low">Бага (Low Impact)</option>
                                                         </select>
                                                     </div>
-                                                    <div className="space-y-1">
+                                                    <div className="space-y-1 mt-2">
                                                         <label className="text-[10px] text-slate-400 uppercase font-bold">Яаралтай байдал (Urgency)</label>
                                                         <select value={ePPData.urgency} onChange={e => setEPPData({...ePPData, urgency: e.target.value})} className="w-full p-2.5 bg-slate-800 border border-slate-600 rounded-lg text-xs text-white outline-none focus:border-fuchsia-500 transition-colors">
                                                             <option value="None">Сонгоогүй (None)</option>
@@ -542,9 +595,9 @@
                                                 </div>
                                                 <div className="space-y-1">
                                                     <label className="text-[10px] text-slate-400 uppercase font-bold">Тэмдэглэл / Ярилцсан зүйл</label>
-                                                    <textarea value={ePPData.discussion} onChange={e => setEPPData({...ePPData, discussion: e.target.value})} rows="3" className="w-full p-3 bg-slate-800 border border-slate-600 rounded-lg text-xs text-white outline-none focus:border-fuchsia-500 resize-none transition-colors" placeholder="Багаараа юу гэж хэлэлцсэн тухай..." />
+                                                    <textarea value={ePPData.discussion} onChange={e => setEPPData({...ePPData, discussion: e.target.value})} rows="3" className="w-full p-3 bg-slate-800 border border-slate-600 rounded-lg text-xs text-white outline-none focus:border-fuchsia-500 resize-y transition-colors" placeholder="Багаараа юу гэж хэлэлцсэн тухай..." />
                                                 </div>
-                                                <div className="flex justify-end gap-2"><button onClick={() => setEPPId(null)} className="px-4 py-2 bg-slate-700 hover:bg-slate-600 transition-colors text-white rounded-lg text-xs font-bold">Цуцлах</button><button onClick={() => saveEditPP(pp)} className="px-6 py-2 bg-fuchsia-600 hover:bg-fuchsia-500 transition-colors text-white rounded-lg text-xs font-bold shadow-md">Хадгалах</button></div>
+                                                <div className="flex justify-end gap-2 pt-2"><button onClick={() => setEPPId(null)} className="px-4 py-2 bg-slate-700 hover:bg-slate-600 transition-colors text-white rounded-lg text-xs font-bold">Цуцлах</button><button onClick={() => saveEditPP(pp)} className="px-6 py-2 bg-fuchsia-600 hover:bg-fuchsia-500 transition-colors text-white rounded-lg text-xs font-bold shadow-md">Хадгалах</button></div>
                                             </div>
                                         ) : m.discussion && (
                                             <div className="bg-slate-900/40 p-4 rounded-xl border border-slate-700/50 mt-2">
@@ -552,7 +605,7 @@
                                                 <div className="text-sm text-slate-300 whitespace-pre-wrap">{m.discussion}</div>
                                             </div>
                                         )}
-                                        {!isEd && <div className="flex flex-wrap gap-3 mt-2 border-t border-slate-700/50 pt-4"><button onClick={() => onVote(pp)} className={`px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 ${pp.voters?.includes(user?.uid) ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/50' : 'bg-slate-700 text-slate-300 border border-slate-600 hover:bg-slate-600'}`}>👍 Надад ч бас</button><button onClick={() => { setEPPId(pp.id); setEPPData({ impact: m.impact, urgency: m.urgency, discussion: m.discussion }); }} className="px-4 py-2 rounded-xl text-xs font-bold bg-slate-700 text-slate-300 border border-slate-600 hover:bg-slate-600 transition-colors">💬 Үнэлэх / Ярилцах</button><button onClick={() => solvePP(pp)} className="md:ml-auto px-5 py-2 rounded-xl text-xs font-bold bg-cyan-600 text-white transition-all shadow-md flex items-center gap-1.5 hover:bg-cyan-500">💡 Шийдэл гаргах</button></div>}
+                                        {!isEd && <div className="flex flex-wrap gap-3 mt-2 border-t border-slate-700/50 pt-4"><button onClick={() => onVote(pp)} className={`px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 ${pp.voters?.includes(user?.uid) ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/50' : 'bg-slate-700 text-slate-300 border border-slate-600 hover:bg-slate-600'}`}>👍 Надад ч бас</button><button onClick={() => editPP(pp)} className="px-4 py-2 rounded-xl text-xs font-bold bg-slate-700 text-slate-300 border border-slate-600 hover:bg-slate-600 transition-colors">💬 Үнэлэх / Засах</button><button onClick={() => solvePP(pp)} className="md:ml-auto px-5 py-2 rounded-xl text-xs font-bold bg-cyan-600 text-white transition-all shadow-md flex items-center gap-1.5 hover:bg-cyan-500">💡 Шийдэл гаргах</button></div>}
                                     </div>
                                 );
                             })}</div>
@@ -627,7 +680,7 @@
                                 <div className="space-y-1.5"><label className="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Баг / Илтгэгч</label><input type="text" value={activeIdea.members} onChange={e => { const v = e.target.value; setIdeas(p => p.map((i, id) => id === currentIndex ? {...i, members: v} : i)); }} className="w-full p-4 bg-slate-900/50 border border-slate-700 rounded-xl outline-none text-sm text-white focus:border-cyan-500 transition-colors" placeholder="Багийн нэр" /></div>
                                 <div className="space-y-1.5"><label className="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Төслийн нэр</label><input type="text" value={activeIdea.projectName} onChange={e => { const v = e.target.value; setIdeas(p => p.map((i, id) => id === currentIndex ? {...i, projectName: v} : i)); }} className="w-full p-4 bg-slate-900/50 border border-slate-700 rounded-xl outline-none text-sm text-white focus:border-cyan-500 transition-colors" placeholder="Төслийн нэр" /></div>
                                 <div className="space-y-1.5"><label className="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Ангилал</label><select value={activeIdea.category} onChange={e => { const v = e.target.value; setIdeas(p => p.map((i, id) => id === currentIndex ? {...i, category: v} : i)); }} className="w-full p-4 bg-slate-900/50 border border-slate-700 rounded-xl text-sm text-white focus:border-cyan-500 transition-colors"><option value={CAT_MANAGEMENT}>{CAT_MANAGEMENT}</option><option value={CAT_OPERATIONS}>{CAT_OPERATIONS}</option><option value={CAT_SUPPORT}>{CAT_SUPPORT}</option></select></div>
-                                <div className="space-y-1.5"><label className="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Хэрэглэгч</label><input type="text" value={activeIdea.targetUser} onChange={e => { const v = e.target.value; setIdeas(p => p.map((i, id) => id === currentIndex ? {...i, targetUser: v} : i)); }} className="w-full p-4 bg-slate-900/50 border border-slate-700 rounded-xl outline-none text-sm text-white focus:border-cyan-500 transition-colors" placeholder="Хэрэглэгч" /></div>
+                                <div className="space-y-1.5"><label className="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Хэрэглэгч</label><input type="text" value={activeIdea.targetUser} onChange={e => { const v = e.target.value; setIdeas(p => p.map((i, id) => id === currentIndex ? {...i, targetUser: v} : i)); }} className="w-full p-4 bg-slate-900/50 border border-slate-700 rounded-xl outline-none text-sm text-white focus:border-cyan-500 transition-colors" placeholder="Эцсийн Хэрэглэгч (End user)" /></div>
                             </div>
                         </div>
                         
