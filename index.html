@@ -470,7 +470,7 @@
 
             const onAddPP = async () => {
                 if(!cAuth || !cPain) return showToast("Бүрэн бөглөнө үү");
-                if(cDept === 'Нийт') return showToast("Шинэ асуудал бүртгэхийн тулд өөрийн нэгжийн чиглэлийг сонгоно уу!");
+                if(cDept === 'Нийт') return showToast("Шинэ асуудал бүртгэхийн тулд дээрээс өөрийн нэгжийн чиглэлийг сонгоно уу!");
                 
                 const id = `pp_${Date.now()}`;
                 const d = buildPPDesc(cPain, 'None', 'None', '');
@@ -581,7 +581,7 @@
                                 {cDept === 'Нийт' && (
                                     <div className="text-[11px] text-fuchsia-400/80 uppercase tracking-widest font-bold flex items-center justify-center gap-1.5 animate-[fadeIn_0.3s_ease-out]">
                                         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                                        Шинэ асуудал бүртгэхийн тулд дээрээс өөрийн хэлтсийг сонгоно уу
+                                        Шинэ асуудал бүртгэхийн тулд дээрээс өөрийн нэгжийн чиглэлийг сонгоно уу
                                     </div>
                                 )}
                             </div>
@@ -634,11 +634,11 @@
                                 const deptColor = getDeptColor(pp.teamInfo || pp.teaminfo);
                                 
                                 return (
-                                    <div key={pp.id} className={`bg-slate-800/50 p-5 md:p-6 rounded-3xl border ${deptColor.border} ${deptColor.hover} ${deptColor.glow} flex flex-col gap-3 relative transition-all`}>
+                                    <div key={pp.id} onClick={() => editPP(pp)} className={`bg-slate-800/50 p-5 md:p-6 rounded-3xl border ${deptColor.border} ${deptColor.hover} ${deptColor.glow} flex flex-col gap-3 relative transition-all cursor-pointer group`}>
                                         
                                         <div className="flex justify-between items-start border-b border-slate-700/50 pb-3">
                                             <div className="flex flex-col gap-2">
-                                                <span className="text-sm font-bold text-slate-300">{pp.projectName || pp.projectname}</span>
+                                                <span className="text-sm font-bold text-slate-300 group-hover:text-fuchsia-400 transition-colors">{pp.projectName || pp.projectname}</span>
                                                 <div className="flex flex-wrap gap-1.5 items-center">
                                                     {cDept === 'Нийт' && <span className={`text-[9px] font-bold uppercase border px-1.5 py-0.5 rounded ${deptColor.bg} ${deptColor.text} ${deptColor.border}`}>{pp.teamInfo || pp.teaminfo}</span>}
                                                     <span className={`text-[9px] px-2 py-0.5 rounded border font-bold uppercase tracking-wider ${quadrant.bg}`}>{quadrant.label}</span>
@@ -646,7 +646,7 @@
                                             </div>
                                             
                                             {/* Устгах товчлуур */}
-                                            <div className="flex gap-1">
+                                            <div className="flex gap-1" onClick={e => e.stopPropagation()}>
                                                 {deleteId === pp.id ? (
                                                     <div className="flex flex-col items-end gap-1 bg-rose-500/10 border border-rose-500/30 p-1.5 rounded-lg absolute top-4 right-4 z-10 shadow-lg backdrop-blur-sm">
                                                         <span className="text-[10px] text-rose-400 font-bold uppercase">Устгах уу?</span>
@@ -675,7 +675,7 @@
                                             )}
                                         </div>
                                         
-                                        <div className="flex items-center justify-between mt-auto pt-3 border-t border-slate-700/50">
+                                        <div className="flex items-center justify-between mt-auto pt-3 border-t border-slate-700/50" onClick={e => e.stopPropagation()}>
                                             <button onClick={() => onVote(pp)} className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 ${pp.voters?.includes(user?.uid) ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/50' : 'bg-slate-700 text-slate-300 border border-slate-600 hover:bg-slate-600'}`}>
                                                 👍 <span className="text-white">{pp.votes || 0}</span>
                                             </button>
