@@ -3,18 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI in Enterprise Workshop</title>
-    <!-- Tailwind CSS -->
+    <title>AI in Enterprise Workshop - Voting</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- React & Babel -->
     <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
     <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
     
-    <!-- Supabase JS Client -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     
-    <!-- Google Fonts (Inter) -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
@@ -52,6 +48,7 @@
     <script type="text/babel">
         const { useState, useEffect, useMemo } = React;
 
+        // Supabase тохиргоо
         const supabaseUrl = 'https://yyprkhrmvlpiknqqbpww.supabase.co'; 
         const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inl5cHJraHJtdmxwaWtucXFicHd3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc5MDE3NTEsImV4cCI6MjA5MzQ3Nzc1MX0.qRuIVqaqBdv3n95fAezZAEFAP7FNCqZ-RsEPJoYmE0U';
         
@@ -67,16 +64,7 @@
             'Хууль нийцэл, гэрээ'
         ];
 
-        // Тогтмол ашиглагдах шинэ санааны анхны бүтэц
-        const initialIdea = { 
-            members: '', projectName: '', targetUser: '', category: CAT_MANAGEMENT, 
-            problem: '', solutionGeneral: '', solutionStep1: '', solutionStep2: '', solutionStep3: '', 
-            businessValueLevel: 'High', businessValueDesc: '', feasibilityLevel: 'Medium', feasibilityDesc: '',
-            dataReadinessLevel: 'Medium', dataReadinessDesc: '',
-            ppImpact: 'None', ppUrgency: 'None'
-        };
-
-        // Хураангуйлсан санааны жагсаалт
+        // Хураангуйлсан санааны жагсаалт (Та энд өөрийн нэмсэн санаагаа хуулж оруулаарай)
         const PREDEFINED_IDEAS = [
             { 
                 id: 'p1', category: CAT_MANAGEMENT, teamInfo: 'Team Munkhchuluun', projectName: 'Legal Chat Agent (PCR)', 
@@ -140,7 +128,7 @@
             },
             { 
                 id: 'p13', category: CAT_OPERATIONS, teamInfo: 'Team Ganbat', projectName: 'Цаг агаарын Forecast Agent', 
-                description: '[Meta-V:Medium|F:High|S:false|E:false]\nЦаг агаарын урьдчилсан мэдээнд үндэслэн үүсэж болзошгүй гэмтэл, саатлын байршлыг таамаглах систем.\n- Байгалийн гамшгийн үеийн сануулга\n- Хүний нөөц, technical нөөцийг оновчтой хуваарилах\n- Гэмтлийн байршлыг урьдчилан таамаглах', 
+                description: '[Meta-V:Medium|F:High|S:false|E:false]\nЦаг агаарын урьдчилсан мэдээнд үндэслэн үүсэж болзошгүй гэмтэл, саатлын байршлыг таамаглах систем.\n- Байгалийн гамшгийн үеийн сануулга\n- Хүний нөөц, техникийг оновчтой хуваарилах\n- Гэмтлийн байршлыг урьдчилан таамаглах', 
                 votes: 4, voters: [] 
             },
             { 
@@ -154,7 +142,7 @@
                 votes: 3, voters: [] 
             },
             { 
-                id: 'p16', category: CAT_OPERATIONS, teamInfo: 'Team Gantulga', projectName: 'Засварын зөвлөмж Bot', 
+                id: 'p16', category: CAT_OPERATIONS, teamInfo: 'Team Gantulga', projectName: 'Засварын зөвлөм Bot', 
                 description: '[Meta-V:High|F:Medium|S:false|E:false]\nИнженерүүдэд газар дээр нь засварын зааварчилгаа, аюулгүй ажиллагааны зөвлөмжийг чат хэлбэрээр өгөх туслах.\n- Аюулгүй ажиллагааны эрсдэлийн сануулга\n- Засварын зааварчилгааг шуурхай хариулах\n- Гүйцэтгэлийн тайланг автоматаар үүсгэх', 
                 votes: 2, voters: [] 
             },
@@ -180,7 +168,7 @@
             }
         ];
 
-        // Functions for parsing metadata and builds
+        // Мэдээлэл задлах функцууд
         const extractMeta = (desc) => {
             let v = 'Medium', f = 'Medium', s = false, e = false, text = desc || '', fd = '';
             if (text.startsWith('[Meta-')) {
@@ -201,7 +189,6 @@
                 fd = text.substring(idx + div.length).trim(); 
                 text = text.substring(0, idx).trim(); 
             }
-
             return { valueLevel: v, feasLevel: f, isShortlisted: s, isEvaluated: e, cleanDesc: text, feasDesc: fd };
         };
 
@@ -223,28 +210,24 @@
             return { impact: imp, urgency: urg, cleanText: txt, discussion: disc };
         };
 
-        const buildPPDesc = (txt, imp, urg, disc) => `[PP-Impact:${imp}|Urgency:${urg}]\n${txt}${disc ? '\n\n---DISCUSSION---\n' + disc : ''}`;
         const getFeasScore = (lvl) => lvl === 'High' ? 3 : (lvl === 'Medium' ? 2 : 1);
 
-        // Helper: Хэлтсийн өнгө ялгах
+        // Styling functions
         const getDeptColor = (dept) => {
             const d = (dept || '').trim();
             if (d === 'Хүний нөөц') return { border: 'border-pink-500/40', bg: 'bg-pink-500/10', text: 'text-pink-400', hover: 'hover:border-pink-500/80', glow: 'shadow-[0_0_15px_rgba(236,72,153,0.05)]' };
             if (d === 'Худалдан авалт') return { border: 'border-sky-500/40', bg: 'bg-sky-500/10', text: 'text-sky-400', hover: 'hover:border-sky-500/80', glow: 'shadow-[0_0_15px_rgba(14,165,233,0.05)]' };
             if (d === 'Санхүү') return { border: 'border-emerald-500/40', bg: 'bg-emerald-500/10', text: 'text-emerald-400', hover: 'hover:border-emerald-500/80', glow: 'shadow-[0_0_15px_rgba(16,185,129,0.05)]' };
             if (d === 'Хууль нийцэл, гэрээ') return { border: 'border-violet-500/40', bg: 'bg-violet-500/10', text: 'text-violet-400', hover: 'hover:border-violet-500/80', glow: 'shadow-[0_0_15px_rgba(139,92,246,0.05)]' };
-            
             return { border: 'border-slate-600/50', bg: 'bg-slate-700/30', text: 'text-slate-300', hover: 'hover:border-slate-500', glow: 'shadow-lg' };
         };
 
-        // Helper: Tab-ын өнгө
         const getTabStyle = (dept, isSelected) => {
             if (dept === 'Нийт') return isSelected ? 'bg-fuchsia-600 text-white border-fuchsia-500 shadow-[0_0_15px_rgba(217,70,239,0.4)]' : 'bg-slate-800 text-slate-400 border-slate-700 hover:bg-slate-700';
             if (dept === 'Хүний нөөц') return isSelected ? 'bg-pink-600 text-white border-pink-500 shadow-[0_0_15px_rgba(236,72,153,0.4)]' : 'bg-slate-800 text-pink-400 border-slate-700 hover:bg-pink-900/30 hover:border-pink-500/50';
             if (dept === 'Худалдан авалт') return isSelected ? 'bg-sky-600 text-white border-sky-500 shadow-[0_0_15px_rgba(14,165,233,0.4)]' : 'bg-slate-800 text-sky-400 border-slate-700 hover:bg-sky-900/30 hover:border-sky-500/50';
             if (dept === 'Санхүү') return isSelected ? 'bg-emerald-600 text-white border-emerald-500 shadow-[0_0_15px_rgba(16,185,129,0.4)]' : 'bg-slate-800 text-emerald-400 border-slate-700 hover:bg-emerald-900/30 hover:border-emerald-500/50';
             if (dept === 'Хууль нийцэл, гэрээ') return isSelected ? 'bg-violet-600 text-white border-violet-500 shadow-[0_0_15px_rgba(139,92,246,0.4)]' : 'bg-slate-800 text-violet-400 border-slate-700 hover:bg-violet-900/30 hover:border-violet-500/50';
-            
             return isSelected ? 'bg-slate-600 text-white border-slate-500 shadow-md' : 'bg-slate-800 text-slate-400 border-slate-700 hover:bg-slate-700';
         };
 
@@ -263,7 +246,6 @@
             { border: 'border-fuchsia-500/40', bg: 'bg-fuchsia-500/10', text: 'text-fuchsia-400', hover: 'group-hover:border-fuchsia-500/80', glow: 'hover:shadow-[0_0_20px_rgba(217,70,239,0.15)]' }
         ];
 
-        // Helper: Багуудын өнгө ялгах
         const getTeamColor = (team) => {
             const t = (team || '').trim();
             if (!t) return { border: 'border-slate-700', bg: 'bg-slate-800', text: 'text-slate-300', hover: 'group-hover:border-slate-500', glow: '' };
@@ -277,16 +259,14 @@
             if(tl.includes('gantulga')) return colorPalettes[5];
             if(tl.includes('munkhsaikhan')) return colorPalettes[6];
             
-            // Бусад багуудад зориулсан динамик өнгөний систем
             let hash = 0;
             for (let i = 0; i < t.length; i++) {
                 hash = t.charCodeAt(i) + ((hash << 5) - hash);
             }
             hash = Math.abs(hash);
-            return colorPalettes[(hash % 5) + 7]; // Үлдсэн гоё өнгөнүүдээс сонгох
+            return colorPalettes[(hash % 5) + 7]; 
         };
 
-        // Helper to get Matrix Quadrant info
         const getMatrixQuadrant = (impact, urgency) => {
             if (impact === 'High' && urgency === 'Urgent') return { label: 'CRITICAL', bg: 'bg-rose-500/20 text-rose-400 border-rose-500/30' };
             if (impact === 'High' && urgency === 'Not Urgent') return { label: 'STRATEGIC', bg: 'bg-orange-500/20 text-orange-400 border-orange-500/30' };
@@ -326,31 +306,24 @@
 
                         {/* 2x2 Grid */}
                         <div className="grid grid-cols-2 gap-4 h-[500px]">
-                            {/* Strategic (High Impact, Not Urgent) */}
                             <div className="bg-orange-900/10 border border-orange-500/20 rounded-2xl p-4 flex flex-col hover:border-orange-500/40 transition-colors min-h-0">
                                 <h3 className="text-orange-400 font-bold mb-3 uppercase tracking-wider text-xs border-b border-orange-500/20 pb-2 shrink-0">Strategic (Урт хугацаанд)</h3>
                                 <div className="flex-1 overflow-y-auto custom-scrollbar pr-2 min-h-0">
                                     {strategic.length === 0 ? <p className="text-orange-500/30 text-xs italic">Асуудал алга</p> : strategic.map(p => renderChip(p, 'orange'))}
                                 </div>
                             </div>
-                            
-                            {/* Critical (High Impact, Urgent) */}
                             <div className="bg-rose-900/10 border border-rose-500/20 rounded-2xl p-4 flex flex-col hover:border-rose-500/40 transition-colors min-h-0">
                                 <h3 className="text-rose-400 font-bold mb-3 uppercase tracking-wider text-xs border-b border-rose-500/20 pb-2 shrink-0">Critical (Яаралтай)</h3>
                                 <div className="flex-1 overflow-y-auto custom-scrollbar pr-2 min-h-0">
                                     {critical.length === 0 ? <p className="text-rose-500/30 text-xs italic">Асуудал алга</p> : critical.map(p => renderChip(p, 'rose'))}
                                 </div>
                             </div>
-
-                            {/* Low Priority (Low Impact, Not Urgent) */}
                             <div className="bg-slate-800/30 border border-slate-600/30 rounded-2xl p-4 flex flex-col hover:border-slate-500/50 transition-colors min-h-0">
                                 <h3 className="text-slate-400 font-bold mb-3 uppercase tracking-wider text-xs border-b border-slate-600/30 pb-2 shrink-0">Low Priority (Хойшлуулах)</h3>
                                 <div className="flex-1 overflow-y-auto custom-scrollbar pr-2 min-h-0">
                                     {lowPriority.length === 0 ? <p className="text-slate-500/30 text-xs italic">Асуудал алга</p> : lowPriority.map(p => renderChip(p, 'slate'))}
                                 </div>
                             </div>
-
-                            {/* Quick Win (Low Impact, Urgent) */}
                             <div className="bg-yellow-900/10 border border-yellow-500/20 rounded-2xl p-4 flex flex-col hover:border-yellow-500/40 transition-colors min-h-0">
                                 <h3 className="text-yellow-400 font-bold mb-3 uppercase tracking-wider text-xs border-b border-yellow-500/20 pb-2 shrink-0">Quick Win (Шуурхай шийдэл)</h3>
                                 <div className="flex-1 overflow-y-auto custom-scrollbar pr-2 min-h-0">
@@ -374,41 +347,18 @@
         };
 
         const App = () => {
-            const [view, setView] = useState('collab'); 
-            const [currentSlide, setCurrentSlide] = useState(0);
+            // Эхлээд шууд Voting хуудсыг харуулна
+            const [view, setView] = useState('voting'); 
             const [user, setUser] = useState(null);
             const [toastMsg, setToastMsg] = useState('');
-            const [isSaving, setIsSaving] = useState(false);
             const [selectedTab, setSelectedTab] = useState('All'); 
             const [votingIdeas, setVotingIdeas] = useState(PREDEFINED_IDEAS);
             const [selectedId, setSelectedId] = useState(null);
-            const [mFeas, setMFeas] = useState('Medium');
-            const [mFeasDesc, setMFeasDesc] = useState('');
             
             const [cDept, setCDept] = useState('Нийт');
-            const [cPain, setCPain] = useState('');
-            const [cAuth, setCAuth] = useState('');
-            
-            const [isAddingPP, setIsAddingPP] = useState(false); 
             const [ePPId, setEPPId] = useState(null); 
-            const [deleteId, setDeleteId] = useState(null); 
-            const [selectedPPIds, setSelectedPPIds] = useState([]); // Олон асуудал сонгох state
-            
-            const [ePPData, setEPPData] = useState({ author: '', text: '', impact: 'None', urgency: 'None', discussion: '' });
-
-            // IDEAS шууд нэмэх state
-            const [isAddingIdea, setIsAddingIdea] = useState(false);
-            const [newIdeaData, setNewIdeaData] = useState({ teamInfo: '', projectName: '', category: CAT_MANAGEMENT, desc: '' });
-
-            // IDEAS засах state
-            const [isEditingIdea, setIsEditingIdea] = useState(false);
-            const [eIdeaData, setEIdeaData] = useState({ projectName: '', teamInfo: '', category: '', cleanDesc: '', valueLevel: 'Medium', feasLevel: 'Medium', feasDesc: '', isEvaluated: false });
-
-            const [ideas, setIdeas] = useState([{ ...initialIdea }]);
-            const [currentIndex, setCurrentIndex] = useState(0);
 
             const client = useMemo(() => typeof window.supabase !== 'undefined' ? window.supabase.createClient(supabaseUrl, supabaseKey) : null, []);
-            const activeIdea = useMemo(() => ideas[currentIndex] || initialIdea, [ideas, currentIndex]);
             const selIdea = useMemo(() => votingIdeas.find(i => i.id === selectedId) || null, [votingIdeas, selectedId]);
             const selPP = useMemo(() => votingIdeas.find(i => i.id === ePPId) || null, [votingIdeas, ePPId]);
 
@@ -448,18 +398,14 @@
             const showToast = (m) => { setToastMsg(m); setTimeout(() => setToastMsg(''), 3000); };
             const renderToast = () => toastMsg ? <div className="fixed top-6 right-6 bg-slate-800 border border-slate-600 text-white px-5 py-3 rounded-lg shadow-xl z-[400]" style={{animation: 'slideUp 0.3s ease-out'}}><span className="font-medium">{toastMsg}</span></div> : null;
 
+            // Нууц татах функцууд
             const downloadExcel = () => {
                 const headers = ['Ангилал', 'Төслийн нэр', 'Баг', 'Нийт Санал', 'Бизнесийн үнэ цэн', 'Технологийн боломж (Feasibility)', 'Shortlisted', 'Асуудал & Шийдэл', 'Feasibility Тайлбар'];
                 const escapeCSV = (str) => str ? `"${str.toString().replace(/"/g, '""')}"` : '""';
                 const csvRows = [headers.join(',')];
-                
                 votingIdeas.filter(i => i.category !== CAT_PAINPOINT).forEach(idea => {
                     const meta = extractMeta(idea.description);
-                    csvRows.push([
-                        escapeCSV(idea.category), escapeCSV(idea.projectName), escapeCSV(idea.teamInfo), idea.votes || 0,
-                        escapeCSV(meta.valueLevel), escapeCSV(meta.feasLevel), escapeCSV(meta.isShortlisted ? 'Тийм' : 'Үгүй'),
-                        escapeCSV(meta.cleanDesc), escapeCSV(meta.feasDesc)
-                    ].join(','));
+                    csvRows.push([ escapeCSV(idea.category), escapeCSV(idea.projectName), escapeCSV(idea.teamInfo), idea.votes || 0, escapeCSV(meta.valueLevel), escapeCSV(meta.feasLevel), escapeCSV(meta.isShortlisted ? 'Тийм' : 'Үгүй'), escapeCSV(meta.cleanDesc), escapeCSV(meta.feasDesc) ].join(','));
                 });
                 const blob = new Blob(['\uFEFF' + csvRows.join('\n')], { type: 'text/csv;charset=utf-8;' });
                 const link = document.createElement('a');
@@ -472,19 +418,9 @@
                 const headers = ['Ангилал', 'Хэлтэс', 'Бүртгэсэн хүн', 'Асуудал', 'Ярилцсан зүйл', 'Нөлөөлөл', 'Яаралтай', 'Санал'];
                 const escapeCSV = (str) => str ? `"${str.toString().replace(/"/g, '""')}"` : '""';
                 const csvRows = [headers.join(',')];
-                
                 votingIdeas.filter(i => i.category === CAT_PAINPOINT).forEach(pp => {
                     const m = extractPPMeta(pp.description);
-                    csvRows.push([
-                        escapeCSV(pp.category),
-                        escapeCSV(pp.teamInfo || pp.teaminfo),
-                        escapeCSV(pp.projectName || pp.projectname),
-                        escapeCSV(m.cleanText),
-                        escapeCSV(m.discussion),
-                        escapeCSV(m.impact),
-                        escapeCSV(m.urgency),
-                        pp.votes || 0
-                    ].join(','));
+                    csvRows.push([ escapeCSV(pp.category), escapeCSV(pp.teamInfo || pp.teaminfo), escapeCSV(pp.projectName || pp.projectname), escapeCSV(m.cleanText), escapeCSV(m.discussion), escapeCSV(m.impact), escapeCSV(m.urgency), pp.votes || 0 ].join(','));
                 });
                 const blob = new Blob(['\uFEFF' + csvRows.join('\n')], { type: 'text/csv;charset=utf-8;' });
                 const link = document.createElement('a');
@@ -503,179 +439,8 @@
                 if(client) await client.from('pitch_voting').upsert({ id: idea.id, votes: vts, voters: vtrs, projectname: idea.projectName || idea.projectname || 'Pain Point', teaminfo: idea.teamInfo || idea.teaminfo, description: idea.description, category: idea.category });
             };
 
-            const onSaveFeas = async () => {
-                if(!selIdea) return;
-                const m = extractMeta(selIdea.description);
-                const d = `[Meta-V:${m.valueLevel}|F:${mFeas}|S:${m.isShortlisted}|E:true]\n${m.cleanDesc}${mFeasDesc ? '\n\n---FEAS_DESC---\n' + mFeasDesc : ''}`;
-                setVotingIdeas(p => sortArr(p.map(i => i.id === selIdea.id ? { ...i, description: d } : i)));
-                if(client) await client.from('pitch_voting').upsert({ id: selIdea.id, votes: selIdea.votes, voters: selIdea.voters, projectname: selIdea.projectName, teaminfo: selIdea.teamInfo, category: selIdea.category, description: d });
-                showToast("Технологийн үнэлгээ амжилттай хадгалагдаж түгжигдлээ!");
-                setSelectedId(null); 
-            };
-
-            const saveIdeaEdit = async () => {
-                if(!selIdea) return;
-                const m = extractMeta(selIdea.description);
-                const d = `[Meta-V:${eIdeaData.valueLevel}|F:${eIdeaData.feasLevel}|S:${m.isShortlisted}|E:${eIdeaData.isEvaluated}]\n${eIdeaData.cleanDesc}${eIdeaData.feasDesc ? '\n\n---FEAS_DESC---\n' + eIdeaData.feasDesc : ''}`;
-                
-                const updatedObj = { 
-                    id: selIdea.id, 
-                    votes: selIdea.votes, 
-                    voters: selIdea.voters, 
-                    projectname: eIdeaData.projectName, 
-                    teaminfo: eIdeaData.teamInfo, 
-                    category: eIdeaData.category, 
-                    description: d 
-                };
-
-                setVotingIdeas(p => sortArr(p.map(i => i.id === selIdea.id ? { 
-                    ...i, 
-                    projectName: eIdeaData.projectName, 
-                    projectname: eIdeaData.projectName,
-                    teamInfo: eIdeaData.teamInfo, 
-                    teaminfo: eIdeaData.teamInfo,
-                    category: eIdeaData.category, 
-                    description: d 
-                } : i)));
-                
-                if(client) await client.from('pitch_voting').upsert(updatedObj);
-                showToast("Санал амжилттай засагдлаа!");
-                setIsEditingIdea(false);
-            };
-
-            const toggleShortlist = async (idea) => {
-                const m = extractMeta(idea.description);
-                const isS = !m.isShortlisted;
-                const d = `[Meta-V:${m.valueLevel}|F:${m.feasLevel}|S:${isS}|E:${m.isEvaluated}]\n${m.cleanDesc}${m.feasDesc ? '\n\n---FEAS_DESC---\n' + m.feasDesc : ''}`;
-                setVotingIdeas(p => sortArr(p.map(i => i.id === idea.id ? { ...i, description: d } : i)));
-                if(client) await client.from('pitch_voting').upsert({ id: idea.id, votes: idea.votes, voters: idea.voters, projectname: idea.projectName, teaminfo: idea.teamInfo, category: idea.category, description: d });
-                showToast(isS ? "⭐ Shortlist-д нэмэгдлээ!" : "Shortlist-ээс хасагдлаа");
-            };
-
-            const publishToVoting = async () => {
-                if (!activeIdea.projectName || !activeIdea.members) return showToast("Төслийн нэр болон гишүүдийг оруулна уу");
-                setIsSaving(true);
-                const id = `workshop_${user?.uid || 'local'}_${currentIndex}_${Date.now()}`;
-                const cl = `${activeIdea.problem}\n\n${activeIdea.solutionGeneral}\n- ${activeIdea.solutionStep1}\n- ${activeIdea.solutionStep2}\n- ${activeIdea.solutionStep3}`;
-                const d = `[Meta-V:${activeIdea.businessValueLevel}|F:${activeIdea.feasibilityLevel}|S:false|E:false]\n${cl}${activeIdea.feasibilityDesc ? '\n\n---FEAS_DESC---\n' + activeIdea.feasibilityDesc : ''}`;
-                const obj = { id, teaminfo: activeIdea.members, projectname: activeIdea.projectName, description: d, category: activeIdea.category, votes: 0, voters: [] };
-                setVotingIdeas(prev => sortArr([...prev, obj]));
-                if (client) {
-                    try { await client.from('pitch_voting').upsert(obj); setView('voting'); showToast("Санал хураалтад илгээгдлээ"); } 
-                    catch (e) { showToast(e.message); }
-                } else { setView('voting'); showToast("Local горимд илгээгдлээ"); }
-                setIsSaving(false);
-            };
-
-            const handleAddDirectIdea = async () => {
-                if(!newIdeaData.projectName || !newIdeaData.teamInfo) return showToast("Төслийн нэр болон багийн нэрийг оруулна уу");
-                setIsSaving(true);
-                const id = `idea_${user?.uid || 'local'}_${Date.now()}`;
-                const d = `[Meta-V:Medium|F:Medium|S:false|E:false]\n${newIdeaData.desc}`;
-                const obj = { id, teaminfo: newIdeaData.teamInfo, projectname: newIdeaData.projectName, description: d, category: newIdeaData.category, votes: 0, voters: [] };
-                setVotingIdeas(prev => sortArr([...prev, obj]));
-                if (client) {
-                    try { await client.from('pitch_voting').upsert(obj); showToast("Санал амжилттай нэмэгдлээ"); } 
-                    catch (e) { showToast(e.message); }
-                } else { showToast("Local горимд нэмэгдлээ"); }
-                setIsAddingIdea(false);
-                setNewIdeaData({ teamInfo: '', projectName: '', category: CAT_MANAGEMENT, desc: '' });
-                setIsSaving(false);
-            };
-
-            const onAddPP = async () => {
-                if(!cAuth || !cPain) return showToast("Бүрэн бөглөнө үү");
-                if(cDept === 'Нийт') return showToast("Шинэ асуудал бүртгэхийн тулд дээрээс өөрийн нэгжийн чиглэлийг сонгоно уу!");
-                
-                const id = `pp_${Date.now()}`;
-                const d = buildPPDesc(cPain, 'None', 'None', '');
-                const obj = { id, teaminfo: cDept, projectname: cAuth, description: d, category: CAT_PAINPOINT, votes: 0, voters: [] };
-                setVotingIdeas(p => sortArr([...p, obj]));
-                setCPain('');
-                setCAuth('');
-                setIsAddingPP(false);
-                if(client) await client.from('pitch_voting').upsert(obj);
-                showToast("Асуудал амжилттай бүртгэгдлээ");
-            };
-
-            const editPP = (pp) => {
-                const m = extractPPMeta(pp.description);
-                setEPPId(pp.id);
-                setDeleteId(null); 
-                setEPPData({
-                    author: pp.projectName || pp.projectname,
-                    text: m.cleanText,
-                    impact: m.impact,
-                    urgency: m.urgency,
-                    discussion: m.discussion
-                });
-            };
-
-            const saveEditPP = async (pp) => {
-                const d = buildPPDesc(ePPData.text, ePPData.impact, ePPData.urgency, ePPData.discussion);
-                setVotingIdeas(p => p.map(i => i.id === pp.id ? { ...i, projectName: ePPData.author, projectname: ePPData.author, description: d } : i));
-                setEPPId(null);
-                if(client) await client.from('pitch_voting').upsert({ id: pp.id, votes: pp.votes, voters: pp.voters, projectname: ePPData.author, teaminfo: pp.teamInfo || pp.teaminfo, category: pp.category, description: d });
-            };
-
-            const confirmDelete = async (id) => {
-                setVotingIdeas(p => p.filter(i => i.id !== id));
-                setDeleteId(null);
-                setEPPId(null);
-                if(client) await client.from('pitch_voting').delete().eq('id', id);
-                showToast("Асуудал устгагдлаа");
-            };
-
-            const solvePP = (pp) => {
-                const m = extractPPMeta(pp.description);
-                setIdeas([{ ...initialIdea, problem: m.cleanText, targetUser: pp.teamInfo || pp.teaminfo, ppImpact: m.impact, ppUrgency: m.urgency }]);
-                setCurrentIndex(0);
-                setView('form');
-            };
-
-            const togglePPSelection = (id) => {
-                setSelectedPPIds(prev => prev.includes(id) ? prev.filter(pid => pid !== id) : [...prev, id]);
-            };
-
-            const createCombinedSolution = () => {
-                const selectedPainPoints = votingIdeas.filter(i => selectedPPIds.includes(i.id));
-                if (selectedPainPoints.length === 0) return;
-
-                let combinedText = "";
-                let targetUsers = new Set();
-                let highestImpact = 'None';
-                let highestUrgency = 'None';
-
-                selectedPainPoints.forEach((pp, index) => {
-                    const m = extractPPMeta(pp.description);
-                    combinedText += `${index + 1}. ${m.cleanText}\n\n`;
-                    if(pp.teamInfo || pp.teaminfo) targetUsers.add(pp.teamInfo || pp.teaminfo);
-
-                    if (m.impact === 'High') highestImpact = 'High';
-                    else if (m.impact === 'Low' && highestImpact !== 'High') highestImpact = 'Low';
-
-                    if (m.urgency === 'Urgent') highestUrgency = 'Urgent';
-                    else if (m.urgency === 'Not Urgent' && highestUrgency !== 'Urgent') highestUrgency = 'Not Urgent';
-                });
-
-                setIdeas([{
-                    ...initialIdea,
-                    problem: combinedText.trim(),
-                    targetUser: Array.from(targetUsers).join(', '),
-                    ppImpact: highestImpact,
-                    ppUrgency: highestUrgency
-                }]);
-                setCurrentIndex(0);
-                setSelectedPPIds([]); // Сонголтыг цэвэрлэх
-                setView('form');
-            };
-
-            const levelClass = (lvl) => lvl === 'High' ? 'bg-blue-500/20 text-blue-400 border-blue-500/30' : lvl === 'Medium' ? 'bg-amber-500/20 text-amber-400 border-amber-500/30' : 'bg-rose-500/20 text-rose-400 border-rose-500/30';
-
             const getDeptCount = (dept) => {
-                if (dept === 'Нийт') {
-                    return votingIdeas.filter(i => i.category === CAT_PAINPOINT).length;
-                }
+                if (dept === 'Нийт') return votingIdeas.filter(i => i.category === CAT_PAINPOINT).length;
                 return votingIdeas.filter(i => i.category === CAT_PAINPOINT && (i.teamInfo === dept || i.teaminfo === dept)).length;
             };
 
@@ -689,10 +454,9 @@
             const renderNav = () => (
                 <div className="flex justify-center mb-8">
                     <div className="bg-slate-800/60 p-1.5 rounded-2xl border border-slate-700 flex flex-wrap justify-center gap-1 w-full sm:w-auto shadow-inner">
+                        <button onClick={() => setView('voting')} className={`px-5 py-2.5 rounded-xl text-sm font-medium transition-all ${view === 'voting' ? 'bg-emerald-500/20 text-emerald-400 shadow-md' : 'text-slate-400 hover:text-slate-200'}`}>Бидний үнэ цэнтэй IDEAS ({getIdeaCount('All')})</button>
                         <button onClick={() => setView('collab')} className={`px-5 py-2.5 rounded-xl text-sm font-medium transition-all ${view === 'collab' ? 'bg-fuchsia-500/20 text-fuchsia-400 shadow-md' : 'text-slate-400 hover:text-slate-200'}`}>CWM (Pain points)</button>
                         <button onClick={() => setView('matrix')} className={`px-5 py-2.5 rounded-xl text-sm font-medium transition-all ${view === 'matrix' ? 'bg-orange-500/20 text-orange-400 shadow-md' : 'text-slate-400 hover:text-slate-200'}`}>Матриц</button>
-                        <button onClick={() => setView('form')} className={`px-5 py-2.5 rounded-xl text-sm font-medium transition-all ${view === 'form' ? 'bg-cyan-500/20 text-cyan-400 shadow-md' : 'text-slate-400 hover:text-slate-200'}`}>Санал боловсруулах</button>
-                        <button onClick={() => setView('voting')} className={`px-5 py-2.5 rounded-xl text-sm font-medium transition-all ${view === 'voting' ? 'bg-emerald-500/20 text-emerald-400 shadow-md' : 'text-slate-400 hover:text-slate-200'}`}>Бидний үнэ цэнтэй IDEAS ({getIdeaCount('All')})</button>
                     </div>
                 </div>
             );
@@ -702,7 +466,6 @@
                 return (
                     <div className="max-w-7xl mx-auto p-4 md:p-6 bg-slate-900 min-h-screen">
                         {renderNav()}
-
                         <div className="flex flex-col mb-8 bg-slate-800/40 p-6 rounded-2xl border border-orange-500/30 text-center shadow-lg">
                             <h1 className="text-3xl font-bold text-white mb-2 tracking-tight uppercase">Үнэлгээний Матриц</h1>
                             <p className="text-slate-400 text-sm mb-6">Бүртгэгдсэн асуудлуудыг нөлөөлөл болон яаралтай байдлаар нь ангилж харах.</p>
@@ -712,7 +475,6 @@
                                 ))}
                             </div>
                         </div>
-
                         <PrioritizationMatrix painPoints={list} />
                     </div>
                 );
@@ -723,60 +485,25 @@
                 return (
                     <div className="max-w-7xl mx-auto p-4 md:p-6 bg-slate-900 min-h-screen relative pb-24">
                         {renderNav()}
-
                         <div className="flex flex-col mb-8 bg-slate-800/40 p-6 rounded-2xl border border-fuchsia-500/30 text-center shadow-lg relative">
                             <h1 className="text-3xl font-bold text-white mb-2 tracking-tight uppercase">CWM (Pain points)</h1>
                             <p className="text-slate-400 text-sm mb-6">Багаараа асуудал бүрийг ангилах, үнэлэх, хэлэлцэх.</p>
                             <div className="flex flex-col items-center gap-3">
                                 <div className="flex justify-center flex-wrap gap-2">
                                     {['Нийт', ...DEPARTMENTS].map(d => (
-                                        <button key={d} onClick={() => {setCDept(d); setEPPId(null); setDeleteId(null); setIsAddingPP(false);}} className={`px-6 py-2.5 rounded-xl text-sm font-bold border transition-colors ${getTabStyle(d, cDept === d)}`}>{d} ({getDeptCount(d)})</button>
+                                        <button key={d} onClick={() => {setCDept(d); setEPPId(null);}} className={`px-6 py-2.5 rounded-xl text-sm font-bold border transition-colors ${getTabStyle(d, cDept === d)}`}>{d} ({getDeptCount(d)})</button>
                                     ))}
                                 </div>
                                 {cDept === 'Нийт' && (
                                     <div className="text-[11px] text-fuchsia-400/80 uppercase tracking-widest font-bold flex items-center justify-center gap-1.5 animate-[fadeIn_0.3s_ease-out]">
                                         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                                        Шинэ асуудал бүртгэхийн тулд дээрээс өөрийн нэгжийн чиглэлийг сонгоно уу
+                                        Зөвхөн санал хураах горим идэвхтэй байна.
                                     </div>
                                 )}
                             </div>
                         </div>
 
                         <div className="flex flex-col gap-6">
-                            {/* Шинэ асуудал бүртгэх хэсэг - Дээд талд */}
-                            {cDept !== 'Нийт' && (
-                                <div className="mb-2">
-                                    {!isAddingPP ? (
-                                        <button onClick={() => setIsAddingPP(true)} className="px-6 py-3 rounded-2xl text-sm font-bold bg-slate-800/60 text-fuchsia-400 border border-slate-700 hover:border-fuchsia-500/50 transition-all flex items-center gap-2 shadow-md">
-                                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v16m8-8H4"></path></svg>
-                                            Шинэ асуудал бүртгэх
-                                        </button>
-                                    ) : (
-                                        <div className="bg-slate-800/50 p-6 md:p-8 rounded-3xl border border-slate-700 shadow-inner animate-[fadeIn_0.2s_ease-out]">
-                                            <div className="flex justify-between items-center mb-6 border-b border-slate-700 pb-3">
-                                                <h3 className="text-xl font-bold text-fuchsia-400">Шинэ асуудал бүртгэх</h3>
-                                                <button onClick={() => setIsAddingPP(false)} className="text-slate-500 hover:text-white transition-colors text-2xl leading-none">&times;</button>
-                                            </div>
-                                            <div className="flex flex-col gap-4">
-                                                <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-                                                    <div className="md:col-span-1">
-                                                        <label className="text-[10px] uppercase font-bold text-slate-400 tracking-wider mb-1.5 block">Таны нэр</label>
-                                                        <input value={cAuth} onChange={e => setCAuth(e.target.value)} className="w-full p-4 bg-slate-900/50 border border-slate-600 rounded-xl text-sm text-slate-200 outline-none focus:border-fuchsia-500 transition-colors" placeholder="Овог нэр..." />
-                                                    </div>
-                                                    <div className="md:col-span-2">
-                                                        <label className="text-[10px] uppercase font-bold text-slate-400 tracking-wider mb-1.5 block">Асуудал</label>
-                                                        <textarea value={cPain} onChange={e => setCPain(e.target.value)} className="w-full p-4 bg-slate-900/50 border border-slate-600 rounded-xl text-sm text-slate-200 outline-none resize-y focus:border-fuchsia-500 transition-colors" placeholder="Ямар асуудал тулгарч байна вэ?..." rows="2" />
-                                                    </div>
-                                                </div>
-                                                <div className="flex justify-end mt-2">
-                                                    <button onClick={onAddPP} className="px-8 py-3.5 bg-fuchsia-600 hover:bg-fuchsia-500 text-white rounded-xl text-sm font-bold shadow-lg transition-all">Бүртгэх</button>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    )}
-                                </div>
-                            )}
-                            
                             {/* Асуудлын жагсаалт - Grid Layout */}
                             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
                                 {list.length === 0 ? (
@@ -787,46 +514,18 @@
                                 const m = extractPPMeta(pp.description);
                                 const quadrant = getMatrixQuadrant(m.impact, m.urgency);
                                 const deptColor = getDeptColor(pp.teamInfo || pp.teaminfo);
-                                const isSelected = selectedPPIds.includes(pp.id);
                                 
                                 return (
-                                    <div key={pp.id} onClick={() => editPP(pp)} className={`p-5 md:p-6 rounded-3xl border flex flex-col gap-3 relative transition-all cursor-pointer group ${isSelected ? 'border-cyan-500 bg-cyan-900/10 shadow-[0_0_15px_rgba(6,182,212,0.2)]' : `bg-slate-800/50 ${deptColor.border} ${deptColor.hover} ${deptColor.glow} shadow-lg`}`}>
-                                        
+                                    <div key={pp.id} onClick={() => setEPPId(pp.id)} className={`bg-slate-800/50 p-5 md:p-6 rounded-3xl border ${deptColor.border} ${deptColor.hover} ${deptColor.glow} flex flex-col gap-3 relative transition-all cursor-pointer group shadow-lg`}>
                                         <div className="flex justify-between items-start border-b border-slate-700/50 pb-3 relative">
-                                            <div className="flex flex-col gap-2 pr-14">
-                                                <span className={`text-sm font-bold transition-colors ${isSelected ? 'text-cyan-400' : 'text-slate-300 group-hover:text-fuchsia-400'}`}>{pp.projectName || pp.projectname}</span>
+                                            <div className="flex flex-col gap-2">
+                                                <span className="text-sm font-bold text-slate-300 group-hover:text-fuchsia-400 transition-colors">{pp.projectName || pp.projectname}</span>
                                                 <div className="flex flex-wrap gap-1.5 items-center">
                                                     {cDept === 'Нийт' && <span className={`text-[9px] font-bold uppercase border px-1.5 py-0.5 rounded ${deptColor.bg} ${deptColor.text} ${deptColor.border}`}>{pp.teamInfo || pp.teaminfo}</span>}
                                                     <span className={`text-[9px] px-2 py-0.5 rounded border font-bold uppercase tracking-wider ${quadrant.bg}`}>{quadrant.label}</span>
                                                 </div>
                                             </div>
-                                            
-                                            {/* Баруун дээд булангийн үйлдлүүд (Сонгох, Устгах) */}
-                                            <div className="absolute top-0 right-0 flex gap-2 items-center" onClick={e => e.stopPropagation()}>
-                                                <button 
-                                                    onClick={(e) => { e.stopPropagation(); togglePPSelection(pp.id); }} 
-                                                    className={`w-7 h-7 rounded-lg flex items-center justify-center transition-all ${isSelected ? 'bg-cyan-500 text-slate-900 shadow-[0_0_10px_rgba(6,182,212,0.5)]' : 'bg-slate-700/50 text-slate-400 border border-slate-600 hover:border-cyan-500/50 hover:text-cyan-400'}`}
-                                                    title="Нэгтгэхээр сонгох"
-                                                >
-                                                    {isSelected ? <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd"/></svg> : <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v16m8-8H4"/></svg>}
-                                                </button>
-
-                                                {deleteId === pp.id ? (
-                                                    <div className="flex flex-col items-end gap-1 bg-rose-500/10 border border-rose-500/30 p-1.5 rounded-lg absolute top-0 right-10 z-10 shadow-lg backdrop-blur-sm w-max">
-                                                        <span className="text-[10px] text-rose-400 font-bold uppercase">Устгах уу?</span>
-                                                        <div className="flex gap-1">
-                                                            <button onClick={() => confirmDelete(pp.id)} className="text-[10px] bg-rose-600 text-white px-2 py-1 rounded hover:bg-rose-500 transition-colors font-bold">Тийм</button>
-                                                            <button onClick={() => setDeleteId(null)} className="text-[10px] bg-slate-700 text-slate-300 px-2 py-1 rounded hover:bg-slate-600 transition-colors font-bold">Үгүй</button>
-                                                        </div>
-                                                    </div>
-                                                ) : (
-                                                    <button onClick={() => setDeleteId(pp.id)} className="text-slate-500 hover:text-rose-400 p-1.5 transition-colors rounded-lg hover:bg-slate-700 w-7 h-7 flex items-center justify-center" title="Устгах">
-                                                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
-                                                    </button>
-                                                )}
-                                            </div>
                                         </div>
-                                        
                                         <div className="flex-grow flex flex-col gap-2">
                                             <div className="text-slate-200 text-sm font-medium leading-relaxed overflow-y-auto custom-scrollbar pr-1 max-h-36">
                                                 {m.cleanText}
@@ -838,38 +537,15 @@
                                                 </div>
                                             )}
                                         </div>
-                                        
                                         <div className="flex items-center justify-between mt-auto pt-3 border-t border-slate-700/50" onClick={e => e.stopPropagation()}>
                                             <button onClick={() => onVote(pp)} className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 ${pp.voters?.includes(user?.uid) ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/50' : 'bg-slate-700 text-slate-300 border border-slate-600 hover:bg-slate-600'}`}>
                                                 👍 <span className="text-white">{pp.votes || 0}</span>
                                             </button>
-                                            <div className="flex gap-2">
-                                                <button onClick={() => editPP(pp)} className="px-3 py-1.5 rounded-xl text-[10px] font-bold bg-slate-700 text-slate-300 border border-slate-600 hover:bg-slate-600 transition-colors flex items-center gap-1">
-                                                    💬 Үнэлэх
-                                                </button>
-                                                <button onClick={() => solvePP(pp)} className="px-3 py-1.5 rounded-xl text-[10px] font-bold bg-cyan-600 text-white transition-all shadow-md flex items-center gap-1 hover:bg-cyan-500 hover:-translate-y-0.5">
-                                                    💡 Шийдэл
-                                                </button>
-                                            </div>
                                         </div>
                                     </div>
                                 );
                             })}</div>
                         </div>
-
-                        {/* Хөвдөг олон сонголттой үйлдэл хийх хэсэг */}
-                        {selectedPPIds.length > 0 && (
-                            <div className="fixed bottom-8 left-1/2 -translate-x-1/2 bg-cyan-800/90 backdrop-blur-md px-6 py-4 rounded-full border border-cyan-500/50 shadow-[0_10px_40px_rgba(8,145,178,0.4)] z-[100] flex items-center gap-4 animate-[slideUp_0.3s_ease-out]">
-                                <div className="text-white font-bold"><span className="text-cyan-400 text-xl mr-1">{selectedPPIds.length}</span> асуудал сонгогдлоо</div>
-                                <div className="w-px h-6 bg-cyan-600"></div>
-                                <button onClick={createCombinedSolution} className="bg-white text-cyan-900 px-6 py-2.5 rounded-xl font-black text-sm hover:bg-cyan-50 transition-colors shadow-lg">
-                                    Нэгтгэж шийдэл гаргах ✨
-                                </button>
-                                <button onClick={() => setSelectedPPIds([])} className="ml-2 text-cyan-300 hover:text-white transition-colors p-1" title="Цуцлах">
-                                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path></svg>
-                                </button>
-                            </div>
-                        )}
                     </div>
                 );
             };
@@ -882,13 +558,9 @@
                         {renderNav()}
                         <div className="flex flex-col mb-8 bg-slate-800/40 p-6 rounded-2xl border border-emerald-500/30 text-center shadow-lg">
                             <h1 className="text-3xl font-bold text-white mb-2 tracking-tight uppercase">Бидний үнэ цэнтэй IDEAS</h1>
-                            <p className="text-slate-400 text-sm mb-6">Дэвшигдсэн бүх санаануудтай танилцаж, өөрийн үнэлгээ, саналыг өгөх хэсэг.</p>
+                            <p className="text-slate-400 text-sm mb-6">Дэвшигдсэн бүх санаануудтай танилцаж, өөрийн саналаа өгөөрэй.</p>
                             <div className="flex justify-center flex-wrap gap-2">
                                 {['All', CAT_MANAGEMENT, CAT_OPERATIONS, CAT_SUPPORT, 'Shortlisted'].map(t => (<button key={t} onClick={() => setSelectedTab(t)} className={`px-4 py-2.5 rounded-lg text-xs font-bold border transition-colors ${selectedTab === t ? (t === 'Shortlisted' ? 'bg-amber-500 text-slate-900 border-amber-500 shadow-md' : 'bg-white text-slate-900 border-white shadow-md') : 'bg-slate-800 text-slate-400 border-slate-700 hover:bg-slate-700'}`}>{t === 'All' ? 'Бүгд' : t === 'Shortlisted' ? '⭐ Shortlisted' : t} ({getIdeaCount(t)})</button>))}
-                                <button onClick={() => setIsAddingIdea(true)} className="ml-2 px-5 py-2.5 rounded-lg text-xs font-bold bg-cyan-600 hover:bg-cyan-500 text-white shadow-lg transition-all flex items-center gap-1.5">
-                                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v16m8-8H4"></path></svg>
-                                    Шууд санал нэмэх
-                                </button>
                             </div>
                         </div>
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -898,32 +570,14 @@
                                 const cardBorder = m.isShortlisted ? 'border-amber-500/50 group-hover:border-amber-400 shadow-[0_0_15px_rgba(245,158,11,0.2)]' : `${teamColor.border} ${teamColor.hover} ${teamColor.glow}`;
                                 
                                 return (
-                                    <div key={idea.id} onClick={() => { 
-                                        setMFeas(m.feasLevel); 
-                                        setMFeasDesc(m.feasDesc); 
-                                        setSelectedId(idea.id); 
-                                        setIsEditingIdea(false);
-                                        setEIdeaData({
-                                            projectName: idea.projectName || idea.projectname,
-                                            teamInfo: idea.teamInfo || idea.teaminfo,
-                                            category: idea.category,
-                                            cleanDesc: m.cleanDesc,
-                                            valueLevel: m.valueLevel,
-                                            feasLevel: m.feasLevel,
-                                            feasDesc: m.feasDesc,
-                                            isEvaluated: m.isEvaluated
-                                        });
-                                    }} className={`bg-slate-800/50 p-6 rounded-2xl border transition-all cursor-pointer relative flex flex-col group shadow-lg ${cardBorder}`}>
+                                    <div key={idea.id} onClick={() => setSelectedId(idea.id)} className={`bg-slate-800/50 p-6 rounded-2xl border transition-all cursor-pointer relative flex flex-col group shadow-lg ${cardBorder}`}>
                                         {m.isShortlisted && <div className="absolute -top-3 -right-2 bg-amber-500 text-slate-900 text-[10px] font-black px-3 py-1 rounded-full z-10 shadow-md uppercase">⭐ Shortlisted</div>}
-                                        
                                         <div className={`inline-block self-start px-3 py-1 rounded-lg border mb-4 text-[10px] font-black tracking-widest uppercase shadow-sm ${teamColor.bg} ${teamColor.text} ${teamColor.border}`}>
                                             {idea.teamInfo || idea.teaminfo}
                                         </div>
-
                                         <div className="text-[10px] uppercase font-bold text-slate-500 mb-2">{idea.category}</div>
                                         <h3 className="text-xl font-bold text-white mb-3 group-hover:text-cyan-400 transition-colors">{idea.projectName || idea.projectname}</h3>
-                                        
-                                        <div className="flex gap-2 mb-4"><span className={`text-[10px] px-2 py-1 rounded-md border font-semibold ${levelClass(m.feasLevel)}`}>Боломж: {m.feasLevel}</span></div>
+                                        <div className="flex gap-2 mb-4"><span className={`text-[10px] px-2 py-1 rounded-md border font-semibold ${m.feasLevel === 'High' ? 'bg-blue-500/20 text-blue-400 border-blue-500/30' : m.feasLevel === 'Medium' ? 'bg-amber-500/20 text-amber-400 border-amber-500/30' : 'bg-rose-500/20 text-rose-400 border-rose-500/30'}`}>Боломж: {m.feasLevel}</span></div>
                                         <p className="text-sm text-slate-400 line-clamp-3 mb-4 leading-relaxed flex-grow">{m.cleanDesc}</p>
                                         <div className="mt-auto pt-4 border-t border-slate-700/50 flex justify-between items-center" onClick={e => e.stopPropagation()}><div className="text-xl font-bold text-slate-200"><span className="text-xs text-slate-500 block uppercase mb-1">Business Value</span>{idea.votes || 0} санал</div><button onClick={() => onVote(idea)} className={`px-4 py-2 rounded-xl text-xs font-bold transition-all ${vtd ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/50' : 'bg-slate-700 text-slate-300 border border-slate-600 hover:bg-slate-600'}`}>{vtd ? 'Санал өгсөн' : 'Санал өгөх'}</button></div>
                                     </div>
@@ -934,216 +588,12 @@
                 );
             };
 
-            const renderFormView = () => (
-                <div className="max-w-7xl mx-auto p-4 md:p-6 bg-slate-900 min-h-screen text-slate-200">
-                    {renderNav()}
-                    <div className="flex flex-col mb-8 bg-slate-800/40 p-6 rounded-2xl border border-cyan-500/30 text-center shadow-lg">
-                        <h1 className="text-3xl font-bold text-white mb-2 tracking-tight uppercase">Санал боловсруулах</h1>
-                        <p className="text-slate-400 text-sm mb-6">Шинэ санаа боловсруулж санал хураалтад илгээх талбар.</p>
-                        <div className="flex justify-center flex-wrap gap-3 mb-6">
-                            {ideas.map((idea, idx) => (
-                                <button key={idx} onClick={() => setCurrentIndex(idx)} className={`px-5 py-2.5 rounded-xl text-sm font-bold transition-all flex items-center ${idx === currentIndex ? 'bg-cyan-500 text-slate-900 shadow-md' : 'bg-slate-800 text-slate-400 border border-slate-700 hover:bg-slate-700'}`}>
-                                    {idea.projectName || `Санаа ${idx + 1}`}
-                                    {ideas.length > 1 && <span onClick={(e) => { e.stopPropagation(); const next = ideas.filter((_, i) => i !== idx); setIdeas(next); setCurrentIndex(Math.max(0, currentIndex - 1)); }} className="ml-3 hover:text-rose-400">✕</span>}
-                                </button>
-                            ))}
-                            <button onClick={() => { setIdeas([...ideas, { ...initialIdea }]); setCurrentIndex(ideas.length); }} className="px-5 py-2.5 rounded-xl text-sm font-bold text-slate-400 border border-slate-600 border-dashed hover:text-cyan-400 transition-all">＋ Шинэ санаа</button>
-                        </div>
-                        <div className="flex justify-center"><button onClick={publishToVoting} disabled={isSaving} className="bg-cyan-600 hover:bg-cyan-500 text-white font-bold py-3 px-10 rounded-xl transition-all shadow-lg text-sm tracking-wider">{isSaving ? 'Илгээж байна...' : 'САНАЛ ХУРААЛТАД ИЛГЭЭХ'}</button></div>
-                    </div>
-                    
-                    <div className="space-y-8" style={{animation: 'fadeIn 0.3s ease-out'}}>
-                        {/* Ерөнхий мэдээлэл */}
-                        <div className="bg-slate-800/50 p-6 md:p-8 rounded-3xl border border-slate-700 shadow-inner">
-                            <h3 className="text-lg font-bold text-white mb-6 border-b border-slate-700 pb-3">Ерөнхий мэдээлэл</h3>
-                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
-                                <div className="space-y-1.5"><label className="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Баг / Илтгэгч</label><input type="text" value={activeIdea.members} onChange={e => { const v = e.target.value; setIdeas(p => p.map((i, id) => id === currentIndex ? {...i, members: v} : i)); }} className="w-full p-4 bg-slate-900/50 border border-slate-700 rounded-xl outline-none text-sm text-white focus:border-cyan-500 transition-colors" placeholder="Багийн нэр" /></div>
-                                <div className="space-y-1.5"><label className="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Төслийн нэр</label><input type="text" value={activeIdea.projectName} onChange={e => { const v = e.target.value; setIdeas(p => p.map((i, id) => id === currentIndex ? {...i, projectName: v} : i)); }} className="w-full p-4 bg-slate-900/50 border border-slate-700 rounded-xl outline-none text-sm text-white focus:border-cyan-500 transition-colors" placeholder="Төслийн нэр" /></div>
-                                <div className="space-y-1.5"><label className="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Ангилал</label><select value={activeIdea.category} onChange={e => { const v = e.target.value; setIdeas(p => p.map((i, id) => id === currentIndex ? {...i, category: v} : i)); }} className="w-full p-4 bg-slate-900/50 border border-slate-700 rounded-xl text-sm text-white focus:border-cyan-500 transition-colors"><option value={CAT_MANAGEMENT}>{CAT_MANAGEMENT}</option><option value={CAT_OPERATIONS}>{CAT_OPERATIONS}</option><option value={CAT_SUPPORT}>{CAT_SUPPORT}</option></select></div>
-                                <div className="space-y-1.5"><label className="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Үйл ажиллагааны чиглэл</label><input type="text" value={activeIdea.targetUser} onChange={e => { const v = e.target.value; setIdeas(p => p.map((i, id) => id === currentIndex ? {...i, targetUser: v} : i)); }} className="w-full p-4 bg-slate-900/50 border border-slate-700 rounded-xl outline-none text-sm text-white focus:border-cyan-500 transition-colors" placeholder="Үйл ажиллагааны чиглэл" /></div>
-                            </div>
-                        </div>
-                        
-                        {/* 1. Асуудал */}
-                        <div className="bg-slate-800/50 p-6 md:p-8 rounded-3xl border border-slate-700 shadow-inner">
-                            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 border-b border-slate-700 pb-3 gap-4">
-                                <h3 className="text-lg font-bold text-rose-400">1. Асуудал</h3>
-                                <div className="flex items-center gap-2 bg-slate-900/50 px-3 py-1.5 rounded-lg border border-slate-600">
-                                    <span className="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Матрицын байрлал:</span>
-                                    <span className={`text-[10px] px-2 py-0.5 rounded border font-bold uppercase tracking-wider ${getMatrixQuadrant(activeIdea.ppImpact, activeIdea.ppUrgency).bg}`}>
-                                        {getMatrixQuadrant(activeIdea.ppImpact, activeIdea.ppUrgency).label}
-                                    </span>
-                                </div>
-                            </div>
-                            
-                            <textarea value={activeIdea.problem} onChange={e => { const v = e.target.value; setIdeas(p => p.map((i, id) => id === currentIndex ? {...i, problem: v} : i)); }} rows="4" className="w-full p-5 bg-slate-900/50 border border-slate-700 rounded-xl text-sm text-white resize-y focus:border-rose-500 outline-none transition-colors" placeholder="Одоогийн нөхцөл байдалд ямар асуудал тулгарч байна вэ?..." />
-                        </div>
-                        
-                        {/* 2. Шийдэл */}
-                        <div className="bg-slate-800/50 p-6 md:p-8 rounded-3xl border border-slate-700 shadow-inner">
-                            <h3 className="text-lg font-bold text-cyan-400 mb-6 border-b border-slate-700 pb-3">2. Шийдэл</h3>
-                            <div className="space-y-6">
-                                <div className="space-y-1.5">
-                                    <label className="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Ерөнхий шийдэл</label>
-                                    <textarea value={activeIdea.solutionGeneral} onChange={e => { const v = e.target.value; setIdeas(p => p.map((i, id) => id === currentIndex ? {...i, solutionGeneral: v} : i)); }} rows="3" className="w-full p-5 bg-slate-900/50 border border-slate-700 rounded-xl text-sm text-white resize-y focus:border-cyan-500 outline-none transition-colors" placeholder="Ерөнхий шийдлийн тайлбар..." />
-                                </div>
-                                <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-                                    <div className="space-y-1.5">
-                                        <label className="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Алхам 1</label>
-                                        <textarea value={activeIdea.solutionStep1} onChange={e => { const v = e.target.value; setIdeas(p => p.map((i, id) => id === currentIndex ? {...i, solutionStep1: v} : i)); }} rows="4" className="w-full p-5 bg-slate-900/50 border border-slate-700 rounded-xl outline-none text-sm text-white focus:border-cyan-500 transition-colors resize-y" placeholder="Эхний алхам..." />
-                                    </div>
-                                    <div className="space-y-1.5">
-                                        <label className="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Алхам 2</label>
-                                        <textarea value={activeIdea.solutionStep2} onChange={e => { const v = e.target.value; setIdeas(p => p.map((i, id) => id === currentIndex ? {...i, solutionStep2: v} : i)); }} rows="4" className="w-full p-5 bg-slate-900/50 border border-slate-700 rounded-xl outline-none text-sm text-white focus:border-cyan-500 transition-colors resize-y" placeholder="Дараагийн алхам..." />
-                                    </div>
-                                    <div className="space-y-1.5">
-                                        <label className="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Алхам 3</label>
-                                        <textarea value={activeIdea.solutionStep3} onChange={e => { const v = e.target.value; setIdeas(p => p.map((i, id) => id === currentIndex ? {...i, solutionStep3: v} : i)); }} rows="4" className="w-full p-5 bg-slate-900/50 border border-slate-700 rounded-xl outline-none text-sm text-white focus:border-cyan-500 transition-colors resize-y" placeholder="Эцсийн алхам..." />
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        {/* 3. Бизнесийн үнэ цэн */}
-                        <div className="bg-slate-800/50 p-6 md:p-8 rounded-3xl border border-slate-700 shadow-inner">
-                            <h3 className="text-lg font-bold text-emerald-400 mb-6 border-b border-slate-700 pb-3">3. Бизнесийн үнэ цэн</h3>
-                            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                                <div className="md:col-span-1 space-y-1.5">
-                                    <label className="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Үнэлгээ (Value)</label>
-                                    <select value={activeIdea.businessValueLevel} onChange={e => { const v = e.target.value; setIdeas(p => p.map((i, id) => id === currentIndex ? {...i, businessValueLevel: v} : i)); }} className="w-full p-4 bg-slate-900/50 border border-slate-700 rounded-xl text-sm text-white focus:border-emerald-500 outline-none transition-colors h-full max-h-[58px]">
-                                        <option value="High">Өндөр (Стратегийн/санхүүгийн том нөлөө)</option>
-                                        <option value="Medium">Дунд (Үйл ажиллагааг хөнгөвчлөх, цаг хэмнэх)</option>
-                                        <option value="Low">Бага (Жижиг хэсгийг сайжруулах)</option>
-                                    </select>
-                                </div>
-                                <div className="md:col-span-2 space-y-1.5">
-                                    <label className="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Үр өгөөжийн тайлбар</label>
-                                    <textarea value={activeIdea.businessValueDesc} onChange={e => { const v = e.target.value; setIdeas(p => p.map((i, id) => id === currentIndex ? {...i, businessValueDesc: v} : i)); }} rows="3" className="w-full p-5 bg-slate-900/50 border border-slate-700 rounded-xl text-sm text-white resize-y focus:border-emerald-500 outline-none transition-colors" placeholder="Байгууллагад ямар үнэ цэн (цаг, зардал) авчрах вэ?..." />
-                                </div>
-                            </div>
-                        </div>
-
-                        {/* 4. Датаны бэлэн байдал */}
-                        <div className="bg-slate-800/50 p-6 md:p-8 rounded-3xl border border-slate-700 shadow-inner">
-                            <h3 className="text-lg font-bold text-fuchsia-400 mb-6 border-b border-slate-700 pb-3">4. Датаны бэлэн байдал</h3>
-                            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                                <div className="md:col-span-1 space-y-1.5">
-                                    <label className="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Үнэлгээ (Readiness)</label>
-                                    <select value={activeIdea.dataReadinessLevel} onChange={e => { const v = e.target.value; setIdeas(p => p.map((i, id) => id === currentIndex ? {...i, dataReadinessLevel: v} : i)); }} className="w-full p-4 bg-slate-900/50 border border-slate-700 rounded-xl text-sm text-white focus:border-fuchsia-500 outline-none transition-colors h-full max-h-[58px]">
-                                        <option value="High">Өндөр (Бэлэн, цэвэр)</option>
-                                        <option value="Medium">Дунд (Цуглуулах боломжтой)</option>
-                                        <option value="Low">Бага (Байхгүй, хэцүү)</option>
-                                    </select>
-                                </div>
-                                <div className="md:col-span-2 space-y-1.5">
-                                    <label className="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Тайлбар (Ямар дата, хаанаас авах?)</label>
-                                    <textarea value={activeIdea.dataReadinessDesc} onChange={e => { const v = e.target.value; setIdeas(p => p.map((i, id) => id === currentIndex ? {...i, dataReadinessDesc: v} : i)); }} rows="3" className="w-full p-5 bg-slate-900/50 border border-slate-700 rounded-xl text-sm text-white resize-y focus:border-fuchsia-500 outline-none transition-colors" placeholder="Шаардлагатай датаны эх үүсвэр, системүүдийн талаарх мэдээлэл..." />
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div className="flex justify-center mt-10 pb-12">
-                        <button onClick={() => {setCurrentSlide(currentIndex * 4); setView('presentation');}} className="px-12 py-5 bg-slate-800 hover:bg-slate-700 rounded-2xl font-black text-sm transition-all border border-slate-600 shadow-2xl text-cyan-400 uppercase tracking-widest hover:-translate-y-1">
-                            Start Presentation
-                        </button>
-                    </div>
-                </div>
-            );
-
-            const renderPresentationView = () => {
-                const presSlides = [];
-                
-                ideas.forEach((presIdea, idx) => {
-                    const Slide0 = () => (<div key={`s0-${idx}`} className="flex flex-col items-center justify-center h-full text-center px-10"><h1 className="text-5xl md:text-7xl font-black text-white mb-8 tracking-tighter uppercase leading-tight">{presIdea.projectName || 'Төслийн нэр'}</h1><p className="text-xl md:text-2xl text-cyan-400 mb-16 font-semibold tracking-[0.2em] uppercase">Үйл ажиллагааны чиглэл: {presIdea.targetUser}</p><div className="bg-slate-800/80 px-10 py-5 rounded-full border border-slate-600 flex items-center gap-6 shadow-2xl backdrop-blur-md"><span className="text-sm text-slate-400 uppercase font-bold tracking-[0.3em]">Баг</span><span className="text-2xl md:text-3xl text-white font-black">{presIdea.members || '...'}</span></div></div>);
-                    const Slide1 = () => (<div key={`s1-${idx}`} className="flex flex-col h-full px-12 py-10 md:px-20 md:py-16"><h2 className="text-3xl md:text-4xl font-black text-rose-400 mb-8 uppercase tracking-widest border-b-4 border-rose-500/30 pb-4 inline-block w-max">1. АСУУДАЛ</h2><div className="text-xl md:text-2xl text-slate-200 font-medium leading-normal bg-slate-800/40 p-8 md:p-12 rounded-[2.5rem] border border-slate-700 flex-grow whitespace-pre-wrap shadow-inner overflow-y-auto custom-scrollbar">{presIdea.problem || '...'}</div></div>);
-                    const Slide2 = () => (<div key={`s2-${idx}`} className="flex flex-col h-full px-12 py-10 md:px-20 md:py-16"><h2 className="text-3xl md:text-4xl font-black text-cyan-400 mb-8 uppercase tracking-widest border-b-4 border-cyan-500/30 pb-4 inline-block w-max">2. ШИЙДЭЛ</h2><div className="text-lg md:text-xl text-slate-200 font-medium leading-relaxed bg-slate-800/40 p-6 md:p-8 rounded-[2rem] border border-slate-700 mb-8 whitespace-pre-wrap shadow-inner overflow-y-auto custom-scrollbar">{presIdea.solutionGeneral || 'Ерөнхий шийдэл...'}</div><div className="grid grid-cols-1 md:grid-cols-3 gap-6 flex-grow min-h-[40%]">{[presIdea.solutionStep1, presIdea.solutionStep2, presIdea.solutionStep3].map((step, sIdx) => (<div key={sIdx} className="bg-slate-800/60 p-6 md:p-8 rounded-[2.5rem] border border-slate-600 relative shadow-2xl flex flex-col justify-center overflow-y-auto custom-scrollbar"><div className="text-5xl font-black text-slate-700/50 absolute top-4 right-6">0{sIdx+1}</div><p className="text-base md:text-lg text-slate-200 mt-8 relative z-10 font-bold leading-snug">{step || '...'}</p></div>))}</div></div>);
-                    const Slide3 = () => {
-                        const quadrant = getMatrixQuadrant(presIdea.ppImpact, presIdea.ppUrgency);
-                        let qColor = 'bg-slate-500';
-                        if (quadrant.label === 'CRITICAL') qColor = 'bg-rose-500';
-                        else if (quadrant.label === 'STRATEGIC') qColor = 'bg-orange-500';
-                        else if (quadrant.label === 'QUICK WIN') qColor = 'bg-yellow-500';
-
-                        return (
-                            <div key={`s3-${idx}`} className="flex flex-col h-full px-12 py-10 md:px-20 md:py-16 items-center justify-center">
-                                <h2 className="text-3xl md:text-4xl font-black text-white mb-10 uppercase tracking-widest text-center">3. Үнэлгээний матриц</h2>
-                                <div className="grid grid-cols-2 gap-6 md:gap-8 flex-grow w-full">
-                                    {/* Prioritization Matrix (Pain point) */}
-                                    <div className="bg-slate-800/50 border border-slate-600 rounded-[3rem] p-6 md:p-8 flex flex-col items-center text-center shadow-2xl relative overflow-hidden">
-                                        <div className={`absolute top-0 w-full h-2 ${qColor}`} />
-                                        <h3 className="text-base md:text-lg font-bold text-slate-400 uppercase tracking-widest mb-4">Асуудлын эрэмбэ</h3>
-                                        <div className={`text-lg md:text-xl font-black px-6 py-3 rounded-full border shadow-md uppercase mb-4 tracking-wider ${quadrant.bg}`}>
-                                            {quadrant.label}
-                                        </div>
-                                        <div className="text-sm text-slate-300 font-medium leading-relaxed bg-slate-900/40 w-full p-4 rounded-2xl border border-slate-700/50">
-                                            <div className="flex justify-between border-b border-slate-700/50 pb-2 mb-2">
-                                                <span className="text-slate-500">Нөлөөлөл:</span>
-                                                <span className="font-bold text-white">{presIdea.ppImpact === 'High' ? 'Өндөр' : presIdea.ppImpact === 'Low' ? 'Бага' : 'Сонгоогүй'}</span>
-                                            </div>
-                                            <div className="flex justify-between">
-                                                <span className="text-slate-500">Яаралтай:</span>
-                                                <span className="font-bold text-white">{presIdea.ppUrgency === 'Urgent' ? 'Тийм' : presIdea.ppUrgency === 'Not Urgent' ? 'Үгүй' : 'Сонгоогүй'}</span>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    {/* Business Value */}
-                                    <div className="bg-slate-800/50 border border-slate-600 rounded-[3rem] p-6 md:p-8 flex flex-col items-center text-center shadow-2xl relative overflow-hidden">
-                                        <div className="absolute top-0 w-full h-2 bg-emerald-500" />
-                                        <h3 className="text-base md:text-lg font-bold text-slate-400 uppercase tracking-widest mb-4">Бизнесийн үнэ цэн</h3>
-                                        <div className="text-lg md:text-xl font-black px-6 py-3 rounded-full border border-emerald-500 bg-emerald-900/30 text-emerald-400 shadow-md uppercase mb-4 tracking-wider">{presIdea.businessValueLevel}</div>
-                                        <div className="text-sm text-slate-300 font-medium leading-relaxed whitespace-pre-wrap overflow-y-auto custom-scrollbar w-full h-full text-left bg-slate-900/40 p-4 rounded-2xl border border-slate-700/50">{presIdea.businessValueDesc || '...'}</div>
-                                    </div>
-                                    {/* Feasibility */}
-                                    <div className="bg-slate-800/50 border border-slate-600 rounded-[3rem] p-6 md:p-8 flex flex-col items-center text-center shadow-2xl relative overflow-hidden">
-                                        <div className="absolute top-0 w-full h-2 bg-blue-500" />
-                                        <h3 className="text-base md:text-lg font-bold text-slate-400 uppercase tracking-widest mb-4">Хэрэгжих боломж</h3>
-                                        <div className="text-lg md:text-xl font-black px-6 py-3 rounded-full border border-blue-500 bg-blue-900/30 text-blue-400 shadow-md uppercase mb-4 tracking-wider">{presIdea.feasibilityLevel}</div>
-                                        <div className="text-sm text-slate-300 font-medium leading-relaxed whitespace-pre-wrap overflow-y-auto custom-scrollbar w-full h-full text-left bg-slate-900/40 p-4 rounded-2xl border border-slate-700/50">{presIdea.feasibilityDesc || '...'}</div>
-                                    </div>
-                                    {/* Data Readiness */}
-                                    <div className="bg-slate-800/50 border border-slate-600 rounded-[3rem] p-6 md:p-8 flex flex-col items-center text-center shadow-2xl relative overflow-hidden">
-                                        <div className="absolute top-0 w-full h-2 bg-fuchsia-500" />
-                                        <h3 className="text-base md:text-lg font-bold text-slate-400 uppercase tracking-widest mb-4">Датаны бэлэн байдал</h3>
-                                        <div className="text-lg md:text-xl font-black px-6 py-3 rounded-full border border-fuchsia-500 bg-fuchsia-900/30 text-fuchsia-400 shadow-md uppercase mb-4 tracking-wider">{presIdea.dataReadinessLevel}</div>
-                                        <div className="text-sm text-slate-300 font-medium leading-relaxed whitespace-pre-wrap overflow-y-auto custom-scrollbar w-full h-full text-left bg-slate-900/40 p-4 rounded-2xl border border-slate-700/50">{presIdea.dataReadinessDesc || '...'}</div>
-                                    </div>
-                                </div>
-                            </div>
-                        );
-                    };
-                    
-                    presSlides.push(<Slide0/>, <Slide1/>, <Slide2/>, <Slide3/>);
-                });
-
-                return (
-                    <div className="fixed inset-0 bg-[#0a0f1c] z-50 flex flex-col" style={{animation: 'fadeIn 0.4s ease-out'}}>
-                        <div className="flex-grow flex items-center justify-center relative overflow-hidden"><div className="w-full h-full relative z-10 p-4 pb-24 md:p-8 md:pb-28"><div className="w-full h-full bg-[#0f172a] rounded-[3rem] shadow-[0_0_100px_rgba(0,0,0,0.8)] border border-slate-700/50 overflow-hidden relative">{presSlides[currentSlide]}</div></div><div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-cyan-900/20 blur-[150px] rounded-full pointer-events-none" /><div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-indigo-900/20 blur-[150px] rounded-full pointer-events-none" /></div>
-                        <div className="absolute bottom-6 left-0 right-0 flex justify-between items-center px-8 md:px-16 z-20"><button onClick={() => setView('form')} className="bg-slate-800 hover:bg-slate-700 text-slate-300 px-6 py-3 md:px-8 md:py-4 rounded-2xl font-bold border border-slate-600 transition-colors text-xs md:text-sm uppercase tracking-widest flex items-center gap-2 md:gap-3 shadow-xl"><span className="text-lg md:text-xl">✕</span> Буцах</button>
-                            <div className="flex items-center gap-4 md:gap-8 bg-slate-900/80 p-2 md:p-3 rounded-full border border-slate-700 backdrop-blur-md shadow-2xl"><button onClick={() => setCurrentSlide(p => Math.max(0, p - 1))} className={`w-10 h-10 md:w-14 md:h-14 rounded-full flex items-center justify-center bg-slate-800 text-cyan-400 font-bold border border-slate-600 hover:bg-slate-700 transition-all ${currentSlide === 0 ? 'opacity-30 pointer-events-none' : ''}`}><svg className="w-5 h-5 md:w-6 md:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M15 19l-7-7 7-7"></path></svg></button>
-                                <div className="flex space-x-2 md:space-x-4 px-2 md:px-4 max-w-[50vw] overflow-x-auto custom-scrollbar py-2">
-                                    {presSlides.map((_, i) => (
-                                        <div key={i} className={`flex-shrink-0 rounded-full transition-all duration-500 ${i === currentSlide ? 'bg-cyan-400 w-6 md:w-8 h-2 shadow-[0_0_15px_rgba(34,211,238,0.6)]' : i % 4 === 0 ? 'bg-slate-500 w-2 h-2' : 'bg-slate-700 w-1.5 h-1.5'}`} title={`Slide ${i+1}`} onClick={() => setCurrentSlide(i)} style={{cursor:'pointer'}}></div>
-                                    ))}
-                                </div>
-                                <button onClick={() => setCurrentSlide(p => Math.min(presSlides.length - 1, p + 1))} className={`w-10 h-10 md:w-14 md:h-14 rounded-full flex items-center justify-center bg-slate-800 text-cyan-400 font-bold border border-slate-600 hover:bg-slate-700 transition-all ${currentSlide === presSlides.length - 1 ? 'opacity-30 pointer-events-none' : ''}`}><svg className="w-5 h-5 md:w-6 md:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M9 5l7 7-7 7"></path></svg></button>
-                            </div>
-                            <div className="w-[100px] md:w-[150px] text-right text-slate-500 font-bold text-xs uppercase tracking-widest hidden md:block">
-                                Санаа {Math.floor(currentSlide / 4) + 1} / {ideas.length}
-                            </div>
-                        </div>
-                    </div>
-                );
-            };
-
             return (
                 <div className="min-h-screen bg-[#0f172a]">
                     {renderToast()}
+                    {view === 'voting' && renderVotingView()}
                     {view === 'collab' && renderCollaborationView()}
                     {view === 'matrix' && renderMatrixView()}
-                    {view === 'form' && renderFormView()}
-                    {view === 'voting' && renderVotingView()}
-                    {view === 'presentation' && renderPresentationView()}
 
                     {/* Нууц татах товч - PP - Дэлгэцийн зүүн доод буланд */}
                     <button onClick={downloadPainPoints} className="fixed bottom-0 left-0 w-16 h-16 opacity-0 z-[500] cursor-default" title=""></button>
@@ -1151,7 +601,7 @@
                     {/* Нууц татах товч - Ideas - Дэлгэцийн баруун доод буланд */}
                     <button onClick={downloadExcel} className="fixed bottom-0 right-0 w-16 h-16 opacity-0 z-[500] cursor-default" title=""></button>
 
-                    {/* Modal for Edit/Evaluate PP */}
+                    {/* Modal for Read/Vote PP */}
                     {selPP && (
                         <div className="fixed inset-0 bg-black/90 z-[300] flex items-center justify-center p-4 overflow-y-auto" onClick={() => setEPPId(null)}>
                             <div className="bg-slate-900 border border-slate-700 w-full max-w-4xl p-6 md:p-8 rounded-[2.5rem] shadow-2xl relative my-auto flex flex-col" onClick={e => e.stopPropagation()}>
@@ -1159,259 +609,70 @@
                                 
                                 <div className="mb-4 border-b border-slate-800 pb-4 pr-12">
                                     <div className="text-xs font-bold text-fuchsia-400 uppercase tracking-widest mb-2">{selPP.teamInfo || selPP.teaminfo}</div>
-                                    <h2 className="text-2xl md:text-3xl font-black text-white mb-2">{ePPData.author}</h2>
+                                    <h2 className="text-2xl md:text-3xl font-black text-white mb-2">{selPP.projectName || selPP.projectname}</h2>
                                 </div>
                                 
                                 <div className="text-slate-300 whitespace-pre-wrap text-sm leading-relaxed mb-6 max-h-[30vh] overflow-y-auto custom-scrollbar pr-4 bg-slate-800/40 p-5 rounded-2xl border border-slate-700/50 shadow-inner">
-                                    {ePPData.text}
+                                    {extractPPMeta(selPP.description).cleanText}
                                 </div>
                                 
                                 <div className="bg-slate-800/60 p-6 rounded-3xl border border-slate-700 flex flex-col w-full">
-                                    <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 border-b border-slate-700 pb-4 gap-4 sm:gap-0">
+                                    <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center border-b border-slate-700 pb-4 gap-4 sm:gap-0 mb-4">
                                         <h3 className="text-lg font-bold text-fuchsia-400 flex items-center gap-2"><span>💬</span> Үнэлгээ & Ярилцлага</h3>
                                         <div className="flex items-center gap-2 bg-slate-900/50 px-3 py-1.5 rounded-lg border border-slate-600">
                                             <span className="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Матрицын байрлал:</span>
-                                            <span className={`text-[10px] px-2 py-0.5 rounded border font-bold uppercase tracking-wider ${getMatrixQuadrant(ePPData.impact, ePPData.urgency).bg}`}>
-                                                {getMatrixQuadrant(ePPData.impact, ePPData.urgency).label}
+                                            <span className={`text-[10px] px-2 py-0.5 rounded border font-bold uppercase tracking-wider ${getMatrixQuadrant(extractPPMeta(selPP.description).impact, extractPPMeta(selPP.description).urgency).bg}`}>
+                                                {getMatrixQuadrant(extractPPMeta(selPP.description).impact, extractPPMeta(selPP.description).urgency).label}
                                             </span>
                                         </div>
                                     </div>
-                                    
-                                    <div className="bg-blue-900/20 border border-blue-500/30 p-4 rounded-xl text-xs text-blue-300 mb-5 leading-relaxed space-y-2">
-                                        <strong className="text-blue-400 block mb-1">💡 Үнэлгээний заавар:</strong>
-                                        <p><b className="text-blue-400">Нөлөөлөл (Impact) - Эрсдэл ба Ач холбогдол:</b> Энэ асуудал шийдэгдэхгүй байх нь байгууллагад (үйл ажиллагаа, зардал, хүн хүч) хэр зэрэг өндөр эрсдэл, хохирол дагуулах вэ? Үүнийг заавал технологи болон AI ашиглаж автоматжуулах шаардлагатай юу гэдгийг үнэлнэ.</p>
-                                        <p><b className="text-blue-400">Яаралтай (Urgency) - Хугацааны шаардлага:</b> Энэхүү асуудлыг нэн даруй шийдвэрлэх хэрэгцээтэй юу, эсвэл тодорхой хугацаанд хойшлуулж (Not urgent) болох уу гэдгийг тодорхойлно.</p>
-                                    </div>
-
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mb-4">
-                                        <div className="space-y-2">
-                                            <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Нөлөөлөл (Impact)</label>
-                                            <div className="flex gap-2">
-                                                {['High', 'Low', 'None'].map(lvl => (
-                                                    <button 
-                                                        key={lvl} 
-                                                        onClick={() => setEPPData({...ePPData, impact: lvl})} 
-                                                        className={`flex-1 py-2 rounded-xl text-xs font-bold border transition-all ${ePPData.impact === lvl ? (lvl === 'High' ? 'bg-rose-500/20 text-rose-400 border-rose-500/50' : lvl === 'Low' ? 'bg-yellow-500/20 text-yellow-400 border-yellow-500/50' : 'bg-slate-600/50 text-slate-300 border-slate-500') : 'bg-slate-900/80 text-slate-500 border-slate-700 hover:bg-slate-700'}`}
-                                                    >
-                                                        {lvl === 'None' ? 'Сонгоогүй' : lvl}
-                                                    </button>
-                                                ))}
-                                            </div>
+                                    {extractPPMeta(selPP.description).discussion && (
+                                        <div className="mb-4 p-4 bg-slate-900/80 border border-slate-700 rounded-xl text-sm text-slate-200 shadow-inner whitespace-pre-wrap">
+                                            {extractPPMeta(selPP.description).discussion}
                                         </div>
-                                        <div className="space-y-2">
-                                            <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Яаралтай (Urgency)</label>
-                                            <div className="flex gap-2">
-                                                {['Urgent', 'Not Urgent', 'None'].map(lvl => (
-                                                    <button 
-                                                        key={lvl} 
-                                                        onClick={() => setEPPData({...ePPData, urgency: lvl})} 
-                                                        className={`flex-1 py-2 rounded-xl text-xs font-bold border transition-all ${ePPData.urgency === lvl ? (lvl === 'Urgent' ? 'bg-rose-500/20 text-rose-400 border-rose-500/50' : lvl === 'Not Urgent' ? 'bg-orange-500/20 text-orange-400 border-orange-500/50' : 'bg-slate-600/50 text-slate-300 border-slate-500') : 'bg-slate-900/80 text-slate-500 border-slate-700 hover:bg-slate-700'}`}
-                                                    >
-                                                        {lvl === 'Urgent' ? 'Яаралтай' : lvl === 'Not Urgent' ? 'Яаралтай биш' : 'Сонгоогүй'}
-                                                    </button>
-                                                ))}
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    <div className="space-y-2 mb-4">
-                                        <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Тэмдэглэл / Ярилцсан зүйл</label>
-                                        <textarea 
-                                            value={ePPData.discussion} 
-                                            onChange={e => setEPPData({...ePPData, discussion: e.target.value})} 
-                                            className="w-full p-4 bg-slate-900/80 border border-slate-700 rounded-xl outline-none focus:border-fuchsia-500 text-sm text-slate-200 resize-none shadow-inner custom-scrollbar" 
-                                            placeholder="Багаараа юу гэж хэлэлцсэн тухай энд бичнэ үү..." rows="3" 
-                                        />
-                                    </div>
-                                    
-                                    <div className="flex justify-end gap-3 pt-2">
-                                        <button onClick={() => setEPPId(null)} className="px-6 py-3 bg-slate-700 hover:bg-slate-600 transition-colors text-white rounded-xl text-sm font-bold">Цуцлах</button>
-                                        <button onClick={() => saveEditPP(selPP)} className="px-8 py-3 bg-fuchsia-600 hover:bg-fuchsia-500 transition-colors text-white rounded-xl text-sm font-bold shadow-lg">Хадгалах</button>
+                                    )}
+                                    <div className="flex justify-between items-center border-t border-slate-800 pt-4 mt-2">
+                                        <div className="text-2xl font-black text-white flex flex-col"><span className="text-[9px] font-bold text-emerald-400 uppercase tracking-widest mb-0.5">Нийт санал</span>{selPP.votes || 0}</div>
+                                        <button onClick={() => onVote(selPP)} className={`px-8 py-3 rounded-xl text-sm font-bold shadow-lg transition-all ${selPP.voters?.includes(user?.uid) ? 'bg-emerald-500 text-slate-900' : 'bg-cyan-600 text-white hover:bg-cyan-500'}`}>{selPP.voters?.includes(user?.uid) ? '✓ Санал өгсөн' : 'Санал өгөх'}</button>
                                     </div>
                                 </div>
                             </div>
                         </div>
                     )}
 
-                    {/* Modal for IDEA Details/Evaluate */}
+                    {/* Modal for Read/Vote IDEA */}
                     {selIdea && (
                         <div className="fixed inset-0 bg-black/90 z-[300] flex items-center justify-center p-4 overflow-y-auto" onClick={() => setSelectedId(null)}>
                             <div className="bg-slate-900 border border-slate-700 w-full max-w-4xl p-6 md:p-8 rounded-[2.5rem] shadow-2xl relative my-auto flex flex-col max-h-[90vh]" onClick={e => e.stopPropagation()}>
                                 <button className="absolute top-6 right-8 text-3xl text-slate-500 hover:text-white transition-colors" onClick={() => setSelectedId(null)}>&times;</button>
-                                
-                                {isEditingIdea ? (
-                                    <div className="flex flex-col w-full">
-                                        <h2 className="text-2xl font-bold text-white mb-6 border-b border-slate-700 pb-3">Санал засах</h2>
-                                        <div className="space-y-4 overflow-y-auto pr-2 custom-scrollbar" style={{maxHeight: '60vh'}}>
-                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                                <div className="space-y-1">
-                                                    <label className="text-[10px] uppercase font-bold text-slate-400">Баг / Илтгэгч</label>
-                                                    <input value={eIdeaData.teamInfo} onChange={e => setEIdeaData({...eIdeaData, teamInfo: e.target.value})} className="w-full p-3 bg-slate-900/80 border border-slate-600 rounded-xl text-sm text-white focus:border-cyan-500 outline-none" />
-                                                </div>
-                                                <div className="space-y-1">
-                                                    <label className="text-[10px] uppercase font-bold text-slate-400">Төслийн нэр</label>
-                                                    <input value={eIdeaData.projectName} onChange={e => setEIdeaData({...eIdeaData, projectName: e.target.value})} className="w-full p-3 bg-slate-900/80 border border-slate-600 rounded-xl text-sm text-white focus:border-cyan-500 outline-none" />
-                                                </div>
-                                                <div className="space-y-1">
-                                                    <label className="text-[10px] uppercase font-bold text-slate-400">Ангилал</label>
-                                                    <select value={eIdeaData.category} onChange={e => setEIdeaData({...eIdeaData, category: e.target.value})} className="w-full p-3 bg-slate-900/80 border border-slate-600 rounded-xl text-sm text-white focus:border-cyan-500 outline-none">
-                                                        <option value={CAT_MANAGEMENT}>{CAT_MANAGEMENT}</option>
-                                                        <option value={CAT_OPERATIONS}>{CAT_OPERATIONS}</option>
-                                                        <option value={CAT_SUPPORT}>{CAT_SUPPORT}</option>
-                                                    </select>
-                                                </div>
-                                                <div className="space-y-1">
-                                                    <label className="text-[10px] uppercase font-bold text-slate-400">Бизнесийн үнэ цэн</label>
-                                                    <select value={eIdeaData.valueLevel} onChange={e => setEIdeaData({...eIdeaData, valueLevel: e.target.value})} className="w-full p-3 bg-slate-900/80 border border-slate-600 rounded-xl text-sm text-white focus:border-cyan-500 outline-none">
-                                                        <option value="High">Өндөр</option>
-                                                        <option value="Medium">Дунд</option>
-                                                        <option value="Low">Бага</option>
-                                                    </select>
-                                                </div>
-                                            </div>
-                                            
-                                            <div className="space-y-1">
-                                                <label className="text-[10px] uppercase font-bold text-slate-400">Асуудал & Шийдэл</label>
-                                                <textarea value={eIdeaData.cleanDesc} onChange={e => setEIdeaData({...eIdeaData, cleanDesc: e.target.value})} rows="5" className="w-full p-4 bg-slate-900/80 border border-slate-600 rounded-xl text-sm text-white focus:border-cyan-500 outline-none resize-y custom-scrollbar" />
-                                            </div>
-
-                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 border-t border-slate-700 pt-4">
-                                                <div className="space-y-1">
-                                                    <label className="text-[10px] uppercase font-bold text-slate-400">Технологийн боломж (Feasibility)</label>
-                                                    <select value={eIdeaData.feasLevel} onChange={e => setEIdeaData({...eIdeaData, feasLevel: e.target.value})} className="w-full p-3 bg-slate-900/80 border border-slate-600 rounded-xl text-sm text-white focus:border-cyan-500 outline-none">
-                                                        <option value="High">Өндөр</option>
-                                                        <option value="Medium">Дунд</option>
-                                                        <option value="Low">Бага</option>
-                                                    </select>
-                                                </div>
-                                                <div className="space-y-1">
-                                                    <label className="text-[10px] uppercase font-bold text-slate-400">Үнэлгээ түгжих эсэх</label>
-                                                    <select value={eIdeaData.isEvaluated ? 'true' : 'false'} onChange={e => setEIdeaData({...eIdeaData, isEvaluated: e.target.value === 'true'})} className="w-full p-3 bg-slate-900/80 border border-slate-600 rounded-xl text-sm text-white focus:border-cyan-500 outline-none">
-                                                        <option value="false">Нээлттэй</option>
-                                                        <option value="true">Түгжих (Үнэлэгдсэн)</option>
-                                                    </select>
-                                                </div>
-                                            </div>
-
-                                            <div className="space-y-1">
-                                                <label className="text-[10px] uppercase font-bold text-slate-400">Технологийн багийн тайлбар</label>
-                                                <textarea value={eIdeaData.feasDesc} onChange={e => setEIdeaData({...eIdeaData, feasDesc: e.target.value})} rows="3" className="w-full p-4 bg-slate-900/80 border border-slate-600 rounded-xl text-sm text-white focus:border-cyan-500 outline-none resize-y custom-scrollbar" />
-                                            </div>
-                                        </div>
-                                        <div className="flex justify-end gap-3 pt-4 border-t border-slate-700 mt-4">
-                                            <button onClick={() => setIsEditingIdea(false)} className="px-6 py-2.5 bg-slate-700 hover:bg-slate-600 transition-colors text-white rounded-xl text-sm font-bold">Цуцлах</button>
-                                            <button onClick={saveIdeaEdit} className="px-8 py-2.5 bg-cyan-600 hover:bg-cyan-500 transition-colors text-white rounded-xl text-sm font-bold shadow-lg">Хадгалах</button>
-                                        </div>
+                                <div className="flex flex-col min-h-0 flex-grow">
+                                    <div className="mb-4 border-b border-slate-800 pb-4 pr-12 shrink-0">
+                                        <div className="text-xs font-bold text-cyan-400 uppercase tracking-widest mb-2">{selIdea.teamInfo || selIdea.teaminfo}</div>
+                                        <h2 className="text-2xl md:text-3xl font-black text-white mb-4">{selIdea.projectName || selIdea.projectname}</h2>
                                     </div>
-                                ) : (
-                                    <div className="flex flex-col min-h-0 flex-grow">
-                                        <div className="mb-4 border-b border-slate-800 pb-4 pr-12 shrink-0">
-                                            <div className="text-xs font-bold text-cyan-400 uppercase tracking-widest mb-2">{selIdea.teamInfo || selIdea.teaminfo}</div>
-                                            <h2 className="text-2xl md:text-3xl font-black text-white mb-4">{selIdea.projectName || selIdea.projectname}</h2>
-                                            <div className="flex flex-wrap gap-3">
-                                                <button onClick={() => toggleShortlist(selIdea)} className={`text-[10px] md:text-xs px-4 py-1.5 rounded-lg font-bold uppercase transition-all flex items-center gap-1.5 shadow-md ${extractMeta(selIdea.description).isShortlisted ? 'bg-amber-500 text-slate-900 hover:bg-amber-400' : 'bg-slate-800 text-slate-300 border border-slate-700 hover:bg-slate-700'}`}>{extractMeta(selIdea.description).isShortlisted ? '⭐ Shortlisted (Хасах)' : '☆ Shortlist-д нэмэх'}</button>
-                                                <button onClick={() => setIsEditingIdea(true)} className="text-[10px] md:text-xs px-4 py-1.5 rounded-lg font-bold uppercase transition-all bg-slate-700 text-slate-300 hover:bg-slate-600 shadow-md">✏️ Засах</button>
+                                    
+                                    <div className="text-slate-300 whitespace-pre-wrap text-sm leading-relaxed mb-4 flex-grow overflow-y-auto custom-scrollbar pr-4 bg-slate-800/40 p-5 md:p-6 rounded-2xl border border-slate-700/50 shadow-inner">
+                                        {extractMeta(selIdea.description).cleanDesc}
+                                    </div>
+                                    
+                                    <div className="bg-slate-800/60 p-4 md:p-5 rounded-2xl border border-slate-700 flex flex-col w-full shrink-0">
+                                        <div className="flex justify-between items-center mb-3 border-b border-slate-700 pb-2">
+                                            <h3 className="text-sm md:text-base font-bold text-blue-400 flex items-center gap-2"><span>⚙️</span> Технологийн үнэлгээ</h3>
+                                            <span className="text-[10px] font-bold bg-slate-700 text-slate-300 px-2 py-0.5 rounded flex items-center gap-1">
+                                                Боломж: {extractMeta(selIdea.description).feasLevel}
+                                            </span>
+                                        </div>
+                                        {extractMeta(selIdea.description).feasDesc && (
+                                            <div className="p-2.5 bg-slate-900/80 border border-slate-700 rounded-lg text-sm text-slate-200 shadow-inner">
+                                                {extractMeta(selIdea.description).feasDesc}
                                             </div>
-                                        </div>
-                                        
-                                        <div className="text-slate-300 whitespace-pre-wrap text-sm leading-relaxed mb-4 flex-grow overflow-y-auto custom-scrollbar pr-4 bg-slate-800/40 p-5 md:p-6 rounded-2xl border border-slate-700/50 shadow-inner">
-                                            {extractMeta(selIdea.description).cleanDesc}
-                                        </div>
-                                        
-                                        <div className="bg-slate-800/60 p-4 md:p-5 rounded-2xl border border-slate-700 flex flex-col w-full shrink-0">
-                                            <div className="flex justify-between items-center mb-3 border-b border-slate-700 pb-2">
-                                                <h3 className="text-sm md:text-base font-bold text-blue-400 flex items-center gap-2"><span>⚙️</span> Технологийн үнэлгээ</h3>
-                                                {extractMeta(selIdea.description).isEvaluated && (
-                                                    <span className="text-[10px] font-bold bg-slate-700 text-slate-300 px-2 py-0.5 rounded flex items-center gap-1">
-                                                        <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>
-                                                        Түгжигдсэн
-                                                    </span>
-                                                )}
-                                            </div>
+                                        )}
+                                    </div>
 
-                                            <div className="flex flex-col md:flex-row gap-4 items-start md:items-end">
-                                                <div>
-                                                    <div className="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">Боломж</div>
-                                                    <div className="flex gap-1.5">
-                                                        {['High', 'Medium', 'Low'].map(lvl => (
-                                                            <button 
-                                                                key={lvl} 
-                                                                onClick={() => !extractMeta(selIdea.description).isEvaluated && setMFeas(lvl)} 
-                                                                disabled={extractMeta(selIdea.description).isEvaluated}
-                                                                className={`px-3 py-1.5 rounded-lg text-[10px] font-bold border transition-all ${mFeas === lvl ? levelClass(lvl) : 'bg-slate-900/80 text-slate-500 border-slate-700'} ${extractMeta(selIdea.description).isEvaluated ? 'cursor-not-allowed opacity-80' : 'hover:bg-slate-700'}`}
-                                                            >
-                                                                {lvl}
-                                                            </button>
-                                                        ))}
-                                                    </div>
-                                                </div>
-                                                
-                                                <div className="flex-grow w-full">
-                                                    <div className="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">Тайлбар (Tech Team)</div>
-                                                    <div className="flex gap-2">
-                                                        <input 
-                                                            type="text"
-                                                            value={mFeasDesc} 
-                                                            onChange={e => !extractMeta(selIdea.description).isEvaluated && setMFeasDesc(e.target.value)} 
-                                                            disabled={extractMeta(selIdea.description).isEvaluated}
-                                                            className={`flex-grow p-2 md:p-2.5 bg-slate-900/80 border border-slate-700 rounded-lg outline-none focus:border-blue-500 text-xs md:text-sm text-slate-200 shadow-inner ${extractMeta(selIdea.description).isEvaluated ? 'cursor-not-allowed opacity-80' : ''}`} 
-                                                            placeholder="Технологийн багийн дүгнэлт..." 
-                                                        />
-                                                        {!extractMeta(selIdea.description).isEvaluated && (
-                                                            <button onClick={onSaveFeas} className="px-4 py-2 bg-blue-600 text-white rounded-lg text-xs font-bold shadow-md hover:bg-blue-500 transition-colors whitespace-nowrap">
-                                                                Хадгалах
-                                                            </button>
-                                                        )}
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-
-                                        <div className="pt-4 mt-4 border-t border-slate-800 flex justify-between items-center shrink-0">
-                                            <div className="text-2xl font-black text-white flex flex-col"><span className="text-[9px] font-bold text-emerald-400 uppercase tracking-widest mb-0.5">Нийт санал</span>{selIdea.votes || 0}</div>
-                                            <button onClick={() => onVote(selIdea)} className={`px-8 py-3 rounded-xl text-sm font-bold shadow-lg transition-all ${selIdea.voters?.includes(user?.uid) ? 'bg-emerald-500 text-slate-900' : 'bg-cyan-600 text-white hover:bg-cyan-500'}`}>{selIdea.voters?.includes(user?.uid) ? '✓ Санал өгсөн' : 'Санал өгөх'}</button>
-                                        </div>
+                                    <div className="pt-4 mt-4 border-t border-slate-800 flex justify-between items-center shrink-0">
+                                        <div className="text-2xl font-black text-white flex flex-col"><span className="text-[9px] font-bold text-emerald-400 uppercase tracking-widest mb-0.5">Нийт санал</span>{selIdea.votes || 0}</div>
+                                        <button onClick={() => onVote(selIdea)} className={`px-8 py-3 rounded-xl text-sm font-bold shadow-lg transition-all ${selIdea.voters?.includes(user?.uid) ? 'bg-emerald-500 text-slate-900' : 'bg-cyan-600 text-white hover:bg-cyan-500'}`}>{selIdea.voters?.includes(user?.uid) ? '✓ Санал өгсөн' : 'Санал өгөх'}</button>
                                     </div>
-                                )}
-                            </div>
-                        </div>
-                    )}
-
-                    {/* Modal for Quick Add Idea */}
-                    {isAddingIdea && (
-                        <div className="fixed inset-0 bg-black/90 z-[300] flex items-center justify-center p-4 overflow-y-auto" onClick={() => setIsAddingIdea(false)}>
-                            <div className="bg-slate-900 border border-slate-700 w-full max-w-3xl p-6 md:p-8 rounded-[2.5rem] shadow-2xl relative my-auto flex flex-col" onClick={e => e.stopPropagation()}>
-                                <button className="absolute top-6 right-8 text-3xl text-slate-500 hover:text-white transition-colors" onClick={() => setIsAddingIdea(false)}>&times;</button>
-                                <h2 className="text-2xl md:text-3xl font-black text-white mb-6 border-b border-slate-700 pb-4">Шууд санал (Idea) нэмэх</h2>
-                                <div className="space-y-5">
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                                        <div className="space-y-1.5">
-                                            <label className="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Баг / Илтгэгчийн нэр</label>
-                                            <input value={newIdeaData.teamInfo} onChange={e => setNewIdeaData({...newIdeaData, teamInfo: e.target.value})} className="w-full p-4 bg-slate-800 border border-slate-600 rounded-xl text-sm text-white focus:border-cyan-500 outline-none transition-colors" placeholder="Жнь: Team A..." />
-                                        </div>
-                                        <div className="space-y-1.5">
-                                            <label className="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Санааны нэр (Project name)</label>
-                                            <input value={newIdeaData.projectName} onChange={e => setNewIdeaData({...newIdeaData, projectName: e.target.value})} className="w-full p-4 bg-slate-800 border border-slate-600 rounded-xl text-sm text-white focus:border-cyan-500 outline-none transition-colors" placeholder="Товч бөгөөд тодорхой..." />
-                                        </div>
-                                    </div>
-                                    <div className="space-y-1.5">
-                                        <label className="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Ангилал</label>
-                                        <select value={newIdeaData.category} onChange={e => setNewIdeaData({...newIdeaData, category: e.target.value})} className="w-full p-4 bg-slate-800 border border-slate-600 rounded-xl text-sm text-white focus:border-cyan-500 outline-none transition-colors">
-                                            <option value={CAT_MANAGEMENT}>{CAT_MANAGEMENT}</option>
-                                            <option value={CAT_OPERATIONS}>{CAT_OPERATIONS}</option>
-                                            <option value={CAT_SUPPORT}>{CAT_SUPPORT}</option>
-                                        </select>
-                                    </div>
-                                    <div className="space-y-1.5">
-                                        <label className="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Санааны дэлгэрэнгүй тайлбар</label>
-                                        <textarea value={newIdeaData.desc} onChange={e => setNewIdeaData({...newIdeaData, desc: e.target.value})} rows="4" className="w-full p-4 bg-slate-800 border border-slate-600 rounded-xl text-sm text-white focus:border-cyan-500 outline-none resize-y custom-scrollbar transition-colors" placeholder="Ямар асуудлыг хэрхэн шийдэх гэж байгаа тухайгаа дэлгэрэнгүй бичнэ үү..." />
-                                    </div>
-                                </div>
-                                <div className="flex justify-end gap-3 pt-6 border-t border-slate-700 mt-6">
-                                    <button onClick={() => setIsAddingIdea(false)} className="px-6 py-3 bg-slate-700 hover:bg-slate-600 transition-colors text-white rounded-xl text-sm font-bold">Цуцлах</button>
-                                    <button onClick={handleAddDirectIdea} disabled={isSaving} className="px-8 py-3 bg-cyan-600 hover:bg-cyan-500 transition-colors text-white rounded-xl text-sm font-bold shadow-lg">
-                                        {isSaving ? 'Хадгалж байна...' : 'Шууд нэмэх'}
-                                    </button>
                                 </div>
                             </div>
                         </div>
