@@ -4,13 +4,17 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>AI in Enterprise Workshop - Voting</title>
+    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
+    <!-- React & Babel -->
     <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
     <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
     
+    <!-- Supabase JS Client -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     
+    <!-- Google Fonts (Inter) -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
@@ -165,6 +169,26 @@
                 id: 'pp_mock2', category: CAT_PAINPOINT, teamInfo: 'Хууль нийцэл, гэрээ', projectName: 'Б.Анударь',
                 description: '[PP-Impact:None|Urgency:None]\nКомпанийн үйл ажиллагаанд хамаарах 1000+ эрх зүй, стандартын шаардлагыг тодорхойлоход их хэмжээний хүн цаг зарцуулдаг.',
                 votes: 2, voters: []
+            },
+            { 
+                id: 'idea_budget_1', category: CAT_SUPPORT, teamInfo: 'Санхүү', projectName: 'AI Budget Forecaster', 
+                description: '[Meta-V:High|F:Medium|S:false|E:false]\nӨмнөх жилүүдийн санхүүгийн датанд үндэслэн AI ашиглаж зардлын трендийг гаргах, төсөв хэтрэх эрсдэлийг урьдчилан анхааруулах систем.\n- Зардлын түүхэн өгөгдөлд анализ хийх\n- Төсөв хэтрэлтийг сараар урьдчилан таамаглах\n- Удирдлагуудад эрсдэлийн сануулга (Alert) илгээх', 
+                votes: 0, voters: [] 
+            },
+            { 
+                id: 'idea_budget_2', category: CAT_SUPPORT, teamInfo: 'Санхүү', projectName: 'Smart Invoice Agent', 
+                description: '[Meta-V:High|F:High|S:false|E:false]\nНэхэмжлэх, и-баримт зэргийг автоматаар уншиж, гэрээ болон захиалгатай (PO) тулган санхүүгийн системд шивэх Agent.\n- PDF болон зурган нэхэмжлэхийг текст болгон хөрвүүлэх (OCR)\n- Гэрээний үнийн дүнтэй автоматаар тулгах\n- ERP системд гүйлгээний ноорогийг хүний оролцоогүй үүсгэх', 
+                votes: 0, voters: [] 
+            },
+            { 
+                id: 'idea_budget_3', category: CAT_SUPPORT, teamInfo: 'Худалдан авалт, Санхүү', projectName: 'AI Spend Analyzer', 
+                description: '[Meta-V:High|F:Medium|S:false|E:false]\nБайгууллагын нийт худалдан авалтын датанд анализ хийж, давхардал болон хэмнэлт гаргаж болох цэгүүдийг илрүүлэх систем.\n- Нийлүүлэгчдийн үнийн хэлбэлзлийг харьцуулах\n- Зүй бус болон давхардсан зардлыг илрүүлэх\n- Зардал хэмнэх боломжит хувилбаруудыг санал болгох', 
+                votes: 0, voters: [] 
+            },
+            { 
+                id: 'idea_procurement_spot', category: CAT_SUPPORT, teamInfo: 'Худалдан авалт, Санхүү', projectName: 'Spot-Buy Cost Controller', 
+                description: '[Meta-V:High|F:Medium|S:false|E:false]\nТухай бүрийн (ad-hoc) худалдан авалтын хүсэлт үүсэх үед зах зээлийн үнэ болон түүхэн өгөгдөлтэй шууд харьцуулалт хийж, төсөв хэтрэхээс сэргийлэх ухаалаг хяналтын систем.\n- Хүсэлт үүсэх үед үнийн дүн бодит байгаа эсэхийг (market price) AI-аар шалгаж үнэлэх\n- Батлагдаагүй болон тухай бүрийн зардлын төсвийн үлдэгдлийг автоматаар тооцох\n- Батлах эрх бүхий менежерт үнийн харьцуулалт болон төсвийн эрсдэлийг урьдчилан харуулах', 
+                votes: 0, voters: [] 
             }
         ];
 
@@ -347,7 +371,6 @@
         };
 
         const App = () => {
-            // Эхлээд шууд Voting хуудсыг харуулна
             const [view, setView] = useState('voting'); 
             const [user, setUser] = useState(null);
             const [toastMsg, setToastMsg] = useState('');
@@ -357,6 +380,9 @@
             
             const [cDept, setCDept] = useState('Нийт');
             const [ePPId, setEPPId] = useState(null); 
+            
+            const [mFeas, setMFeas] = useState('Medium');
+            const [mFeasDesc, setMFeasDesc] = useState('');
 
             const client = useMemo(() => typeof window.supabase !== 'undefined' ? window.supabase.createClient(supabaseUrl, supabaseKey) : null, []);
             const selIdea = useMemo(() => votingIdeas.find(i => i.id === selectedId) || null, [votingIdeas, selectedId]);
@@ -438,6 +464,16 @@
                 setVotingIdeas(p => sortArr(p.map(i => i.id === idea.id ? { ...i, votes: vts, voters: vtrs } : i)));
                 if(client) await client.from('pitch_voting').upsert({ id: idea.id, votes: vts, voters: vtrs, projectname: idea.projectName || idea.projectname || 'Pain Point', teaminfo: idea.teamInfo || idea.teaminfo, description: idea.description, category: idea.category });
             };
+            
+            const onSaveFeas = async () => {
+                if(!selIdea) return;
+                const m = extractMeta(selIdea.description);
+                const d = `[Meta-V:${m.valueLevel}|F:${mFeas}|S:${m.isShortlisted}|E:true]\n${m.cleanDesc}${mFeasDesc ? '\n\n---FEAS_DESC---\n' + mFeasDesc : ''}`;
+                setVotingIdeas(p => sortArr(p.map(i => i.id === selIdea.id ? { ...i, description: d } : i)));
+                if(client) await client.from('pitch_voting').upsert({ id: selIdea.id, votes: selIdea.votes, voters: selIdea.voters, projectname: selIdea.projectName, teaminfo: selIdea.teamInfo, category: selIdea.category, description: d });
+                showToast("Технологийн үнэлгээ амжилттай хадгалагдаж түгжигдлээ!");
+                setSelectedId(null); 
+            };
 
             const getDeptCount = (dept) => {
                 if (dept === 'Нийт') return votingIdeas.filter(i => i.category === CAT_PAINPOINT).length;
@@ -497,7 +533,7 @@
                                 {cDept === 'Нийт' && (
                                     <div className="text-[11px] text-fuchsia-400/80 uppercase tracking-widest font-bold flex items-center justify-center gap-1.5 animate-[fadeIn_0.3s_ease-out]">
                                         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                                        Зөвхөн санал хураах горим идэвхтэй байна.
+                                        Зөвхөн танилцах горим идэвхтэй байна.
                                     </div>
                                 )}
                             </div>
@@ -537,11 +573,6 @@
                                                 </div>
                                             )}
                                         </div>
-                                        <div className="flex items-center justify-between mt-auto pt-3 border-t border-slate-700/50" onClick={e => e.stopPropagation()}>
-                                            <button onClick={() => onVote(pp)} className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 ${pp.voters?.includes(user?.uid) ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/50' : 'bg-slate-700 text-slate-300 border border-slate-600 hover:bg-slate-600'}`}>
-                                                👍 <span className="text-white">{pp.votes || 0}</span>
-                                            </button>
-                                        </div>
                                     </div>
                                 );
                             })}</div>
@@ -558,7 +589,7 @@
                         {renderNav()}
                         <div className="flex flex-col mb-8 bg-slate-800/40 p-6 rounded-2xl border border-emerald-500/30 text-center shadow-lg">
                             <h1 className="text-3xl font-bold text-white mb-2 tracking-tight uppercase">Бидний үнэ цэнтэй IDEAS</h1>
-                            <p className="text-slate-400 text-sm mb-6">Дэвшигдсэн бүх санаануудтай танилцаж, өөрийн саналаа өгөөрэй.</p>
+                            <p className="text-slate-400 text-sm mb-6">Дэвшигдсэн бүх санаануудтай танилцаж, өөрийн үнэлгээ, саналыг өгөх хэсэг.</p>
                             <div className="flex justify-center flex-wrap gap-2">
                                 {['All', CAT_MANAGEMENT, CAT_OPERATIONS, CAT_SUPPORT, 'Shortlisted'].map(t => (<button key={t} onClick={() => setSelectedTab(t)} className={`px-4 py-2.5 rounded-lg text-xs font-bold border transition-colors ${selectedTab === t ? (t === 'Shortlisted' ? 'bg-amber-500 text-slate-900 border-amber-500 shadow-md' : 'bg-white text-slate-900 border-white shadow-md') : 'bg-slate-800 text-slate-400 border-slate-700 hover:bg-slate-700'}`}>{t === 'All' ? 'Бүгд' : t === 'Shortlisted' ? '⭐ Shortlisted' : t} ({getIdeaCount(t)})</button>))}
                             </div>
@@ -570,14 +601,24 @@
                                 const cardBorder = m.isShortlisted ? 'border-amber-500/50 group-hover:border-amber-400 shadow-[0_0_15px_rgba(245,158,11,0.2)]' : `${teamColor.border} ${teamColor.hover} ${teamColor.glow}`;
                                 
                                 return (
-                                    <div key={idea.id} onClick={() => setSelectedId(idea.id)} className={`bg-slate-800/50 p-6 rounded-2xl border transition-all cursor-pointer relative flex flex-col group shadow-lg ${cardBorder}`}>
+                                    <div key={idea.id} onClick={() => {
+                                        setMFeas(m.feasLevel);
+                                        setMFeasDesc(m.feasDesc);
+                                        setSelectedId(idea.id);
+                                    }} className={`bg-slate-800/50 p-6 rounded-2xl border transition-all cursor-pointer relative flex flex-col group shadow-lg ${cardBorder}`}>
                                         {m.isShortlisted && <div className="absolute -top-3 -right-2 bg-amber-500 text-slate-900 text-[10px] font-black px-3 py-1 rounded-full z-10 shadow-md uppercase">⭐ Shortlisted</div>}
                                         <div className={`inline-block self-start px-3 py-1 rounded-lg border mb-4 text-[10px] font-black tracking-widest uppercase shadow-sm ${teamColor.bg} ${teamColor.text} ${teamColor.border}`}>
                                             {idea.teamInfo || idea.teaminfo}
                                         </div>
                                         <div className="text-[10px] uppercase font-bold text-slate-500 mb-2">{idea.category}</div>
                                         <h3 className="text-xl font-bold text-white mb-3 group-hover:text-cyan-400 transition-colors">{idea.projectName || idea.projectname}</h3>
-                                        <div className="flex gap-2 mb-4"><span className={`text-[10px] px-2 py-1 rounded-md border font-semibold ${m.feasLevel === 'High' ? 'bg-blue-500/20 text-blue-400 border-blue-500/30' : m.feasLevel === 'Medium' ? 'bg-amber-500/20 text-amber-400 border-amber-500/30' : 'bg-rose-500/20 text-rose-400 border-rose-500/30'}`}>Боломж: {m.feasLevel}</span></div>
+                                        <div className="flex gap-2 mb-4">
+                                            {m.isEvaluated ? (
+                                                <span className={`text-[10px] px-2 py-1 rounded-md border font-semibold ${m.feasLevel === 'High' ? 'bg-blue-500/20 text-blue-400 border-blue-500/30' : m.feasLevel === 'Medium' ? 'bg-amber-500/20 text-amber-400 border-amber-500/30' : 'bg-rose-500/20 text-rose-400 border-rose-500/30'}`}>Боломж: {m.feasLevel}</span>
+                                            ) : (
+                                                <span className="text-[10px] px-2 py-1 rounded-md border font-semibold bg-slate-700/50 text-slate-400 border-slate-600/50">⏳ Үнэлгээ хүлээгдэж байна</span>
+                                            )}
+                                        </div>
                                         <p className="text-sm text-slate-400 line-clamp-3 mb-4 leading-relaxed flex-grow">{m.cleanDesc}</p>
                                         <div className="mt-auto pt-4 border-t border-slate-700/50 flex justify-between items-center" onClick={e => e.stopPropagation()}><div className="text-xl font-bold text-slate-200"><span className="text-xs text-slate-500 block uppercase mb-1">Business Value</span>{idea.votes || 0} санал</div><button onClick={() => onVote(idea)} className={`px-4 py-2 rounded-xl text-xs font-bold transition-all ${vtd ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/50' : 'bg-slate-700 text-slate-300 border border-slate-600 hover:bg-slate-600'}`}>{vtd ? 'Санал өгсөн' : 'Санал өгөх'}</button></div>
                                     </div>
@@ -631,10 +672,6 @@
                                             {extractPPMeta(selPP.description).discussion}
                                         </div>
                                     )}
-                                    <div className="flex justify-between items-center border-t border-slate-800 pt-4 mt-2">
-                                        <div className="text-2xl font-black text-white flex flex-col"><span className="text-[9px] font-bold text-emerald-400 uppercase tracking-widest mb-0.5">Нийт санал</span>{selPP.votes || 0}</div>
-                                        <button onClick={() => onVote(selPP)} className={`px-8 py-3 rounded-xl text-sm font-bold shadow-lg transition-all ${selPP.voters?.includes(user?.uid) ? 'bg-emerald-500 text-slate-900' : 'bg-cyan-600 text-white hover:bg-cyan-500'}`}>{selPP.voters?.includes(user?.uid) ? '✓ Санал өгсөн' : 'Санал өгөх'}</button>
-                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -658,15 +695,57 @@
                                     <div className="bg-slate-800/60 p-4 md:p-5 rounded-2xl border border-slate-700 flex flex-col w-full shrink-0">
                                         <div className="flex justify-between items-center mb-3 border-b border-slate-700 pb-2">
                                             <h3 className="text-sm md:text-base font-bold text-blue-400 flex items-center gap-2"><span>⚙️</span> Технологийн үнэлгээ</h3>
-                                            <span className="text-[10px] font-bold bg-slate-700 text-slate-300 px-2 py-0.5 rounded flex items-center gap-1">
-                                                Боломж: {extractMeta(selIdea.description).feasLevel}
-                                            </span>
+                                            {extractMeta(selIdea.description).isEvaluated ? (
+                                                <span className="text-[10px] font-bold bg-blue-500/20 text-blue-400 border border-blue-500/30 px-2 py-0.5 rounded flex items-center gap-1">
+                                                    <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path></svg>
+                                                    Үнэлэгдсэн (Түгжигдсэн)
+                                                </span>
+                                            ) : (
+                                                <span className="text-[10px] font-bold bg-slate-700/50 text-slate-400 px-2 py-0.5 rounded flex items-center gap-1">
+                                                    Технологийн үнэлгээ хүлээгдэж байна
+                                                </span>
+                                            )}
                                         </div>
-                                        {extractMeta(selIdea.description).feasDesc && (
-                                            <div className="p-2.5 bg-slate-900/80 border border-slate-700 rounded-lg text-sm text-slate-200 shadow-inner">
-                                                {extractMeta(selIdea.description).feasDesc}
+
+                                        <div className="flex flex-col md:flex-row gap-4 items-start md:items-end">
+                                            <div>
+                                                <div className="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">Боломж (Feasibility)</div>
+                                                <div className="flex gap-1.5">
+                                                    {['High', 'Medium', 'Low'].map(lvl => {
+                                                        const bgClass = lvl === 'High' ? 'bg-blue-500/20 text-blue-400 border-blue-500/30' : lvl === 'Medium' ? 'bg-amber-500/20 text-amber-400 border-amber-500/30' : 'bg-rose-500/20 text-rose-400 border-rose-500/30';
+                                                        return (
+                                                            <button 
+                                                                key={lvl} 
+                                                                onClick={() => !extractMeta(selIdea.description).isEvaluated && setMFeas(lvl)} 
+                                                                disabled={extractMeta(selIdea.description).isEvaluated}
+                                                                className={`px-3 py-1.5 rounded-lg text-[10px] font-bold border transition-all ${mFeas === lvl ? bgClass : 'bg-slate-900/80 text-slate-500 border-slate-700'} ${extractMeta(selIdea.description).isEvaluated ? 'cursor-not-allowed opacity-80' : 'hover:bg-slate-700'}`}
+                                                            >
+                                                                {lvl}
+                                                            </button>
+                                                        );
+                                                    })}
+                                                </div>
                                             </div>
-                                        )}
+                                            
+                                            <div className="flex-grow w-full">
+                                                <div className="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">Тайлбар (Tech Team)</div>
+                                                <div className="flex gap-2">
+                                                    <input 
+                                                        type="text"
+                                                        value={mFeasDesc} 
+                                                        onChange={e => !extractMeta(selIdea.description).isEvaluated && setMFeasDesc(e.target.value)} 
+                                                        disabled={extractMeta(selIdea.description).isEvaluated}
+                                                        className={`flex-grow p-2 md:p-2.5 bg-slate-900/80 border border-slate-700 rounded-lg outline-none focus:border-blue-500 text-xs md:text-sm text-slate-200 shadow-inner ${extractMeta(selIdea.description).isEvaluated ? 'cursor-not-allowed opacity-80' : ''}`} 
+                                                        placeholder="Технологийн багийн дүгнэлт..." 
+                                                    />
+                                                    {!extractMeta(selIdea.description).isEvaluated && (
+                                                        <button onClick={onSaveFeas} className="px-4 py-2 bg-blue-600 text-white rounded-lg text-xs font-bold shadow-md hover:bg-blue-500 transition-colors whitespace-nowrap">
+                                                            Хадгалах
+                                                        </button>
+                                                    )}
+                                                </div>
+                                            </div>
+                                        </div>
                                     </div>
 
                                     <div className="pt-4 mt-4 border-t border-slate-800 flex justify-between items-center shrink-0">
