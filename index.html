@@ -585,7 +585,7 @@
                         {renderNav()}
                         <div className="flex flex-col mb-8 bg-slate-800/40 p-6 rounded-2xl border border-emerald-500/30 text-center shadow-lg">
                             <h1 className="text-3xl font-bold text-white mb-2 tracking-tight uppercase">Бидний үнэ цэнтэй IDEAS</h1>
-                            <p className="text-slate-400 text-sm mb-6">Дэвшигдсэн бүх санаануудтай танилцаж, өөрийн үнэлгээ, саналыг өгөх хэсэг.</p>
+                            <p className="text-slate-400 text-sm mb-6">Дэвшигдсэн бүх санаануудтай танилцаж саналаа өгөөрэй..</p>
                             <div className="flex justify-center flex-wrap gap-2">
                                 {['All', CAT_MANAGEMENT, CAT_OPERATIONS, CAT_SUPPORT, 'Shortlisted'].map(t => (<button key={t} onClick={() => setSelectedTab(t)} className={`px-4 py-2.5 rounded-lg text-xs font-bold border transition-colors ${selectedTab === t ? (t === 'Shortlisted' ? 'bg-amber-500 text-slate-900 border-amber-500 shadow-md' : 'bg-white text-slate-900 border-white shadow-md') : 'bg-slate-800 text-slate-400 border-slate-700 hover:bg-slate-700'}`}>{t === 'All' ? 'Бүгд' : t === 'Shortlisted' ? '⭐ Shortlisted' : t} ({getIdeaCount(t)})</button>))}
                             </div>
