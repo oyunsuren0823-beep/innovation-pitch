@@ -172,8 +172,18 @@
                 votes: 0, voters: [] 
             },
             { 
+                id: 'idea_budget_2', category: CAT_SUPPORT, teamInfo: 'Санхүү', projectName: 'Smart Invoice Agent', 
+                description: '[Meta-V:High|F:High|S:false|E:false]\nНэхэмжлэх, и-баримт зэргийг автоматаар уншиж, гэрээ болон захиалгатай (PO) тулган санхүүгийн системд шивэх Agent.\n- PDF болон зурган нэхэмжлэхийг текст болгон хөрвүүлэх (OCR)\n- Гэрээний үнийн дүнтэй автоматаар тулгах\n- ERP системд гүйлгээний ноорогийг хүний оролцоогүй үүсгэх', 
+                votes: 0, voters: [] 
+            },
+            { 
                 id: 'idea_budget_3', category: CAT_SUPPORT, teamInfo: 'Худалдан авалт, Санхүү', projectName: 'AI Spend Analyzer', 
                 description: '[Meta-V:High|F:Medium|S:false|E:false]\nБайгууллагын нийт худалдан авалтын датанд анализ хийж, давхардал болон хэмнэлт гаргаж болох цэгүүдийг илрүүлэх систем.\n- Нийлүүлэгчдийн үнийн хэлбэлзлийг харьцуулах\n- Зүй бус болон давхардсан зардлыг илрүүлэх\n- Зардал хэмнэх боломжит хувилбаруудыг санал болгох', 
+                votes: 0, voters: [] 
+            },
+            { 
+                id: 'idea_procurement_spot', category: CAT_SUPPORT, teamInfo: 'Худалдан авалт, Санхүү', projectName: 'Spot-Buy Cost Controller', 
+                description: '[Meta-V:High|F:Medium|S:false|E:false]\nТухай бүрийн (ad-hoc) худалдан авалтын хүсэлт үүсэх үед зах зээлийн үнэ болон түүхэн өгөгдөлтэй шууд харьцуулалт хийж, төсөв хэтрэхээс сэргийлэх ухаалаг хяналтын систем.\n- Хүсэлт үүсэх үед үнийн дүн бодит байгаа эсэхийг (market price) AI-аар шалгаж үнэлэх\n- Батлагдаагүй болон тухай бүрийн зардлын төсвийн үлдэгдлийг автоматаар тооцох\n- Батлах эрх бүхий менежерт үнийн харьцуулалт болон төсвийн эрсдэлийг урьдчилан харуулах', 
                 votes: 0, voters: [] 
             }
         ];
@@ -222,14 +232,6 @@
 
         function getFeasScore(lvl) {
             return lvl === 'High' ? 3 : (lvl === 'Medium' ? 2 : 1);
-        }
-
-        // Саналын тооноос хамаарч Бизнес үнэ цэнийг динамикаар тодорхойлох функц
-        function getDynamicValueLevel(votes) {
-            const v = votes || 0;
-            if (v >= 10) return 'High';
-            if (v >= 5) return 'Medium';
-            return 'Low';
         }
 
         // Styling functions
@@ -378,6 +380,7 @@
             const [ePPId, setEPPId] = useState(null); 
             
             const [mFeas, setMFeas] = useState('Medium');
+            const [mValue, setMValue] = useState('High');
             const [mFeasDesc, setMFeasDesc] = useState('');
 
             const client = useMemo(() => typeof window.supabase !== 'undefined' ? window.supabase.createClient(supabaseUrl, supabaseKey) : null, []);
@@ -413,8 +416,8 @@
                 const metaA = extractMeta(a.description);
                 const metaB = extractMeta(b.description);
                 
-                const scoreA = getFeasScore(getDynamicValueLevel(votesA)) + getFeasScore(metaA.feasLevel);
-                const scoreB = getFeasScore(getDynamicValueLevel(votesB)) + getFeasScore(metaB.feasLevel);
+                const scoreA = getFeasScore(metaA.valueLevel) + getFeasScore(metaA.feasLevel);
+                const scoreB = getFeasScore(metaB.valueLevel) + getFeasScore(metaB.feasLevel);
 
                 return scoreB - scoreA;
             });
@@ -448,8 +451,7 @@
                 const csvRows = [headers.join(',')];
                 votingIdeas.filter(i => i.category !== CAT_PAINPOINT).forEach(idea => {
                     const meta = extractMeta(idea.description);
-                    const dynValue = getDynamicValueLevel(idea.votes);
-                    csvRows.push([ escapeCSV(idea.category), escapeCSV(idea.projectName), escapeCSV(idea.teamInfo), idea.votes || 0, escapeCSV(dynValue), escapeCSV(meta.feasLevel), escapeCSV(meta.isShortlisted ? 'Тийм' : 'Үгүй'), escapeCSV(meta.cleanDesc), escapeCSV(meta.feasDesc) ].join(','));
+                    csvRows.push([ escapeCSV(idea.category), escapeCSV(idea.projectName), escapeCSV(idea.teamInfo), idea.votes || 0, escapeCSV(meta.valueLevel), escapeCSV(meta.feasLevel), escapeCSV(meta.isShortlisted ? 'Тийм' : 'Үгүй'), escapeCSV(meta.cleanDesc), escapeCSV(meta.feasDesc) ].join(','));
                 });
                 const blob = new Blob(['\uFEFF' + csvRows.join('\n')], { type: 'text/csv;charset=utf-8;' });
                 const link = document.createElement('a');
@@ -480,17 +482,40 @@
                 if(voted) { vtrs = vtrs.filter(i => i !== uid); vts = Math.max(0, vts - 1); }
                 else { vtrs = [...vtrs, uid]; vts++; }
                 setVotingIdeas(p => sortArr(p.map(i => i.id === idea.id ? { ...i, votes: vts, voters: vtrs } : i)));
-                if(client) await client.from('pitch_voting').upsert({ id: idea.id, votes: vts, voters: vtrs, projectname: idea.projectName || idea.projectname || 'Pain Point', teaminfo: idea.teamInfo || idea.teaminfo, description: idea.description, category: idea.category });
+                if(client) {
+                    try {
+                        await client.from('pitch_voting').upsert({ 
+                            id: idea.id, 
+                            votes: vts, 
+                            voters: vtrs, 
+                            projectname: idea.projectName || idea.projectname || 'Idea', 
+                            teaminfo: idea.teamInfo || idea.teaminfo || 'Team', 
+                            description: idea.description, 
+                            category: idea.category 
+                        });
+                    } catch (e) { console.error("Vote error:", e); }
+                }
             };
             
             const onSaveFeas = async () => {
                 if(!selIdea) return;
                 const m = extractMeta(selIdea.description);
-                const dynValue = getDynamicValueLevel(selIdea.votes);
-                const d = `[Meta-V:${dynValue}|F:${mFeas}|S:${m.isShortlisted}|E:true]\n${m.cleanDesc}${mFeasDesc ? '\n\n---FEAS_DESC---\n' + mFeasDesc : ''}`;
+                const d = `[Meta-V:${mValue}|F:${mFeas}|S:${m.isShortlisted}|E:true]\n${m.cleanDesc}${mFeasDesc ? '\n\n---FEAS_DESC---\n' + mFeasDesc : ''}`;
                 setVotingIdeas(p => sortArr(p.map(i => i.id === selIdea.id ? { ...i, description: d } : i)));
-                if(client) await client.from('pitch_voting').upsert({ id: selIdea.id, votes: selIdea.votes, voters: selIdea.voters, projectname: selIdea.projectName, teaminfo: selIdea.teamInfo, category: selIdea.category, description: d });
-                showToast("Технологийн үнэлгээ амжилттай хадгалагдаж түгжигдлээ!");
+                if(client) {
+                    try {
+                        await client.from('pitch_voting').upsert({ 
+                            id: selIdea.id, 
+                            votes: selIdea.votes || 0, 
+                            voters: selIdea.voters || [], 
+                            projectname: selIdea.projectName || selIdea.projectname || 'Idea', 
+                            teaminfo: selIdea.teamInfo || selIdea.teaminfo || 'Team', 
+                            category: selIdea.category, 
+                            description: d 
+                        });
+                    } catch (e) { console.error("Save error:", e); }
+                }
+                showToast("Үнэлгээ амжилттай хадгалагдаж түгжигдлээ!");
                 setSelectedId(null); 
             };
 
@@ -498,11 +523,22 @@
                 if (e) e.stopPropagation();
                 const m = extractMeta(idea.description);
                 const newS = !m.isShortlisted;
-                const dynValue = getDynamicValueLevel(idea.votes);
-                const d = `[Meta-V:${dynValue}|F:${m.feasLevel}|S:${newS}|E:${m.isEvaluated}]\n${m.cleanDesc}${m.feasDesc ? '\n\n---FEAS_DESC---\n' + m.feasDesc : ''}`;
+                const d = `[Meta-V:${m.valueLevel}|F:${m.feasLevel}|S:${newS}|E:${m.isEvaluated}]\n${m.cleanDesc}${m.feasDesc ? '\n\n---FEAS_DESC---\n' + m.feasDesc : ''}`;
                 
                 setVotingIdeas(p => sortArr(p.map(i => i.id === idea.id ? { ...i, description: d } : i)));
-                if(client) await client.from('pitch_voting').upsert({ id: idea.id, votes: idea.votes, voters: idea.voters, projectname: idea.projectName || idea.projectname, teaminfo: idea.teamInfo || idea.teaminfo, category: idea.category, description: d });
+                if(client) {
+                    try {
+                        await client.from('pitch_voting').upsert({ 
+                            id: idea.id, 
+                            votes: idea.votes || 0, 
+                            voters: idea.voters || [], 
+                            projectname: idea.projectName || idea.projectname || 'Idea', 
+                            teaminfo: idea.teamInfo || idea.teaminfo || 'Team', 
+                            category: idea.category, 
+                            description: d 
+                        });
+                    } catch (e) { console.error("Shortlist error:", e); }
+                }
                 showToast(newS ? "⭐ Shortlist-д амжилттай нэмэгдлээ!" : "Shortlist-ээс хасагдлаа!");
             };
 
@@ -629,10 +665,10 @@
                                 const m = extractMeta(idea.description), vtd = idea.voters?.includes(user?.uid || 'local');
                                 const teamColor = getTeamColor(idea.teamInfo || idea.teaminfo);
                                 const cardBorder = m.isShortlisted ? 'border-amber-500/50 group-hover:border-amber-400 shadow-[0_0_15px_rgba(245,158,11,0.2)]' : `${teamColor.border} ${teamColor.hover} ${teamColor.glow}`;
-                                const dynValue = getDynamicValueLevel(idea.votes);
                                 
                                 return (
                                     <div key={idea.id} onClick={() => {
+                                        setMValue(m.valueLevel);
                                         setMFeas(m.feasLevel);
                                         setMFeasDesc(m.feasDesc);
                                         setSelectedId(idea.id);
@@ -646,11 +682,11 @@
                                         
                                         <div className="flex flex-wrap gap-2 mb-4">
                                             <span className={`text-[10px] px-2 py-1 rounded-md border font-semibold flex items-center gap-1 ${
-                                                dynValue === 'High' ? 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30' : 
-                                                dynValue === 'Medium' ? 'bg-amber-500/20 text-amber-400 border-amber-500/30' : 
+                                                m.valueLevel === 'High' ? 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30' : 
+                                                m.valueLevel === 'Medium' ? 'bg-amber-500/20 text-amber-400 border-amber-500/30' : 
                                                 'bg-slate-500/20 text-slate-400 border-slate-500/30'
                                             }`}>
-                                                💎 Үнэ цэн: {dynValue}
+                                                💎 Үнэ цэн: {m.valueLevel}
                                             </span>
                                             {m.isEvaluated ? (
                                                 <span className={`text-[10px] px-2 py-1 rounded-md border font-semibold flex items-center gap-1 ${
@@ -750,16 +786,11 @@
                                         <h2 className="text-2xl md:text-3xl font-black text-white mb-4">{selIdea.projectName || selIdea.projectname}</h2>
                                         
                                         <div className="flex flex-wrap gap-2 mb-2">
-                                            {(() => {
-                                                const dynVal = getDynamicValueLevel(selIdea.votes);
-                                                return (
-                                                    <span className={`text-xs px-3 py-1.5 rounded-lg border font-semibold flex items-center gap-1.5 ${
-                                                        dynVal === 'High' ? 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30' : 
-                                                        dynVal === 'Medium' ? 'bg-amber-500/20 text-amber-400 border-amber-500/30' : 
-                                                        'bg-slate-500/20 text-slate-400 border-slate-500/30'
-                                                    }`}>💎 Бизнес үнэ цэн: {dynVal}</span>
-                                                );
-                                            })()}
+                                            <span className={`text-xs px-3 py-1.5 rounded-lg border font-semibold flex items-center gap-1.5 ${
+                                                extractMeta(selIdea.description).valueLevel === 'High' ? 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30' : 
+                                                extractMeta(selIdea.description).valueLevel === 'Medium' ? 'bg-amber-500/20 text-amber-400 border-amber-500/30' : 
+                                                'bg-slate-500/20 text-slate-400 border-slate-500/30'
+                                            }`}>💎 Бизнес үнэ цэн: {extractMeta(selIdea.description).valueLevel}</span>
                                             
                                             {extractMeta(selIdea.description).isEvaluated ? (
                                                 <span className={`text-xs px-3 py-1.5 rounded-lg border font-semibold flex items-center gap-1.5 ${
@@ -783,7 +814,7 @@
                                     
                                     <div className="bg-slate-800/60 p-4 md:p-5 rounded-2xl border border-slate-700 flex flex-col w-full shrink-0">
                                         <div className="flex justify-between items-center mb-3 border-b border-slate-700 pb-2">
-                                            <h3 className="text-sm md:text-base font-bold text-blue-400 flex items-center gap-2"><span>⚙️</span> Технологийн үнэлгээ</h3>
+                                            <h3 className="text-sm md:text-base font-bold text-blue-400 flex items-center gap-2"><span>⚙️</span> Багийн үнэлгээ</h3>
                                             {extractMeta(selIdea.description).isEvaluated ? (
                                                 <span className="text-[10px] font-bold bg-blue-500/20 text-blue-400 border border-blue-500/30 px-2 py-0.5 rounded flex items-center gap-1">
                                                     <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path></svg>
@@ -796,23 +827,43 @@
                                             )}
                                         </div>
 
-                                        <div className="flex flex-col md:flex-row gap-4 items-start md:items-end">
-                                            <div>
-                                                <div className="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">Боломж (Feasibility)</div>
-                                                <div className="flex gap-1.5">
-                                                    {['High', 'Medium', 'Low'].map(lvl => {
-                                                        const bgClass = lvl === 'High' ? 'bg-blue-500/20 text-blue-400 border-blue-500/30' : lvl === 'Medium' ? 'bg-amber-500/20 text-amber-400 border-amber-500/30' : 'bg-rose-500/20 text-rose-400 border-rose-500/30';
-                                                        return (
-                                                            <button 
-                                                                key={lvl} 
-                                                                onClick={() => !extractMeta(selIdea.description).isEvaluated && setMFeas(lvl)} 
-                                                                disabled={extractMeta(selIdea.description).isEvaluated}
-                                                                className={`px-3 py-1.5 rounded-lg text-[10px] font-bold border transition-all ${mFeas === lvl ? bgClass : 'bg-slate-900/80 text-slate-500 border-slate-700'} ${extractMeta(selIdea.description).isEvaluated ? 'cursor-not-allowed opacity-80' : 'hover:bg-slate-700'}`}
-                                                            >
-                                                                {lvl}
-                                                            </button>
-                                                        );
-                                                    })}
+                                        <div className="flex flex-wrap md:flex-nowrap gap-4 items-start w-full">
+                                            <div className="flex gap-4 flex-shrink-0">
+                                                <div>
+                                                    <div className="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">Бизнес үнэ цэн</div>
+                                                    <div className="flex gap-1.5">
+                                                        {['High', 'Medium', 'Low'].map(lvl => {
+                                                            const bgClass = lvl === 'High' ? 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30' : lvl === 'Medium' ? 'bg-amber-500/20 text-amber-400 border-amber-500/30' : 'bg-slate-500/20 text-slate-400 border-slate-500/30';
+                                                            return (
+                                                                <button 
+                                                                    key={`val-${lvl}`} 
+                                                                    onClick={() => !extractMeta(selIdea.description).isEvaluated && setMValue(lvl)} 
+                                                                    disabled={extractMeta(selIdea.description).isEvaluated}
+                                                                    className={`px-3 py-1.5 rounded-lg text-[10px] font-bold border transition-all ${mValue === lvl ? bgClass : 'bg-slate-900/80 text-slate-500 border-slate-700'} ${extractMeta(selIdea.description).isEvaluated ? 'cursor-not-allowed opacity-80' : 'hover:bg-slate-700'}`}
+                                                                >
+                                                                    {lvl}
+                                                                </button>
+                                                            );
+                                                        })}
+                                                    </div>
+                                                </div>
+                                                <div>
+                                                    <div className="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">Боломж (Feasibility)</div>
+                                                    <div className="flex gap-1.5">
+                                                        {['High', 'Medium', 'Low'].map(lvl => {
+                                                            const bgClass = lvl === 'High' ? 'bg-blue-500/20 text-blue-400 border-blue-500/30' : lvl === 'Medium' ? 'bg-orange-500/20 text-orange-400 border-orange-500/30' : 'bg-rose-500/20 text-rose-400 border-rose-500/30';
+                                                            return (
+                                                                <button 
+                                                                    key={`feas-${lvl}`} 
+                                                                    onClick={() => !extractMeta(selIdea.description).isEvaluated && setMFeas(lvl)} 
+                                                                    disabled={extractMeta(selIdea.description).isEvaluated}
+                                                                    className={`px-3 py-1.5 rounded-lg text-[10px] font-bold border transition-all ${mFeas === lvl ? bgClass : 'bg-slate-900/80 text-slate-500 border-slate-700'} ${extractMeta(selIdea.description).isEvaluated ? 'cursor-not-allowed opacity-80' : 'hover:bg-slate-700'}`}
+                                                                >
+                                                                    {lvl}
+                                                                </button>
+                                                            );
+                                                        })}
+                                                    </div>
                                                 </div>
                                             </div>
                                             
