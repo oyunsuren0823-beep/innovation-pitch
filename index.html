@@ -224,7 +224,6 @@
             return lvl === 'High' ? 3 : (lvl === 'Medium' ? 2 : 1);
         }
 
-        // Саналын тооноос хамаарч Бизнес үнэ цэнийг динамикаар тодорхойлох функц
         function getDynamicValueLevel(votes) {
             const v = votes || 0;
             if (v >= 10) return 'High';
@@ -314,7 +313,6 @@
                     <h2 className="text-2xl font-bold text-white mb-8 uppercase tracking-wide text-center">Prioritization Matrix</h2>
                     
                     <div className="relative max-w-4xl mx-auto pl-10 pr-6 py-6 mb-4">
-                        {/* Y-axis Label */}
                         <div className="absolute left-0 top-0 bottom-0 w-10 flex flex-col justify-between items-center py-10">
                             <span className="text-slate-500 text-[10px] font-black uppercase tracking-widest -rotate-90 whitespace-nowrap mb-8">High Impact</span>
                             <div className="w-0.5 h-full bg-slate-600/50 relative">
@@ -324,7 +322,6 @@
                             <span className="text-slate-500 text-[10px] font-black uppercase tracking-widest -rotate-90 whitespace-nowrap mt-8">Low Impact</span>
                         </div>
 
-                        {/* 2x2 Grid */}
                         <div className="grid grid-cols-2 gap-4 h-[500px]">
                             <div className="bg-orange-900/10 border border-orange-500/20 rounded-2xl p-4 flex flex-col hover:border-orange-500/40 transition-colors min-h-0">
                                 <h3 className="text-orange-400 font-bold mb-3 uppercase tracking-wider text-xs border-b border-orange-500/20 pb-2 shrink-0">Strategic (Урт хугацаанд)</h3>
@@ -352,7 +349,6 @@
                             </div>
                         </div>
 
-                        {/* X-axis Label */}
                         <div className="absolute bottom-0 left-10 right-0 h-10 flex justify-between items-center px-4 translate-y-12">
                             <span className="text-slate-500 text-[10px] font-black uppercase tracking-widest">Not Urgent</span>
                             <div className="flex-grow h-0.5 bg-slate-600/50 mx-4 relative">
@@ -396,7 +392,7 @@
                 setUser({ uid });
             }, []);
 
-            // ЭРЭМБЭЛЭХ ЛОГИК (Шинэчилсэн)
+            // ЭРЭМБЭЛЭХ ЛОГИК 
             const sortArr = (arr) => [...arr].sort((a, b) => {
                 const isPPA = a.category === CAT_PAINPOINT;
                 const isPPB = b.category === CAT_PAINPOINT;
@@ -424,7 +420,7 @@
                 const scoreB = getFeasScore(valB) + getFeasScore(metaB.feasLevel);
 
                 if (scoreA !== scoreB) {
-                    return scoreB - scoreA; // Өндөр үнэлгээтэй нь дээшээ
+                    return scoreB - scoreA; 
                 }
 
                 // 3-р эрэмбэ: Үнэлгээ тэнцвэл Саналын тоогоор
@@ -510,7 +506,6 @@
             const onSaveFeas = async () => {
                 if(!selIdea) return;
                 const m = extractMeta(selIdea.description);
-                // mValue эсвэл mFeas аль нэг нь солигдоход isEvaluated=true болно
                 const d = `[Meta-V:${mValue}|F:${mFeas}|S:${m.isShortlisted}|E:true]\n${m.cleanDesc}${mFeasDesc ? '\n\n---FEAS_DESC---\n' + mFeasDesc : ''}`;
                 setVotingIdeas(p => sortArr(p.map(i => i.id === selIdea.id ? { ...i, description: d } : i)));
                 if(client) {
@@ -531,7 +526,7 @@
             };
 
             const onToggleShortlist = async (idea, e) => {
-                if (e) e.stopPropagation();
+                if (e) { e.preventDefault(); e.stopPropagation(); }
                 const m = extractMeta(idea.description);
                 const newS = !m.isShortlisted;
                 const dynValue = m.isEvaluated ? m.valueLevel : getDynamicValueLevel(idea.votes);
@@ -781,8 +776,16 @@
                     {view === 'collab' && renderCollaborationView()}
                     {view === 'matrix' && renderMatrixView()}
 
-                    {/* Нууц админ горим асаах товч - Дэлгэцийн зүүн дээд буланд */}
-                    <button onClick={() => setIsAdmin(!isAdmin)} className="fixed top-0 left-0 w-16 h-16 opacity-0 z-[500] cursor-default" title=""></button>
+                    {/* Нууц админ горим асаах товч - Дэлгэцийн зүүн дээд буланд (Илүү том зайтай) */}
+                    <button 
+                        onClick={() => {
+                            const newAdminState = !isAdmin;
+                            setIsAdmin(newAdminState);
+                            showToast(newAdminState ? "🔓 Админ горим АСААЛТТАЙ" : "🔒 Админ горим унтарлаа");
+                        }} 
+                        className="fixed top-0 left-0 w-24 h-24 opacity-0 z-[500] cursor-default" 
+                        title="Toggle Admin Mode">
+                    </button>
 
                     <button onClick={downloadPainPoints} className="fixed bottom-0 left-0 w-16 h-16 opacity-0 z-[500] cursor-default" title=""></button>
                     <button onClick={downloadExcel} className="fixed bottom-0 right-0 w-16 h-16 opacity-0 z-[500] cursor-default" title=""></button>
@@ -792,7 +795,13 @@
                             <div className="bg-slate-900 border border-slate-700 w-full max-w-4xl p-6 md:p-8 rounded-[2.5rem] shadow-2xl relative my-auto flex flex-col" onClick={e => e.stopPropagation()}>
                                 <button className="absolute top-6 right-8 text-3xl text-slate-500 hover:text-white transition-colors" onClick={() => setEPPId(null)}>&times;</button>
                                 {isAdmin && (
-                                    <button className="absolute top-7 right-20 text-xl text-slate-500 hover:text-fuchsia-400 transition-colors" onClick={() => setIsEditingIdea(!isEditingIdea)} title="Admin Edit">✏️</button>
+                                    <button 
+                                        type="button"
+                                        className="absolute top-6 right-20 text-xs font-bold text-slate-300 hover:text-white transition-colors bg-slate-800 border border-slate-600 hover:bg-fuchsia-600 px-3 py-2 rounded-lg flex items-center gap-2 shadow-lg" 
+                                        onClick={(e) => { e.preventDefault(); e.stopPropagation(); setIsEditingIdea(!isEditingIdea); }}
+                                    >
+                                        ✏️ {isEditingIdea ? 'Болих' : 'Засах'}
+                                    </button>
                                 )}
                                 
                                 {isEditingIdea ? (
@@ -801,11 +810,11 @@
                                         <div><label className="text-xs text-slate-400">Хэлтэс</label><input className="w-full bg-slate-900/80 p-3 rounded-xl border border-slate-700" value={editForm?.teamInfo || editForm?.teaminfo || ''} onChange={e=>setEditForm({...editForm, teamInfo: e.target.value, teaminfo: e.target.value})} /></div>
                                         <div><label className="text-xs text-slate-400">Ангилал</label><input className="w-full bg-slate-900/80 p-3 rounded-xl border border-slate-700" value={editForm?.category || ''} onChange={e=>setEditForm({...editForm, category: e.target.value})} /></div>
                                         <div><label className="text-xs text-slate-400">Тайлбар (Meta тагуудыг оролцуулаад)</label><textarea rows="10" className="w-full bg-slate-900/80 p-3 rounded-xl border border-slate-700 font-mono text-xs custom-scrollbar" value={editForm?.description || ''} onChange={e=>setEditForm({...editForm, description: e.target.value})} /></div>
-                                        <button onClick={onAdminSave} className="bg-fuchsia-600 hover:bg-fuchsia-500 text-white p-3 rounded-xl font-bold transition-colors w-full mt-2">Хадгалах (Admin)</button>
+                                        <button type="button" onClick={(e) => { e.preventDefault(); onAdminSave(); }} className="bg-fuchsia-600 hover:bg-fuchsia-500 text-white p-3 rounded-xl font-bold transition-colors w-full mt-2">Хадгалах (Admin)</button>
                                     </div>
                                 ) : (
                                     <>
-                                        <div className="mb-4 border-b border-slate-800 pb-4 pr-12">
+                                        <div className="mb-4 border-b border-slate-800 pb-4 pr-12 mt-2">
                                             <div className="text-xs font-bold text-fuchsia-400 uppercase tracking-widest mb-2">{selPP.teamInfo || selPP.teaminfo}</div>
                                             <h2 className="text-2xl md:text-3xl font-black text-white mb-2">{selPP.projectName || selPP.projectname}</h2>
                                         </div>
@@ -841,7 +850,13 @@
                             <div className="bg-slate-900 border border-slate-700 w-full max-w-4xl p-6 md:p-8 rounded-[2.5rem] shadow-2xl relative my-auto flex flex-col max-h-[90vh]" onClick={e => e.stopPropagation()}>
                                 <button className="absolute top-6 right-8 text-3xl text-slate-500 hover:text-white transition-colors" onClick={() => setSelectedId(null)}>&times;</button>
                                 {isAdmin && (
-                                    <button className="absolute top-7 right-20 text-xl text-slate-500 hover:text-cyan-400 transition-colors" onClick={() => setIsEditingIdea(!isEditingIdea)} title="Admin Edit">✏️</button>
+                                    <button 
+                                        type="button"
+                                        className="absolute top-6 right-20 text-xs font-bold text-slate-300 hover:text-white transition-colors bg-slate-800 border border-slate-600 hover:bg-cyan-600 px-3 py-2 rounded-lg flex items-center gap-2 shadow-lg z-10" 
+                                        onClick={(e) => { e.preventDefault(); e.stopPropagation(); setIsEditingIdea(!isEditingIdea); }}
+                                    >
+                                        ✏️ {isEditingIdea ? 'Болих' : 'Засах'}
+                                    </button>
                                 )}
                                 
                                 <div className="flex flex-col min-h-0 flex-grow">
@@ -851,11 +866,11 @@
                                             <div><label className="text-xs text-slate-400">Баг / Хариуцагч</label><input className="w-full bg-slate-900/80 p-3 rounded-xl border border-slate-700" value={editForm?.teamInfo || editForm?.teaminfo || ''} onChange={e=>setEditForm({...editForm, teamInfo: e.target.value, teaminfo: e.target.value})} /></div>
                                             <div><label className="text-xs text-slate-400">Ангилал</label><input className="w-full bg-slate-900/80 p-3 rounded-xl border border-slate-700" value={editForm?.category || ''} onChange={e=>setEditForm({...editForm, category: e.target.value})} /></div>
                                             <div><label className="text-xs text-slate-400">Тайлбар (Meta тагуудыг оролцуулаад)</label><textarea rows="10" className="w-full bg-slate-900/80 p-3 rounded-xl border border-slate-700 font-mono text-xs custom-scrollbar" value={editForm?.description || ''} onChange={e=>setEditForm({...editForm, description: e.target.value})} /></div>
-                                            <button onClick={onAdminSave} className="bg-cyan-600 hover:bg-cyan-500 text-white p-3 rounded-xl font-bold transition-colors w-full mt-2">Хадгалах (Admin)</button>
+                                            <button type="button" onClick={(e) => { e.preventDefault(); onAdminSave(); }} className="bg-cyan-600 hover:bg-cyan-500 text-white p-3 rounded-xl font-bold transition-colors w-full mt-2">Хадгалах (Admin)</button>
                                         </div>
                                     ) : (
                                         <>
-                                            <div className="mb-4 border-b border-slate-800 pb-4 pr-12 shrink-0">
+                                            <div className="mb-4 border-b border-slate-800 pb-4 pr-12 shrink-0 mt-2">
                                                 <div className="text-xs font-bold text-cyan-400 uppercase tracking-widest mb-2">{selIdea.teamInfo || selIdea.teaminfo}</div>
                                                 <h2 className="text-2xl md:text-3xl font-black text-white mb-4">{selIdea.projectName || selIdea.projectname}</h2>
                                                 
@@ -882,7 +897,7 @@
                                                     )}
                                                 </div>
                                                 
-                                                <button onClick={(e) => onToggleShortlist(selIdea, e)} className={`mt-3 px-4 py-2 rounded-xl text-xs font-bold transition-all border flex items-center gap-2 w-max shadow-md ${extractMeta(selIdea.description).isShortlisted ? 'bg-amber-500 text-slate-900 border-amber-500 hover:bg-amber-400' : 'bg-slate-800 text-amber-400 border-amber-500/50 hover:bg-slate-700 hover:border-amber-400'}`}>
+                                                <button type="button" onClick={(e) => onToggleShortlist(selIdea, e)} className={`mt-3 px-4 py-2 rounded-xl text-xs font-bold transition-all border flex items-center gap-2 w-max shadow-md ${extractMeta(selIdea.description).isShortlisted ? 'bg-amber-500 text-slate-900 border-amber-500 hover:bg-amber-400' : 'bg-slate-800 text-amber-400 border-amber-500/50 hover:bg-slate-700 hover:border-amber-400'}`}>
                                                     {extractMeta(selIdea.description).isShortlisted ? '⭐ Shortlisted (Буцаах)' : '⭐ Shortlist-д нэмэх'}
                                                 </button>
                                             </div>
@@ -915,6 +930,7 @@
                                                                     const bgClass = lvl === 'High' ? 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30' : lvl === 'Medium' ? 'bg-amber-500/20 text-amber-400 border-amber-500/30' : 'bg-slate-500/20 text-slate-400 border-slate-500/30';
                                                                     return (
                                                                         <button 
+                                                                            type="button"
                                                                             key={`val-${lvl}`} 
                                                                             onClick={() => !extractMeta(selIdea.description).isEvaluated && setMValue(lvl)} 
                                                                             disabled={extractMeta(selIdea.description).isEvaluated}
@@ -933,6 +949,7 @@
                                                                     const bgClass = lvl === 'High' ? 'bg-blue-500/20 text-blue-400 border-blue-500/30' : lvl === 'Medium' ? 'bg-orange-500/20 text-orange-400 border-orange-500/30' : 'bg-rose-500/20 text-rose-400 border-rose-500/30';
                                                                     return (
                                                                         <button 
+                                                                            type="button"
                                                                             key={`feas-${lvl}`} 
                                                                             onClick={() => !extractMeta(selIdea.description).isEvaluated && setMFeas(lvl)} 
                                                                             disabled={extractMeta(selIdea.description).isEvaluated}
@@ -961,7 +978,7 @@
                                                                     className="flex-grow p-2 md:p-2.5 bg-slate-900/80 border border-slate-700 rounded-lg outline-none focus:border-blue-500 text-xs md:text-sm text-slate-200 shadow-inner resize-y custom-scrollbar" 
                                                                     placeholder="Технологийн багийн дүгнэлт..." 
                                                                 />
-                                                                <button onClick={onSaveFeas} className="px-4 py-2 h-max bg-blue-600 text-white rounded-lg text-xs font-bold shadow-md hover:bg-blue-500 transition-colors whitespace-nowrap">
+                                                                <button type="button" onClick={(e) => { e.preventDefault(); onSaveFeas(); }} className="px-4 py-2 h-max bg-blue-600 text-white rounded-lg text-xs font-bold shadow-md hover:bg-blue-500 transition-colors whitespace-nowrap">
                                                                     Хадгалах
                                                                 </button>
                                                             </div>
@@ -972,7 +989,7 @@
                                             
                                             <div className="pt-4 mt-4 border-t border-slate-800 flex justify-between items-center shrink-0">
                                                 <div className="text-2xl font-black text-white flex flex-col"><span className="text-[9px] font-bold text-emerald-400 uppercase tracking-widest mb-0.5">Нийт санал</span>{selIdea.votes || 0}</div>
-                                                <button onClick={() => onVote(selIdea)} className={`px-8 py-3 rounded-xl text-sm font-bold shadow-lg transition-all ${selIdea.voters?.includes(user?.uid) ? 'bg-emerald-500 text-slate-900' : 'bg-cyan-600 text-white hover:bg-cyan-500'}`}>{selIdea.voters?.includes(user?.uid) ? '✓ Санал өгсөн' : 'Санал өгөх'}</button>
+                                                <button type="button" onClick={() => onVote(selIdea)} className={`px-8 py-3 rounded-xl text-sm font-bold shadow-lg transition-all ${selIdea.voters?.includes(user?.uid) ? 'bg-emerald-500 text-slate-900' : 'bg-cyan-600 text-white hover:bg-cyan-500'}`}>{selIdea.voters?.includes(user?.uid) ? '✓ Санал өгсөн' : 'Санал өгөх'}</button>
                                             </div>
                                         </>
                                     )}
