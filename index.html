@@ -506,6 +506,7 @@
             const onSaveFeas = async () => {
                 if(!selIdea) return;
                 const m = extractMeta(selIdea.description);
+                // mValue эсвэл mFeas аль нэг нь солигдоход isEvaluated=true болно
                 const d = `[Meta-V:${mValue}|F:${mFeas}|S:${m.isShortlisted}|E:true]\n${m.cleanDesc}${mFeasDesc ? '\n\n---FEAS_DESC---\n' + mFeasDesc : ''}`;
                 setVotingIdeas(p => sortArr(p.map(i => i.id === selIdea.id ? { ...i, description: d } : i)));
                 if(client) {
@@ -551,6 +552,20 @@
 
             const onAdminSave = async () => {
                 if(!editForm) return;
+                
+                let newDesc = editForm.description || '';
+                
+                // Хэрэв Pain point эсвэл Idea бол формын шинэ утгуудаар description-ийг угсрах
+                if (editForm.category === CAT_PAINPOINT) {
+                    if (editForm.pImpact !== undefined) {
+                        newDesc = `[PP-Impact:${editForm.pImpact}|Urgency:${editForm.pUrgency}]\n${editForm.cleanDesc}${editForm.discussion ? '\n\n---DISCUSSION---\n' + editForm.discussion : ''}`;
+                    }
+                } else {
+                    if (editForm.mValue !== undefined) {
+                        newDesc = `[Meta-V:${editForm.mValue}|F:${editForm.mFeas}|S:${editForm.mShortlisted}|E:${editForm.mEvaluated}]\n${editForm.cleanDesc}${editForm.feasDesc ? '\n\n---FEAS_DESC---\n' + editForm.feasDesc : ''}`;
+                    }
+                }
+
                 const dataToSave = {
                     id: editForm.id,
                     votes: editForm.votes || 0,
@@ -558,10 +573,10 @@
                     projectname: editForm.projectName || editForm.projectname || 'Idea',
                     teaminfo: editForm.teamInfo || editForm.teaminfo || 'Team',
                     category: editForm.category,
-                    description: editForm.description
+                    description: newDesc
                 };
                 
-                setVotingIdeas(p => sortArr(p.map(i => i.id === editForm.id ? { ...i, ...editForm, projectName: dataToSave.projectname, teamInfo: dataToSave.teaminfo } : i)));
+                setVotingIdeas(p => sortArr(p.map(i => i.id === editForm.id ? { ...i, ...editForm, projectName: dataToSave.projectname, teamInfo: dataToSave.teaminfo, description: newDesc } : i)));
                 
                 if(client) {
                     try {
@@ -650,7 +665,11 @@
                                 const deptColor = getDeptColor(pp.teamInfo || pp.teaminfo);
                                 
                                 return (
-                                    <div key={pp.id} onClick={() => { setEPPId(pp.id); setEditForm(pp); setIsEditingIdea(false); }} className={`bg-slate-800/50 p-5 md:p-6 rounded-3xl border ${deptColor.border} ${deptColor.hover} ${deptColor.glow} flex flex-col gap-3 relative transition-all cursor-pointer group shadow-lg`}>
+                                    <div key={pp.id} onClick={() => { 
+                                        setEPPId(pp.id); 
+                                        setEditForm({...pp, pImpact: m.impact, pUrgency: m.urgency, cleanDesc: m.cleanText, discussion: m.discussion}); 
+                                        setIsEditingIdea(false); 
+                                    }} className={`bg-slate-800/50 p-5 md:p-6 rounded-3xl border ${deptColor.border} ${deptColor.hover} ${deptColor.glow} flex flex-col gap-3 relative transition-all cursor-pointer group shadow-lg`}>
                                         <div className="flex justify-between items-start border-b border-slate-700/50 pb-3 relative">
                                             <div className="flex flex-col gap-2">
                                                 <span className="text-sm font-bold text-slate-300 group-hover:text-fuchsia-400 transition-colors">{pp.projectName || pp.projectname}</span>
@@ -707,7 +726,7 @@
                                         setMFeas(m.feasLevel);
                                         setMFeasDesc(m.feasDesc);
                                         setSelectedId(idea.id);
-                                        setEditForm(idea);
+                                        setEditForm({...idea, mValue: displayValue, mFeas: m.feasLevel, mShortlisted: m.isShortlisted, mEvaluated: m.isEvaluated, cleanDesc: m.cleanDesc, feasDesc: m.feasDesc});
                                         setIsEditingIdea(false);
                                     }} className={`bg-slate-800/50 p-6 rounded-2xl border transition-all cursor-pointer relative flex flex-col group shadow-lg ${cardBorder}`}>
                                         {m.isShortlisted && <div className="absolute -top-3 -right-2 bg-amber-500 text-slate-900 text-[10px] font-black px-3 py-1 rounded-full z-10 shadow-md uppercase">⭐ Shortlisted</div>}
@@ -797,7 +816,7 @@
                                 {isAdmin && (
                                     <button 
                                         type="button"
-                                        className="absolute top-6 right-20 text-xs font-bold text-slate-300 hover:text-white transition-colors bg-slate-800 border border-slate-600 hover:bg-fuchsia-600 px-3 py-2 rounded-lg flex items-center gap-2 shadow-lg" 
+                                        className="absolute top-6 right-20 text-xs font-bold text-slate-300 hover:text-white transition-colors bg-slate-800 border border-slate-600 hover:bg-fuchsia-600 px-3 py-2 rounded-lg flex items-center gap-2 shadow-lg z-10" 
                                         onClick={(e) => { e.preventDefault(); e.stopPropagation(); setIsEditingIdea(!isEditingIdea); }}
                                     >
                                         ✏️ {isEditingIdea ? 'Болих' : 'Засах'}
@@ -806,10 +825,32 @@
                                 
                                 {isEditingIdea ? (
                                     <div className="flex flex-col gap-4 w-full text-slate-200 mt-8 overflow-y-auto custom-scrollbar p-2">
-                                        <div><label className="text-xs text-slate-400">Асуудлын нэр / Бүртгэсэн хүн</label><input className="w-full bg-slate-900/80 p-3 rounded-xl border border-slate-700" value={editForm?.projectName || editForm?.projectname || ''} onChange={e=>setEditForm({...editForm, projectName: e.target.value, projectname: e.target.value})} /></div>
-                                        <div><label className="text-xs text-slate-400">Хэлтэс</label><input className="w-full bg-slate-900/80 p-3 rounded-xl border border-slate-700" value={editForm?.teamInfo || editForm?.teaminfo || ''} onChange={e=>setEditForm({...editForm, teamInfo: e.target.value, teaminfo: e.target.value})} /></div>
-                                        <div><label className="text-xs text-slate-400">Ангилал</label><input className="w-full bg-slate-900/80 p-3 rounded-xl border border-slate-700" value={editForm?.category || ''} onChange={e=>setEditForm({...editForm, category: e.target.value})} /></div>
-                                        <div><label className="text-xs text-slate-400">Тайлбар (Meta тагуудыг оролцуулаад)</label><textarea rows="10" className="w-full bg-slate-900/80 p-3 rounded-xl border border-slate-700 font-mono text-xs custom-scrollbar" value={editForm?.description || ''} onChange={e=>setEditForm({...editForm, description: e.target.value})} /></div>
+                                        <div><label className="text-xs text-slate-400">Асуудлын нэр / Бүртгэсэн хүн</label><input className="w-full bg-slate-900/80 p-3 rounded-xl border border-slate-700 focus:border-fuchsia-500 outline-none transition-colors" value={editForm?.projectName || editForm?.projectname || ''} onChange={e=>setEditForm({...editForm, projectName: e.target.value, projectname: e.target.value})} /></div>
+                                        <div><label className="text-xs text-slate-400">Хэлтэс</label><input className="w-full bg-slate-900/80 p-3 rounded-xl border border-slate-700 focus:border-fuchsia-500 outline-none transition-colors" value={editForm?.teamInfo || editForm?.teaminfo || ''} onChange={e=>setEditForm({...editForm, teamInfo: e.target.value, teaminfo: e.target.value})} /></div>
+                                        <div><label className="text-xs text-slate-400">Ангилал</label><input className="w-full bg-slate-900/80 p-3 rounded-xl border border-slate-700 focus:border-fuchsia-500 outline-none transition-colors" value={editForm?.category || ''} onChange={e=>setEditForm({...editForm, category: e.target.value})} /></div>
+                                        
+                                        <div className="flex gap-4">
+                                            <div className="w-1/2">
+                                                <label className="text-xs text-slate-400">Нөлөөлөл (Impact)</label>
+                                                <select className="w-full bg-slate-900/80 p-3 rounded-xl border border-slate-700 mt-1 focus:border-fuchsia-500 outline-none transition-colors text-slate-200" value={editForm?.pImpact || 'None'} onChange={e=>setEditForm({...editForm, pImpact: e.target.value})}>
+                                                    <option value="High">High</option>
+                                                    <option value="Low">Low</option>
+                                                    <option value="None">None</option>
+                                                </select>
+                                            </div>
+                                            <div className="w-1/2">
+                                                <label className="text-xs text-slate-400">Яаралтай эсэх (Urgency)</label>
+                                                <select className="w-full bg-slate-900/80 p-3 rounded-xl border border-slate-700 mt-1 focus:border-fuchsia-500 outline-none transition-colors text-slate-200" value={editForm?.pUrgency || 'None'} onChange={e=>setEditForm({...editForm, pUrgency: e.target.value})}>
+                                                    <option value="Urgent">Urgent</option>
+                                                    <option value="Not Urgent">Not Urgent</option>
+                                                    <option value="None">None</option>
+                                                </select>
+                                            </div>
+                                        </div>
+
+                                        <div><label className="text-xs text-slate-400">Асуудал</label><textarea rows="4" className="w-full bg-slate-900/80 p-3 rounded-xl border border-slate-700 focus:border-fuchsia-500 outline-none transition-colors font-mono text-xs custom-scrollbar" value={editForm?.cleanDesc || ''} onChange={e=>setEditForm({...editForm, cleanDesc: e.target.value})} /></div>
+                                        <div><label className="text-xs text-slate-400">Ярилцсан зүйл</label><textarea rows="3" className="w-full bg-slate-900/80 p-3 rounded-xl border border-slate-700 focus:border-fuchsia-500 outline-none transition-colors font-mono text-xs custom-scrollbar" value={editForm?.discussion || ''} onChange={e=>setEditForm({...editForm, discussion: e.target.value})} /></div>
+                                        
                                         <button type="button" onClick={(e) => { e.preventDefault(); onAdminSave(); }} className="bg-fuchsia-600 hover:bg-fuchsia-500 text-white p-3 rounded-xl font-bold transition-colors w-full mt-2">Хадгалах (Admin)</button>
                                     </div>
                                 ) : (
@@ -862,10 +903,42 @@
                                 <div className="flex flex-col min-h-0 flex-grow">
                                     {isEditingIdea ? (
                                         <div className="flex flex-col gap-4 w-full text-slate-200 mt-8 overflow-y-auto custom-scrollbar p-2">
-                                            <div><label className="text-xs text-slate-400">Төслийн нэр</label><input className="w-full bg-slate-900/80 p-3 rounded-xl border border-slate-700" value={editForm?.projectName || editForm?.projectname || ''} onChange={e=>setEditForm({...editForm, projectName: e.target.value, projectname: e.target.value})} /></div>
-                                            <div><label className="text-xs text-slate-400">Баг / Хариуцагч</label><input className="w-full bg-slate-900/80 p-3 rounded-xl border border-slate-700" value={editForm?.teamInfo || editForm?.teaminfo || ''} onChange={e=>setEditForm({...editForm, teamInfo: e.target.value, teaminfo: e.target.value})} /></div>
-                                            <div><label className="text-xs text-slate-400">Ангилал</label><input className="w-full bg-slate-900/80 p-3 rounded-xl border border-slate-700" value={editForm?.category || ''} onChange={e=>setEditForm({...editForm, category: e.target.value})} /></div>
-                                            <div><label className="text-xs text-slate-400">Тайлбар (Meta тагуудыг оролцуулаад)</label><textarea rows="10" className="w-full bg-slate-900/80 p-3 rounded-xl border border-slate-700 font-mono text-xs custom-scrollbar" value={editForm?.description || ''} onChange={e=>setEditForm({...editForm, description: e.target.value})} /></div>
+                                            <div><label className="text-xs text-slate-400">Төслийн нэр</label><input className="w-full bg-slate-900/80 p-3 rounded-xl border border-slate-700 focus:border-cyan-500 outline-none transition-colors" value={editForm?.projectName || editForm?.projectname || ''} onChange={e=>setEditForm({...editForm, projectName: e.target.value, projectname: e.target.value})} /></div>
+                                            <div><label className="text-xs text-slate-400">Баг / Хариуцагч</label><input className="w-full bg-slate-900/80 p-3 rounded-xl border border-slate-700 focus:border-cyan-500 outline-none transition-colors" value={editForm?.teamInfo || editForm?.teaminfo || ''} onChange={e=>setEditForm({...editForm, teamInfo: e.target.value, teaminfo: e.target.value})} /></div>
+                                            <div><label className="text-xs text-slate-400">Ангилал</label><input className="w-full bg-slate-900/80 p-3 rounded-xl border border-slate-700 focus:border-cyan-500 outline-none transition-colors" value={editForm?.category || ''} onChange={e=>setEditForm({...editForm, category: e.target.value})} /></div>
+                                            
+                                            <div className="flex flex-wrap gap-4">
+                                                <div className="flex-1 min-w-[120px]">
+                                                    <label className="text-xs text-slate-400">Бизнес үнэ цэн</label>
+                                                    <select className="w-full bg-slate-900/80 p-3 rounded-xl border border-slate-700 mt-1 focus:border-cyan-500 outline-none transition-colors text-slate-200" value={editForm?.mValue || 'Medium'} onChange={e=>setEditForm({...editForm, mValue: e.target.value})}>
+                                                        <option value="High">High</option>
+                                                        <option value="Medium">Medium</option>
+                                                        <option value="Low">Low</option>
+                                                    </select>
+                                                </div>
+                                                <div className="flex-1 min-w-[120px]">
+                                                    <label className="text-xs text-slate-400">Боломж (Feasibility)</label>
+                                                    <select className="w-full bg-slate-900/80 p-3 rounded-xl border border-slate-700 mt-1 focus:border-cyan-500 outline-none transition-colors text-slate-200" value={editForm?.mFeas || 'Medium'} onChange={e=>setEditForm({...editForm, mFeas: e.target.value})}>
+                                                        <option value="High">High</option>
+                                                        <option value="Medium">Medium</option>
+                                                        <option value="Low">Low</option>
+                                                    </select>
+                                                </div>
+                                                <div className="flex-1 flex flex-col justify-center gap-2 mt-4">
+                                                    <label className="flex items-center gap-2 cursor-pointer">
+                                                        <input type="checkbox" checked={editForm?.mShortlisted || false} onChange={e=>setEditForm({...editForm, mShortlisted: e.target.checked})} className="w-4 h-4 accent-amber-500 rounded" />
+                                                        <span className="text-sm font-bold text-amber-400">Shortlisted (⭐)</span>
+                                                    </label>
+                                                    <label className="flex items-center gap-2 cursor-pointer">
+                                                        <input type="checkbox" checked={editForm?.mEvaluated || false} onChange={e=>setEditForm({...editForm, mEvaluated: e.target.checked})} className="w-4 h-4 accent-blue-500 rounded" />
+                                                        <span className="text-sm font-bold text-blue-400">Үнэлэгдсэн (Түгжигдсэн)</span>
+                                                    </label>
+                                                </div>
+                                            </div>
+
+                                            <div><label className="text-xs text-slate-400">Тайлбар</label><textarea rows="6" className="w-full bg-slate-900/80 p-3 rounded-xl border border-slate-700 focus:border-cyan-500 outline-none transition-colors font-mono text-xs custom-scrollbar" value={editForm?.cleanDesc || ''} onChange={e=>setEditForm({...editForm, cleanDesc: e.target.value})} /></div>
+                                            <div><label className="text-xs text-slate-400">Tech Team (Тайлбар)</label><textarea rows="3" className="w-full bg-slate-900/80 p-3 rounded-xl border border-slate-700 focus:border-cyan-500 outline-none transition-colors font-mono text-xs custom-scrollbar" value={editForm?.feasDesc || ''} onChange={e=>setEditForm({...editForm, feasDesc: e.target.value})} /></div>
+                                            
                                             <button type="button" onClick={(e) => { e.preventDefault(); onAdminSave(); }} className="bg-cyan-600 hover:bg-cyan-500 text-white p-3 rounded-xl font-bold transition-colors w-full mt-2">Хадгалах (Admin)</button>
                                         </div>
                                     ) : (
